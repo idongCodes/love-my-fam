@@ -1,0 +1,81 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { login } from './actions'
+
+export default function LoginPage() {
+  const [error, setError] = useState('')
+  const router = useRouter()
+
+  async function handleSubmit(formData: FormData) {
+    const result = await login(formData)
+    
+    if (result.success) {
+      router.push('/common-room') // Success! Go to the room.
+    } else {
+      setError(result.message || "An unexpected error occurred.")
+    }
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-brand-sky/10 px-4">
+      <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full border border-slate-100">
+        
+        <h1 className="text-3xl font-bold text-center text-brand-sky mb-2">Family Login</h1>
+        <p className="text-center text-slate-400 mb-8">Enter your email and the family secret.</p>
+
+        <form action={handleSubmit} className="space-y-4">
+          
+          {/* Email Field */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Your Email</label>
+            <input 
+              name="email" 
+              type="email" 
+              required
+              placeholder="you@example.com"
+              className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-sky focus:outline-none"
+            />
+          </div>
+
+          {/* Secret Field */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Family Secret</label>
+            <input 
+              name="password" 
+              type="password" 
+              required
+              placeholder="What is the secret?"
+              className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-sky focus:outline-none"
+            />
+          </div>
+
+          {/* Error Message Display */}
+          {error && (
+            <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">{error}</p>
+          )}
+
+          {/* Submit Button */}
+          <button 
+            type="submit" 
+            className="w-full bg-brand-pink text-slate-800 font-bold py-3 rounded-lg hover:brightness-105 transition-all shadow-sm"
+          >
+            Open the Door
+          </button>
+        </form>
+
+        {/* Footer Links */}
+        <div className="mt-8 text-center space-y-3">
+          <Link href="/register" className="block text-sm text-brand-sky font-bold hover:underline">
+            New to the family? Register here
+          </Link>
+          <Link href="/" className="block text-sm text-slate-400 hover:text-brand-sky transition-colors">
+            ← Back Home
+          </Link>
+        </div>
+      </div>
+    </main>
+  )
+}
