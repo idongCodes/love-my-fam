@@ -1,0 +1,888 @@
+
+================================================================================
+FILE: ./tsconfig.json
+================================================================================
+
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+
+
+================================================================================
+FILE: ./README.md
+================================================================================
+
+# 💖 LoveMyFam (LMF)
+
+### "A safe space for family. No strangers. No public. Just family."
+
+-----
+
+## 💡 The Mission
+
+In the age of endless notifications and cluttered group chats, staying genuinely connected with family often feels like a chore. **LoveMyFam** is designed to eliminate the friction and fatigue of modern communication methods—no more long, unplanned phone calls or searching through hundreds of text messages for one update.
+
+LMF provides a private, asynchronous space built to facilitate **genuine and lasting communication** among family members.
+
+## 🏡 The Common Room (CR)
+
+The **Common Room** is the heart of the app. It acts as a central hub where all family members (FMs) can post concerns, share life updates, and collaborate on planning.
+
+### Why Post to the Common Room?
+
+| Pain Point Solved | LMF Solution |
+| :--- | :--- |
+| **Call Fatigue** | Skip the hassle of long phone calls and multiple video calls. |
+| **Cluttered Group Chats**| Post one update, and *everyone* sees it, ensuring crucial information isn't missed. |
+| **Exclusivity** | Our motto is our architecture: This is a **private, non-public** space. |
+
+## ✨ Current Features (MVP)
+
+As an ongoing project driven by continuous learning, the current feature set focuses on core communication:
+
+  * **Secure Sign-In:** Authenticates family members to ensure platform exclusivity.
+  * **Real-Time Feed:** Instantly pushes new updates to all active family members without requiring a page refresh.
+  * **Asynchronous Posting:** Family members can post updates at their convenience.
+  * **Database:** (Planned upgrade to PostgreSQL/Prisma).
+
+## 🚀 The Development Journey
+
+This project serves as a commitment to my ongoing growth as a full-stack developer. Building **LoveMyFam** allows me to integrate and master key concepts as I learn them.
+
+| Technology Focus | Status & Goal |
+| :--- | :--- |
+| **Frontend** | **Next.js (App Router)**: Using React Server Components and Tailwind CSS. |
+| **Backend** | **Next.js API Routes**: Handling business logic and database interactions. |
+| **Deployment** | **Vercel**: Serverless deployment for instant scalability. |
+
+-----
+
+## 🔗 Connect with Me
+
+Follow my journey as I build out new features for LMF and tackle new challenges!
+
+[![My BlueSky Profile](https://img.shields.io/badge/BlueSky-0077B5?style=for-the-badge&logo=bluesky&logoColor=white)](https://bsky.app/profile/idongcodes.bsky.social)
+[![My LinkedIn Profile](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/idongcodes/)
+
+
+================================================================================
+FILE: ./package.json
+================================================================================
+
+{
+  "name": "love-my-fam",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "next": "16.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.0",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  }
+}
+
+
+================================================================================
+FILE: ./next.config.ts
+================================================================================
+
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  reactCompiler: true,
+};
+
+export default nextConfig;
+
+
+================================================================================
+FILE: ./next-env.d.ts
+================================================================================
+
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+import "./.next/dev/types/routes.d.ts";
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+
+================================================================================
+FILE: ./src/middleware.ts
+================================================================================
+
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  // 1. Get the session cookie
+  const session = request.cookies.get('session_id')
+
+  // 2. Check if the user is trying to access a protected route
+  if (request.nextUrl.pathname.startsWith('/common-room')) {
+    // 3. If no session exists, kick them out to the login page
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+  }
+
+  return NextResponse.next()
+}
+
+// Configure which paths the middleware runs on
+export const config = {
+  matcher: '/common-room/:path*',
+}
+
+
+================================================================================
+FILE: ./src/app/globals.css
+================================================================================
+
+@import "tailwindcss";
+
+@theme {
+  /* This automatically creates bg-brand-sky, text-brand-pink, etc. */
+  --color-brand-sky: #87CEEB;    /* Sky blue */
+  --color-brand-pink: #FFC5D3;   /* Blush Pink */
+  --color-brand-yellow: #FFFFC5; /* Pale Yellow */
+  --color-brand-cream: #FDFBD4;  /* Cream */
+}
+
+/* You can keep your standard CSS below if you want */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+
+================================================================================
+FILE: ./src/app/layout.tsx
+================================================================================
+
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
+  );
+}
+
+
+================================================================================
+FILE: ./src/app/page.tsx
+================================================================================
+
+import Image from "next/image";
+import Link from "next/link";
+
+export default function Home() {
+  return (
+    <main className="min-h-screen flex flex-col font-sans text-slate-800">
+      
+      {/* --- HERO SECTION --- */}
+      <section className="relative bg-brand-sky text-white pt-24 pb-32 px-6 text-center overflow-hidden">
+        
+        {/* BACKGROUND IMAGE LAYER (The Fade Effect) */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/mom_charlie_bg.jpg"
+            alt="Mom and Charlie background"
+            fill
+            className="object-cover opacity-30" // Adjust opacity (20-50) if needed
+            priority
+          />
+          {/* THE GRADIENT OVERLAY: Transparent top -> Solid Blue bottom */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-sky/20 to-brand-sky"></div>
+        </div>
+
+        {/* CONTENT LAYER (z-10 sits on top of the background) */}
+        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
+          
+          {/* Main Headline */}
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight drop-shadow-md">
+            LoveMyFam
+          </h1>
+          
+          {/* Tagline */}
+          <p className="text-brand-cream text-xl md:text-2xl font-medium max-w-2xl leading-relaxed mb-12 drop-shadow-sm">
+            "A safe space for family. No strangers. No public. Just family."
+          </p>
+
+          {/* Call to Actions */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+            <Link 
+              href="/common-room"
+              className="bg-brand-yellow text-slate-800 px-8 py-4 rounded-full font-bold shadow-lg hover:bg-white hover:scale-105 transition-all text-lg"
+            >
+              Enter Common Room
+            </Link>
+            <button className="bg-brand-pink text-slate-800 px-8 py-4 rounded-full font-bold shadow-lg hover:brightness-110 hover:scale-105 transition-all text-lg">
+              Join Family
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* --- THE MISSION (WHY?) --- */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-8 text-brand-sky">The Mission</h2>
+          <p className="text-lg text-slate-600 leading-relaxed mb-8">
+            In the age of endless notifications and cluttered group chats, staying genuinely connected feels like a chore. 
+            <strong className="text-brand-pink"> LoveMyFam</strong> is designed to eliminate friction. 
+            No more long, unplanned phone calls or searching through hundreds of text messages for one update.
+          </p>
+        </div>
+      </section>
+
+      {/* --- FEATURES GRID --- */}
+      <section className="bg-brand-cream py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-bold mb-12 text-center text-slate-700">How It Works</h2>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-4xl mb-4">🏡</div>
+              <h3 className="font-bold text-xl mb-3 text-brand-sky">The Common Room</h3>
+              <p className="text-slate-600">
+                One central hub for updates. Post once, and everyone sees it. No one gets left out.
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-4xl mb-4">🔇</div>
+              <h3 className="font-bold text-xl mb-3 text-brand-sky">Beat Call Fatigue</h3>
+              <p className="text-slate-600">
+                Skip the hassle of scheduling video calls. Post asynchronous updates when you are free.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-4xl mb-4">🔒</div>
+              <h3 className="font-bold text-xl mb-3 text-brand-sky">Invite Only</h3>
+              <p className="text-slate-600">
+                Protected by family trivia. "What is your aunt's middle name?" keeps strangers out.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* --- FOOTER --- */}
+      <footer className="bg-slate-800 text-brand-sky py-10 text-center">
+        <p className="font-medium">© {new Date().getFullYear()} LoveMyFam.</p>
+        <p className="text-sm text-slate-500 mt-2">Built with ❤️ by idongCodes</p>
+      </footer>
+    </main>
+  );
+}
+
+
+================================================================================
+FILE: ./src/app/login/page.tsx
+================================================================================
+
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { login } from './actions'
+
+export default function LoginPage() {
+  const [error, setError] = useState('')
+  const router = useRouter()
+
+  async function handleSubmit(formData: FormData) {
+    const result = await login(formData)
+    
+    if (result.success) {
+      router.push('/common-room') // Success! Go to the room.
+    } else {
+      setError(result.message || "An unexpected error occurred.")
+    }
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-brand-sky/10 px-4">
+      <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full border border-slate-100">
+        
+        <h1 className="text-3xl font-bold text-center text-brand-sky mb-2">Family Login</h1>
+        <p className="text-center text-slate-400 mb-8">Enter your email and the family secret.</p>
+
+        <form action={handleSubmit} className="space-y-4">
+          
+          {/* Email Field */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Your Email</label>
+            <input 
+              name="email" 
+              type="email" 
+              required
+              placeholder="you@example.com"
+              className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-sky focus:outline-none"
+            />
+          </div>
+
+          {/* Secret Field */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Family Secret</label>
+            <input 
+              name="password" 
+              type="password" 
+              required
+              placeholder="What is the secret?"
+              className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-sky focus:outline-none"
+            />
+          </div>
+
+          {/* Error Message Display */}
+          {error && (
+            <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">{error}</p>
+          )}
+
+          {/* Submit Button */}
+          <button 
+            type="submit" 
+            className="w-full bg-brand-pink text-slate-800 font-bold py-3 rounded-lg hover:brightness-105 transition-all shadow-sm"
+          >
+            Open the Door
+          </button>
+        </form>
+
+        {/* Footer Links */}
+        <div className="mt-8 text-center space-y-3">
+          <Link href="/register" className="block text-sm text-brand-sky font-bold hover:underline">
+            New to the family? Register here
+          </Link>
+          <Link href="/" className="block text-sm text-slate-400 hover:text-brand-sky transition-colors">
+            ← Back Home
+          </Link>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+
+================================================================================
+FILE: ./src/app/login/actions.ts
+================================================================================
+
+'use server'
+
+import { PrismaClient } from '@prisma/client'
+import { cookies } from 'next/headers'
+
+const prisma = new PrismaClient()
+
+export async function login(formData: FormData) {
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  // 1. Check the Shared Family Secret
+  if (password !== 'familyfirst') {
+    return { success: false, message: 'Wrong family secret!' }
+  }
+
+  // 2. Check if the user exists in our Database
+  const user = await prisma.user.findUnique({
+    where: { email: email }
+  })
+
+  if (!user) {
+    return { success: false, message: 'Email not found. Please register first!' }
+  }
+
+  // 3. Set the Session Cookie
+  cookies().set('session_id', user.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: '/',
+  })
+
+  return { success: true }
+}
+
+
+================================================================================
+FILE: ./src/app/register/page.tsx
+================================================================================
+
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { registerUser } from './actions'
+
+export default function RegisterPage() {
+  const [error, setError] = useState('')
+  const [answer, setAnswer] = useState('') // Track what they type
+  const router = useRouter()
+
+  // Check if they got it right (Case insensitive)
+  const isSecurityCorrect = answer.trim().toLowerCase() === 'mercy'
+
+  async function handleSubmit(formData: FormData) {
+    const result = await registerUser(formData)
+    
+    if (result.success) {
+      router.push('/common-room')
+    } else {
+      setError(result.message || "Something went wrong")
+    }
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-brand-cream/30 px-4 py-10">
+      <div className="bg-white p-8 rounded-2xl shadow-lg max-w-lg w-full border border-slate-100">
+        
+        <h1 className="text-3xl font-bold text-center text-brand-sky mb-2">Join the Family</h1>
+        <p className="text-center text-slate-400 mb-8">Create your profile to enter the Common Room.</p>
+
+        <form action={handleSubmit} className="space-y-4">
+          
+          {/* PERSONAL DETAILS */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">FIRST NAME</label>
+              <input name="firstName" required className="w-full p-3 rounded-lg bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">LAST NAME</label>
+              <input name="lastName" required className="w-full p-3 rounded-lg bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1">PREFERRED ALIAS (Optional)</label>
+            <input name="alias" placeholder="What should we call you?" className="w-full p-3 rounded-lg bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">PHONE</label>
+              <input name="phone" type="tel" required className="w-full p-3 rounded-lg bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">EMAIL</label>
+              <input name="email" type="email" required className="w-full p-3 rounded-lg bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none" />
+            </div>
+          </div>
+
+          {/* SECURITY QUESTION */}
+          <div className={`p-4 rounded-xl border transition-colors duration-500 ${isSecurityCorrect ? 'bg-green-50 border-green-200' : 'bg-brand-yellow/20 border-brand-yellow'}`}>
+            <label className="block text-sm font-bold text-slate-700 mb-2">
+              🔒 Security Question
+            </label>
+            <p className="text-sm text-slate-600 mb-3 italic">
+              "What is Charlie's Grandma's name on her Father's side?"
+            </p>
+            <input 
+              name="securityAnswer" 
+              required 
+              placeholder="Answer..."
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              className="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-pink outline-none" 
+            />
+          </div>
+
+          {/* HIDDEN "POSITION" FIELD - APPEARS ON SUCCESS */}
+          {isSecurityCorrect && (
+            <div className="animate-fade-in-down">
+              <div className="bg-brand-sky/10 p-4 rounded-xl border border-brand-sky mt-4">
+                <label className="block text-sm font-bold text-brand-sky mb-2">
+                  ✅ Correct! One last thing...
+                </label>
+                <p className="text-xs text-slate-500 mb-2">How are you related to the family? (e.g. Cousin, Aunt, Friend)</p>
+                <input 
+                  name="position" 
+                  required 
+                  placeholder="I am a..."
+                  className="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-sky outline-none" 
+                />
+              </div>
+              
+              <button 
+                type="submit" 
+                className="w-full bg-brand-sky text-white font-bold py-4 rounded-xl shadow-md hover:bg-sky-500 transition-all mt-4"
+              >
+                Complete Registration
+              </button>
+            </div>
+          )}
+
+          {error && (
+            <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded mt-2">{error}</p>
+          )}
+
+        </form>
+
+        <div className="mt-6 text-center">
+          <Link href="/login" className="text-sm text-brand-pink font-bold hover:underline">
+            Already have an account? Login here
+          </Link>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+
+================================================================================
+FILE: ./src/app/register/actions.ts
+================================================================================
+
+'use server'
+
+import { PrismaClient } from '@prisma/client'
+import { cookies } from 'next/headers'
+
+const prisma = new PrismaClient()
+
+export async function registerUser(formData: FormData) {
+  const firstName = formData.get('firstName') as string
+  const lastName = formData.get('lastName') as string
+  const alias = formData.get('alias') as string || firstName
+  const email = formData.get('email') as string
+  const phone = formData.get('phone') as string
+  const securityAnswer = formData.get('securityAnswer') as string
+  
+  // 1. GRAB THE POSITION FROM THE FORM
+  const position = formData.get('position') as string 
+
+  // 2. THE SECURITY CHECK
+  if (securityAnswer.trim().toLowerCase() !== 'mercy') {
+    return { success: false, message: "Incorrect security answer." }
+  }
+
+  // 3. CHECK IF USER EXISTS
+  const existingUser = await prisma.user.findUnique({
+    where: { email: email }
+  })
+
+  if (existingUser) {
+    return { success: false, message: "This email is already registered. Please Login." }
+  }
+
+  // 4. CREATE THE USER (INCLUDE POSITION!)
+  const newUser = await prisma.user.create({
+    data: {
+      firstName,
+      lastName,
+      alias,
+      email,
+      phone,
+      position, // <--- THIS WAS MISSING
+    }
+  })
+
+  // 5. SET SESSION COOKIE
+  cookies().set('session_id', newUser.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: '/',
+  })
+
+  return { success: true }
+}
+
+
+================================================================================
+FILE: ./src/app/common-room/page.tsx
+================================================================================
+
+import { PrismaClient } from "@prisma/client";
+import Link from "next/link";
+
+const prisma = new PrismaClient();
+
+// Fetch posts directly from the database
+async function getPosts() {
+  const posts = await prisma.post.findMany({
+    include: {
+      author: true, // Fetch the author details (name, alias, position)
+    },
+    orderBy: {
+      createdAt: "desc", // Newest posts at the top
+    },
+  });
+  return posts;
+}
+
+export default async function CommonRoom() {
+  const posts = await getPosts();
+
+  return (
+    <main className="min-h-screen bg-slate-50 font-sans">
+      
+      {/* --- HEADER --- */}
+      <header className="bg-brand-sky p-4 shadow-md sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto flex justify-between items-center text-white">
+          <h1 className="text-2xl font-bold tracking-tight">The Common Room</h1>
+          <Link 
+            href="/" 
+            className="text-sm font-medium hover:text-brand-cream hover:underline transition-colors"
+          >
+            Exit to Home
+          </Link>
+        </div>
+      </header>
+
+      {/* --- FEED CONTAINER --- */}
+      <div className="max-w-2xl mx-auto p-4 mt-4 pb-20">
+        
+        {/* Post Input Placeholder (Visual only for now) */}
+        <div className="bg-white p-4 rounded-xl shadow-sm mb-8 border border-slate-200">
+          <p className="text-slate-400 text-sm mb-3 font-medium">Share an update with family...</p>
+          <div className="h-12 bg-slate-50 rounded-lg border border-slate-100 flex items-center px-4 text-slate-300 cursor-not-allowed">
+            Write something...
+          </div>
+        </div>
+
+        {/* The Posts Feed */}
+        <div className="space-y-6">
+          {posts.map((post) => {
+            // Logic: Use Alias if they have one, otherwise First Name
+            const displayName = post.author.alias || post.author.firstName;
+            const firstLetter = displayName[0].toUpperCase();
+
+            return (
+              <div key={post.id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                
+                {/* User Header */}
+                <div className="flex items-center gap-3 mb-4">
+                  {/* Avatar */}
+                  <div className="w-12 h-12 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-xl shadow-sm">
+                    {firstLetter}
+                  </div>
+                  
+                  {/* User Info */}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-slate-800 text-lg">
+                        {displayName}
+                      </p>
+                      
+                      {/* --- THE FAMILY POSITION BADGE --- */}
+                      <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-1 rounded-full font-bold uppercase tracking-wider border border-brand-sky/20">
+                        {post.author.position}
+                      </span>
+                    </div>
+                    
+                    <p className="text-xs text-slate-400 font-medium">
+                      {new Date(post.createdAt).toLocaleDateString(undefined, {
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Post Content */}
+                <p className="text-slate-700 leading-relaxed text-base">
+                  {post.content}
+                </p>
+
+              </div>
+            );
+          })}
+
+          {/* Empty State */}
+          {posts.length === 0 && (
+            <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+              <p className="text-4xl mb-4">🦗</p>
+              <p className="text-slate-500 font-medium">It's quiet in here...</p>
+              <p className="text-sm text-slate-400">Be the first to post!</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+
+================================================================================
+FILE: ./prisma/seed.ts
+================================================================================
+
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
+
+async function main() {
+  const user = await prisma.user.upsert({
+    where: { email: 'idongesit_essien@ymail.com' },
+    update: {}, // If you already exist, do nothing
+    create: {
+      email: 'idongesit_essien@ymail.com',
+      firstName: 'Idongesit',
+      lastName: 'Essien',
+      alias: 'Idong',
+      phone: '+17743126471',
+      posts: {
+        create: {
+          content: 'Welcome to the Common Room! This is the first official post.',
+        },
+      },
+    },
+  })
+
+  console.log('Seed successful! Created user:', user)
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
+  })
+
+
+================================================================================
+FILE: ./prisma/schema.prisma
+================================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  alias     String?
+  position  String   // <--- ADD THIS LINE (e.g. "Cousin", "Aunt")
+  email     String   @unique
+  phone     String?
+  createdAt DateTime @default(now())
+  
+  posts     Post[]   @relation("UserPosts")
+  comments  Comment[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  String
+  author    User     @relation("UserPosts", fields: [authorId], references: [id])
+  comments  Comment[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
