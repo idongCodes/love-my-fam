@@ -20,6 +20,8 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/common-room/:path*',
-    '/my-room/:path*' // <--- ADD THIS LINE
+    '/my-room/:path*',
+    '/family/:path*',
+
   ],
 }

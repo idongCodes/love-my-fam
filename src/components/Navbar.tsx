@@ -29,6 +29,9 @@ export default async function Navbar() {
               <Link href="/my-room" className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-all border border-white/20">
                 My Room
               </Link>
+              <Link href="/family" className="hover:text-brand-yellow transition-colors">
+  Directory
+</Link>
               
               {/* LOGOUT BUTTON (Wrapped in a form) */}
               <form action={logout}>
