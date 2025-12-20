@@ -1,27 +1,34 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-  // 1. Get the session cookie
-  const session = request.cookies.get('session_id')
+// Define the few routes that are safe for strangers
+const publicRoutes = [
+  '/', 
+  '/login', 
+  '/register', 
+  '/about' // Future-proofed as requested
+]
 
-  // 2. Check if the user is trying to access a protected route
-  if (request.nextUrl.pathname.startsWith('/common-room')) {
-    // 3. If no session exists, kick them out to the login page
-    if (!session) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
+export function middleware(request: NextRequest) {
+  const session = request.cookies.get('session_id')
+  const path = request.nextUrl.pathname
+
+  // 1. Check if the current path is in our "Public List"
+  const isPublic = publicRoutes.includes(path)
+
+  // 2. If the route is NOT public and the user is NOT logged in...
+  if (!isPublic && !session) {
+    // ...kick them back to the login page
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return NextResponse.next()
 }
 
-// Configure which paths the middleware runs on
+// 3. Update the Matcher to run on EVERYTHING
+// (We exclude Next.js internal files, images, and API routes to keep things fast)
 export const config = {
   matcher: [
-    '/common-room/:path*',
-    '/my-room/:path*',
-    '/family/:path*',
-
+    '/((?!api|_next/static|_next/image|favicon.ico|images).*)',
   ],
 }
