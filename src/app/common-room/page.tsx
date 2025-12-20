@@ -32,10 +32,13 @@ export default async function CommonRoom() {
     <main className="min-h-screen bg-slate-50 font-sans">
       <div className="max-w-2xl mx-auto p-4 mt-8 pb-20">
         
-        {/* HEADER */}
-        <div className="flex justify-between items-end mb-6">
-          <h1 className="text-3xl font-bold text-brand-sky tracking-tight">The Common Room</h1>
-          <h2 className="text-slate-500 font-medium text-lg pb-1">
+        {/* --- HEADER ROW --- */}
+        <div className="flex flex-col md:flex-row justify-between md:items-end mb-6 gap-2">
+          <h1 className="text-3xl font-bold text-brand-sky tracking-tight">
+            The Common Room
+          </h1>
+          
+          <h2 className="text-slate-500 font-medium text-sm md:text-lg pb-1 md:text-right">
             Welcome home, <span className="text-brand-pink font-bold">{welcomeName}</span>.
           </h2>
         </div>
