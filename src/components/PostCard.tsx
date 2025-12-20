@@ -104,9 +104,23 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
           </div>
         </div>
       ) : (
-        <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap">
-          {post.content}
-        </p>
+        <div>
+          <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap mb-3">
+            {post.content}
+          </p>
+
+          {/* --- NEW IMAGE DISPLAY --- */}
+          {post.imageUrl && (
+            <div className="mt-3 rounded-lg overflow-hidden border border-slate-100">
+              <img 
+                src={post.imageUrl} 
+                alt="Post attachment" 
+                className="w-full max-h-96 object-cover bg-slate-50"
+                loading="lazy"
+              />
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
