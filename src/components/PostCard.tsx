@@ -7,10 +7,8 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
 
-  // 1. DEFINE WHO IS ADMIN
   const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
   const isAdmin = post.author.email === ADMIN_EMAIL
-
   const isAuthor = currentUserId === post.authorId
   
   const createdAt = new Date(post.createdAt).getTime()
@@ -41,37 +39,45 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
       {/* HEADER */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-lg shadow-sm">
+          {/* Avatar */}
+          <div className="w-10 h-10 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-lg shadow-sm shrink-0">
             {firstLetter}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-800">{displayName}</span>
+          
+          {/* User Info Column */}
+          <div className="flex flex-col">
+            {/* 1. Name */}
+            <span className="font-bold text-slate-800 leading-tight">
+              {displayName}
+            </span>
+
+            {/* 2. Date & Time (UPDATED) */}
+            <p className="text-xs text-slate-400 mb-1">
+              {new Date(post.createdAt).toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+              })}
+              {post.isEdited && <span className="italic ml-1">(Edited)</span>}
+            </p>
+
+            {/* 3. Roles Row (Position + Admin) */}
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-0.5 rounded-full font-bold uppercase border border-brand-sky/20">
                 {post.author.position}
               </span>
-            </div>
 
-            {/* ADMIN BADGE */}
-            {isAdmin && (
-              <div className="flex items-center gap-1 mt-0.5">
+              {isAdmin && (
                 <span className="text-[10px] bg-slate-800 text-brand-yellow px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border border-slate-600 flex items-center gap-1">
                   🛡️ Admin
                 </span>
-              </div>
-            )}
-            
-            <p className="text-xs text-slate-400 mt-0.5">
-              {new Date(post.createdAt).toLocaleDateString()}
-              {post.isEdited && <span className="italic ml-2">(Edited)</span>}
-            </p>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* ACTIONS (ICONS) */}
+        {/* ACTIONS (Icons) */}
         {isAuthor && (
           <div className="flex gap-3 text-slate-400">
-            {/* EDIT ICON (Pencil) */}
             {canEdit && !isEditing && (
               <button 
                 onClick={() => setIsEditing(true)}
@@ -84,7 +90,6 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
               </button>
             )}
             
-            {/* DELETE ICON (Trash Can) */}
             <button 
               onClick={handleDelete}
               className="hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
