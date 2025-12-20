@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+const ADMIN_EMAIL = 'idongesit_essien@ymail.com';
 
-// Fetch all users, sorted by who joined first
 async function getFamilyMembers() {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: 'asc' }
@@ -27,34 +27,45 @@ export default async function FamilyDirectory() {
 
         {/* The Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {users.map((user) => (
-            <div key={user.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-              
-              {/* Avatar Circle */}
-              <div className="w-16 h-16 bg-brand-sky/20 text-brand-sky rounded-full flex items-center justify-center text-2xl font-bold shrink-0">
-                {(user.alias || user.firstName)[0].toUpperCase()}
-              </div>
-
-              {/* Info */}
-              <div className="overflow-hidden">
-                <h3 className="font-bold text-slate-800 text-lg truncate">
-                  {user.alias || user.firstName}
-                </h3>
-                <p className="text-xs text-brand-pink font-bold uppercase tracking-wider mb-1">
-                  {user.position}
-                </p>
+          {users.map((user) => {
+            const isAdmin = user.email === ADMIN_EMAIL;
+            
+            return (
+              <div key={user.id} className={`bg-white p-6 rounded-2xl shadow-sm border flex items-center gap-4 hover:shadow-md transition-shadow ${isAdmin ? 'border-brand-sky/30 bg-brand-sky/5' : 'border-slate-100'}`}>
                 
-                {/* Full Name & Contact */}
-                <p className="text-xs text-slate-400 truncate">
-                  {user.firstName} {user.lastName}
-                </p>
-                <p className="text-xs text-slate-400 truncate mt-1">
-                  {user.email}
-                </p>
-              </div>
+                {/* Avatar Circle */}
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 ${isAdmin ? 'bg-slate-800 text-brand-yellow' : 'bg-brand-sky/20 text-brand-sky'}`}>
+                  {(user.alias || user.firstName)[0].toUpperCase()}
+                </div>
 
-            </div>
-          ))}
+                {/* Info */}
+                <div className="overflow-hidden">
+                  <h3 className="font-bold text-slate-800 text-lg truncate flex items-center gap-2">
+                    {user.alias || user.firstName}
+                  </h3>
+                  
+                  <p className="text-xs text-brand-pink font-bold uppercase tracking-wider mb-1">
+                    {user.position}
+                  </p>
+
+                  {/* --- ADMIN BADGE --- */}
+                  {isAdmin && (
+                     <span className="inline-block text-[9px] bg-slate-800 text-brand-yellow px-2 py-0.5 rounded mb-2 font-bold uppercase tracking-wider border border-slate-600">
+                      🛡️ Admin
+                    </span>
+                  )}
+                  
+                  <p className="text-xs text-slate-400 truncate">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p className="text-xs text-slate-400 truncate mt-1">
+                    {user.email}
+                  </p>
+                </div>
+
+              </div>
+            )
+          })}
         </div>
 
       </div>
