@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
+import AutoLogout from "@/components/AutoLogout"; // <--- IMPORT THIS
+import { cookies } from "next/headers";           // <--- IMPORT THIS
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,19 +20,26 @@ export const metadata: Metadata = {
   description: "A safe space for family.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Check if user is logged in
+  const cookieStore = await cookies()
+  const isLoggedIn = cookieStore.has('session_id')
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         
         {/* GLOBAL NAVBAR */}
         <Navbar />
+
+        {/* AUTO LOGOUT WATCHDOG (Only active if logged in) */}
+        {isLoggedIn && <AutoLogout />}
         
-        {/* Main Content: flex-1 makes it stretch to fill empty space */}
+        {/* Main Content */}
         <main className="flex-1 pt-16"> 
           {children}
         </main>

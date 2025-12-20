@@ -1,45 +1,5 @@
 
 ================================================================================
-FILE: ./tsconfig.json
-================================================================================
-
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules"]
-}
-
-
-================================================================================
 FILE: ./README.md
 ================================================================================
 
@@ -97,6 +57,32 @@ Follow my journey as I build out new features for LMF and tackle new challenges!
 
 
 ================================================================================
+FILE: ./next-env.d.ts
+================================================================================
+
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+import "./.next/dev/types/routes.d.ts";
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+
+================================================================================
+FILE: ./next.config.ts
+================================================================================
+
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  reactCompiler: true,
+};
+
+export default nextConfig;
+
+
+================================================================================
 FILE: ./package.json
 ================================================================================
 
@@ -106,7 +92,7 @@ FILE: ./package.json
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -136,29 +122,43 @@ FILE: ./package.json
 
 
 ================================================================================
-FILE: ./next.config.ts
+FILE: ./tsconfig.json
 ================================================================================
 
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
-};
-
-export default nextConfig;
-
-
-================================================================================
-FILE: ./next-env.d.ts
-================================================================================
-
-/// <reference types="next" />
-/// <reference types="next/image-types/global" />
-import "./.next/dev/types/routes.d.ts";
-
-// NOTE: This file should not be edited
-// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
 
 
 ================================================================================
@@ -168,29 +168,122 @@ FILE: ./src/middleware.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-  // 1. Get the session cookie
-  const session = request.cookies.get('session_id')
+// Define the few routes that are safe for strangers
+const publicRoutes = [
+  '/', 
+  '/login', 
+  '/register', 
+  '/about' // Future-proofed as requested
+]
 
-  // 2. Check if the user is trying to access a protected route
-  if (request.nextUrl.pathname.startsWith('/common-room')) {
-    // 3. If no session exists, kick them out to the login page
-    if (!session) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
+export function middleware(request: NextRequest) {
+  const session = request.cookies.get('session_id')
+  const path = request.nextUrl.pathname
+
+  // 1. Check if the current path is in our "Public List"
+  const isPublic = publicRoutes.includes(path)
+
+  // 2. If the route is NOT public and the user is NOT logged in...
+  if (!isPublic && !session) {
+    // ...kick them back to the login page
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return NextResponse.next()
 }
 
-// Configure which paths the middleware runs on
+// 3. Update the Matcher to run on EVERYTHING
+// (We exclude Next.js internal files, images, and API routes to keep things fast)
 export const config = {
   matcher: [
-    '/common-room/:path*',
-    '/my-room/:path*' // <--- ADD THIS LINE
+    '/((?!api|_next/static|_next/image|favicon.ico|images).*)',
   ],
 }
 
+================================================================================
+FILE: ./src/components/NavMenu.tsx
+================================================================================
+
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { logout } from '@/app/actions'
+
+export default function NavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  // Close menu when a link is clicked
+  const close = () => setIsOpen(false)
+
+  return (
+    <>
+      {/* --- DESKTOP VIEW (Hidden on Mobile) --- */}
+      <div className="hidden md:flex items-center gap-6 text-sm font-medium text-white">
+        <Link href="/" className="hover:text-brand-yellow transition-colors">Home</Link>
+        
+        {isLoggedIn ? (
+          <>
+            <Link href="/common-room" className="hover:text-brand-yellow transition-colors">Common Room</Link>
+            <Link href="/family" className="hover:text-brand-yellow transition-colors">Directory</Link>
+            <Link href="/my-room" className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-all border border-white/20">
+              My Room
+            </Link>
+            <form action={logout}>
+              <button type="submit" className="text-white/80 hover:text-white hover:underline transition-all ml-2">
+                Logout
+              </button>
+            </form>
+          </>
+        ) : (
+          <Link href="/login" className="hover:text-brand-pink transition-colors">Login</Link>
+        )}
+      </div>
+
+      {/* --- MOBILE HAMBURGER BUTTON (Visible on Mobile) --- */}
+      <button 
+        className="md:hidden text-white text-3xl focus:outline-none"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle menu"
+      >
+        {isOpen ? '✕' : '☰'}
+      </button>
+
+      {/* --- MOBILE DROPDOWN MENU --- */}
+      {isOpen && (
+        <div className="absolute top-16 left-0 right-0 bg-brand-sky/95 backdrop-blur-xl border-b border-white/20 shadow-xl md:hidden flex flex-col p-6 gap-6 text-center text-white text-lg font-bold z-50 animate-in slide-in-from-top-2">
+          
+          <Link href="/" onClick={close} className="hover:text-brand-yellow py-2 border-b border-white/10">
+            Home
+          </Link>
+
+          {isLoggedIn ? (
+            <>
+              <Link href="/common-room" onClick={close} className="hover:text-brand-yellow py-2 border-b border-white/10">
+                Common Room
+              </Link>
+              <Link href="/family" onClick={close} className="hover:text-brand-yellow py-2 border-b border-white/10">
+                Directory
+              </Link>
+              <Link href="/my-room" onClick={close} className="hover:text-brand-yellow py-2 border-b border-white/10">
+                My Room
+              </Link>
+              <form action={logout} className="py-2">
+                <button type="submit" className="text-white/80 hover:text-white">
+                  Logout
+                </button>
+              </form>
+            </>
+          ) : (
+            <Link href="/login" onClick={close} className="text-brand-pink py-2">
+              Login
+            </Link>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
 
 ================================================================================
 FILE: ./src/components/Navbar.tsx
@@ -198,7 +291,7 @@ FILE: ./src/components/Navbar.tsx
 
 import Link from 'next/link'
 import { cookies } from 'next/headers'
-import { logout } from '@/app/actions' // <--- IMPORT THE ACTION
+import NavMenu from './NavMenu'
 
 export default async function Navbar() {
   const cookieStore = await cookies()
@@ -209,44 +302,192 @@ export default async function Navbar() {
       <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
         
         {/* Logo */}
-        <Link href="/" className="text-white font-bold text-xl tracking-tight hover:text-brand-cream transition-colors drop-shadow-sm">
+        <Link href="/" className="text-white font-bold text-xl tracking-tight hover:text-brand-cream transition-colors drop-shadow-sm z-50">
           LoveMyFam
         </Link>
 
-        {/* Navigation Links */}
-        <div className="flex items-center gap-6 text-sm font-medium text-white">
-          <Link href="/" className="hover:text-brand-yellow transition-colors">
-            Home
-          </Link>
-
-          {isLoggedIn ? (
-            <>
-              <Link href="/common-room" className="hover:text-brand-yellow transition-colors">
-                Common Room
-              </Link>
-              <Link href="/my-room" className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-all border border-white/20">
-                My Room
-              </Link>
-              
-              {/* LOGOUT BUTTON (Wrapped in a form) */}
-              <form action={logout}>
-                <button 
-                  type="submit" 
-                  className="text-white/80 hover:text-white hover:underline transition-all ml-2"
-                >
-                  Logout
-                </button>
-              </form>
-            </>
-          ) : (
-            <Link href="/login" className="hover:text-brand-pink transition-colors">
-              Login
-            </Link>
-          )}
-        </div>
+        {/* The Responsive Menu Component */}
+        <NavMenu isLoggedIn={isLoggedIn} />
+        
       </div>
     </nav>
   )
+}
+
+================================================================================
+FILE: ./src/components/PostCard.tsx
+================================================================================
+
+'use client'
+
+import { useState } from 'react'
+import { deletePost, editPost } from '@/app/common-room/actions'
+
+export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editContent, setEditContent] = useState(post.content)
+
+  // 1. DEFINE WHO IS ADMIN (You!)
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+  const isAdmin = post.author.email === ADMIN_EMAIL
+
+  const isAuthor = currentUserId === post.authorId
+  
+  const createdAt = new Date(post.createdAt).getTime()
+  const timeDiff = Date.now() - createdAt
+  const canEdit = isAuthor && !post.isEdited && timeDiff < 10 * 60 * 1000
+
+  async function handleDelete() {
+    if (confirm('Are you sure you want to delete this?')) {
+      await deletePost(post.id)
+    }
+  }
+
+  async function handleSave() {
+    const result = await editPost(post.id, editContent)
+    if (result.success) {
+      setIsEditing(false)
+    } else {
+      alert(result.message)
+    }
+  }
+
+  const displayName = post.author.alias || post.author.firstName
+  const firstLetter = displayName[0].toUpperCase()
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6 transition-all hover:border-slate-200">
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-lg shadow-sm">
+            {firstLetter}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-slate-800">{displayName}</span>
+              <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-0.5 rounded-full font-bold uppercase border border-brand-sky/20">
+                {post.author.position}
+              </span>
+            </div>
+
+            {/* --- NEW ADMIN BADGE --- */}
+            {isAdmin && (
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-[10px] bg-slate-800 text-brand-yellow px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border border-slate-600 flex items-center gap-1">
+                  🛡️ Admin
+                </span>
+              </div>
+            )}
+            
+            <p className="text-xs text-slate-400 mt-0.5">
+              {new Date(post.createdAt).toLocaleDateString()}
+              {post.isEdited && <span className="italic ml-2">(Edited)</span>}
+            </p>
+          </div>
+        </div>
+
+        {/* ACTIONS */}
+        {isAuthor && (
+          <div className="flex gap-2 text-xs font-bold">
+            {canEdit && !isEditing && (
+              <button 
+                onClick={() => setIsEditing(true)}
+                className="text-brand-sky hover:underline"
+              >
+                Edit
+              </button>
+            )}
+            <button 
+              onClick={handleDelete}
+              className="text-red-300 hover:text-red-500 hover:underline"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* CONTENT AREA */}
+      {isEditing ? (
+        <div className="mt-2">
+          <textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-sky outline-none text-slate-700"
+            rows={3}
+          />
+          <div className="flex gap-2 mt-2 justify-end">
+            <button onClick={() => setIsEditing(false)} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
+            <button onClick={handleSave} className="text-xs bg-brand-sky text-white px-3 py-1 rounded-full hover:bg-sky-500">Save Update</button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap">
+          {post.content}
+        </p>
+      )}
+    </div>
+  )
+}
+
+================================================================================
+FILE: ./src/components/PostInput.tsx
+================================================================================
+
+'use client'
+
+import { useRef } from 'react'
+import { createPost } from '@/app/common-room/actions'
+
+export default function PostInput() {
+  const formRef = useRef<HTMLFormElement>(null)
+
+  async function action(formData: FormData) {
+    await createPost(formData)
+    formRef.current?.reset() // Clear the box after posting
+  }
+
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm mb-8 border border-slate-200">
+      <p className="text-slate-400 text-sm mb-3 font-medium">Share an update with family...</p>
+      
+      <form ref={formRef} action={action} className="flex gap-2">
+        <input 
+          name="content"
+          type="text" 
+          placeholder="Write something..."
+          required
+          className="flex-1 h-12 bg-slate-50 rounded-lg border border-slate-100 px-4 text-slate-700 focus:ring-2 focus:ring-brand-sky outline-none transition-all"
+        />
+        <button 
+          type="submit"
+          className="bg-brand-sky text-white font-bold px-6 rounded-lg hover:bg-sky-500 transition-colors shadow-sm"
+        >
+          Post
+        </button>
+      </form>
+    </div>
+  )
+}
+
+================================================================================
+FILE: ./src/app/actions.ts
+================================================================================
+
+'use server'
+
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+export async function logout() {
+  // 1. Delete the session cookie
+  const cookieStore = await cookies()
+  cookieStore.delete('session_id')
+
+  // 2. Redirect to the Home Page
+  redirect('/')
 }
 
 ================================================================================
@@ -450,44 +691,121 @@ export default function Home() {
 
 
 ================================================================================
-FILE: ./src/app/actions.ts
-================================================================================
-
-'use server'
-
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-
-export async function logout() {
-  // 1. Delete the session cookie
-  const cookieStore = await cookies()
-  cookieStore.delete('session_id')
-
-  // 2. Redirect to the Home Page
-  redirect('/')
-}
-
-================================================================================
 FILE: ./src/app/my-room/page.tsx
 ================================================================================
 
+'use client'
+
+import { useState } from 'react'
+
 export default function MyRoom() {
+  const [activeTab, setActiveTab] = useState('dashboard')
+
   return (
     <main className="min-h-screen bg-slate-50 font-sans p-8">
       <div className="max-w-4xl mx-auto mt-8">
-        <h1 className="text-3xl font-bold text-brand-sky mb-6">My Room</h1>
         
-        <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center">
-          <p className="text-5xl mb-4">🛏️</p>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Your Personal Space</h2>
-          <p className="text-slate-500">
-            Personal dashboard, settings, and your post history will live here.
-          </p>
+        {/* Page Header */}
+        <h1 className="text-3xl font-bold text-brand-sky mb-6">My Room</h1>
+
+        {/* --- TAB NAVIGATION --- */}
+        <div className="flex border-b border-slate-200 mb-8">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`pb-4 px-6 font-bold text-sm transition-all ${
+              activeTab === 'dashboard'
+                ? 'border-b-4 border-brand-sky text-brand-sky'
+                : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            Dashboard
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('mirror')}
+            className={`pb-4 px-6 font-bold text-sm transition-all ${
+              activeTab === 'mirror'
+                ? 'border-b-4 border-brand-pink text-brand-pink' // Pink for the "Mirror" vibe
+                : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            My Mirror
+          </button>
         </div>
+
+        {/* --- TAB CONTENT --- */}
+        
+        {/* VIEW 1: DASHBOARD (Your original content) */}
+        {activeTab === 'dashboard' && (
+          <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center animate-fade-in">
+            <p className="text-5xl mb-4">🛏️</p>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Your Personal Space</h2>
+            <p className="text-slate-500">
+              Personal dashboard, settings, and your post history will live here.
+            </p>
+          </div>
+        )}
+
+        {/* VIEW 2: MY MIRROR (The new tab) */}
+        {activeTab === 'mirror' && (
+          <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center animate-fade-in">
+            <p className="text-5xl mb-4">🪞</p>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">My Mirror</h2>
+            <p className="text-slate-500 mb-6">
+              Reflect on your journey. Your profile details and personal stats will appear here.
+            </p>
+            <div className="inline-block bg-brand-pink/20 text-brand-pink px-4 py-2 rounded-full text-xs font-bold uppercase">
+              Coming Soon
+            </div>
+          </div>
+        )}
+
       </div>
     </main>
   )
 }
+
+================================================================================
+FILE: ./src/app/login/actions.ts
+================================================================================
+
+'use server'
+
+import { PrismaClient } from '@prisma/client'
+import { cookies } from 'next/headers'
+
+const prisma = new PrismaClient()
+
+export async function login(formData: FormData) {
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  // 1. Check the Shared Family Secret
+  if (password !== 'familyfirst') {
+    return { success: false, message: 'Wrong family secret!' }
+  }
+
+  // 2. Check if the user exists in our Database
+  const user = await prisma.user.findUnique({
+    where: { email: email }
+  })
+
+  if (!user) {
+    return { success: false, message: 'Email not found. Please register first!' }
+  }
+
+  // 3. Set the Session Cookie
+  const cookieStore = await cookies()
+  cookieStore.set('session_id', user.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: '/',
+  })
+
+  return { success: true }
+}
+
 
 ================================================================================
 FILE: ./src/app/login/page.tsx
@@ -577,7 +895,7 @@ export default function LoginPage() {
 
 
 ================================================================================
-FILE: ./src/app/login/actions.ts
+FILE: ./src/app/register/actions.ts
 ================================================================================
 
 'use server'
@@ -587,27 +905,47 @@ import { cookies } from 'next/headers'
 
 const prisma = new PrismaClient()
 
-export async function login(formData: FormData) {
+export async function registerUser(formData: FormData) {
+  const firstName = formData.get('firstName') as string
+  const lastName = formData.get('lastName') as string
+  const alias = formData.get('alias') as string || firstName
   const email = formData.get('email') as string
-  const password = formData.get('password') as string
+  const phone = formData.get('phone') as string
+  const securityAnswer = formData.get('securityAnswer') as string
+  
+  // 1. GRAB THE POSITION FROM THE FORM
+  const position = formData.get('position') as string 
 
-  // 1. Check the Shared Family Secret
-  if (password !== 'familyfirst') {
-    return { success: false, message: 'Wrong family secret!' }
+  // 2. THE SECURITY CHECK
+  if (securityAnswer.trim().toLowerCase() !== 'mercy') {
+    return { success: false, message: "Incorrect security answer." }
   }
 
-  // 2. Check if the user exists in our Database
-  const user = await prisma.user.findUnique({
+  // 3. CHECK IF USER EXISTS
+  const existingUser = await prisma.user.findUnique({
     where: { email: email }
   })
 
-  if (!user) {
-    return { success: false, message: 'Email not found. Please register first!' }
+  if (existingUser) {
+    return { success: false, message: "This email is already registered. Please Login." }
   }
 
-  // 3. Set the Session Cookie
+  // 4. CREATE THE USER (INCLUDE POSITION!)
+  const newUser = await prisma.user.create({
+    data: {
+      firstName,
+      lastName,
+      alias,
+      email,
+      phone,
+      position, // <--- THIS WAS MISSING
+    }
+  })
+
+
+  // 5. SET SESSION COOKIE
   const cookieStore = await cookies()
-  cookieStore.set('session_id', user.id, {
+  cookieStore.set('session_id', newUser.id, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 60 * 60 * 24 * 7, // 1 week
@@ -745,160 +1083,226 @@ export default function RegisterPage() {
 
 
 ================================================================================
-FILE: ./src/app/register/actions.ts
+FILE: ./src/app/family/page.tsx
+================================================================================
+
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+const ADMIN_EMAIL = 'idongesit_essien@ymail.com';
+
+async function getFamilyMembers() {
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: 'asc' }
+  });
+  return users;
+}
+
+export default async function FamilyDirectory() {
+  const users = await getFamilyMembers();
+
+  return (
+    <main className="min-h-screen bg-slate-50 font-sans p-8">
+      <div className="max-w-5xl mx-auto mt-8">
+        
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold text-brand-sky mb-2">The Family Directory</h1>
+          <p className="text-slate-500">
+            We have <span className="font-bold text-brand-pink">{users.length}</span> members joined so far.
+          </p>
+        </div>
+
+        {/* The Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {users.map((user) => {
+            const isAdmin = user.email === ADMIN_EMAIL;
+            
+            return (
+              <div key={user.id} className={`bg-white p-6 rounded-2xl shadow-sm border flex items-center gap-4 hover:shadow-md transition-shadow ${isAdmin ? 'border-brand-sky/30 bg-brand-sky/5' : 'border-slate-100'}`}>
+                
+                {/* Avatar Circle */}
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 ${isAdmin ? 'bg-slate-800 text-brand-yellow' : 'bg-brand-sky/20 text-brand-sky'}`}>
+                  {(user.alias || user.firstName)[0].toUpperCase()}
+                </div>
+
+                {/* Info */}
+                <div className="overflow-hidden">
+                  <h3 className="font-bold text-slate-800 text-lg truncate flex items-center gap-2">
+                    {user.alias || user.firstName}
+                  </h3>
+                  
+                  <p className="text-xs text-brand-pink font-bold uppercase tracking-wider mb-1">
+                    {user.position}
+                  </p>
+
+                  {/* --- ADMIN BADGE --- */}
+                  {isAdmin && (
+                     <span className="inline-block text-[9px] bg-slate-800 text-brand-yellow px-2 py-0.5 rounded mb-2 font-bold uppercase tracking-wider border border-slate-600">
+                      🛡️ Admin
+                    </span>
+                  )}
+                  
+                  <p className="text-xs text-slate-400 truncate">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p className="text-xs text-slate-400 truncate mt-1">
+                    {user.email}
+                  </p>
+                </div>
+
+              </div>
+            )
+          })}
+        </div>
+
+      </div>
+    </main>
+  );
+}
+
+================================================================================
+FILE: ./src/app/common-room/actions.ts
 ================================================================================
 
 'use server'
 
 import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
 
 const prisma = new PrismaClient()
 
-export async function registerUser(formData: FormData) {
-  const firstName = formData.get('firstName') as string
-  const lastName = formData.get('lastName') as string
-  const alias = formData.get('alias') as string || firstName
-  const email = formData.get('email') as string
-  const phone = formData.get('phone') as string
-  const securityAnswer = formData.get('securityAnswer') as string
-  
-  // 1. GRAB THE POSITION FROM THE FORM
-  const position = formData.get('position') as string 
+// --- HELPER: GET CURRENT USER ID ---
+async function getCurrentUserId() {
+  const cookieStore = await cookies()
+  return cookieStore.get('session_id')?.value
+}
 
-  // 2. THE SECURITY CHECK
-  if (securityAnswer.trim().toLowerCase() !== 'mercy') {
-    return { success: false, message: "Incorrect security answer." }
-  }
+// --- 1. CREATE POST ---
+export async function createPost(formData: FormData) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false, message: 'Unauthorized' }
 
-  // 3. CHECK IF USER EXISTS
-  const existingUser = await prisma.user.findUnique({
-    where: { email: email }
-  })
+  const content = formData.get('content') as string
+  if (!content || content.trim().length === 0) return { success: false }
 
-  if (existingUser) {
-    return { success: false, message: "This email is already registered. Please Login." }
-  }
-
-  // 4. CREATE THE USER (INCLUDE POSITION!)
-  const newUser = await prisma.user.create({
+  await prisma.post.create({
     data: {
-      firstName,
-      lastName,
-      alias,
-      email,
-      phone,
-      position, // <--- THIS WAS MISSING
+      content,
+      authorId: userId
     }
   })
 
-
-  // 5. SET SESSION COOKIE
-  const cookieStore = await cookies()
-  cookieStore.set('session_id', newUser.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-    path: '/',
-  })
-
+  revalidatePath('/common-room')
   return { success: true }
 }
 
+// --- 2. DELETE POST ---
+export async function deletePost(postId: string) {
+  const userId = await getCurrentUserId()
+  
+  // Verify ownership before deleting
+  const post = await prisma.post.findUnique({ where: { id: postId } })
+  if (!post || post.authorId !== userId) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  await prisma.post.delete({ where: { id: postId } })
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 3. EDIT POST ---
+export async function editPost(postId: string, newContent: string) {
+  const userId = await getCurrentUserId()
+
+  const post = await prisma.post.findUnique({ where: { id: postId } })
+  if (!post || post.authorId !== userId) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  // CHECK 1: Has it been edited before?
+  if (post.isEdited) {
+    return { success: false, message: 'Post can only be edited once.' }
+  }
+
+  // CHECK 2: Is it older than 10 minutes?
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+  if (post.createdAt < tenMinutesAgo) {
+    return { success: false, message: 'Edit time limit (10 mins) expired.' }
+  }
+
+  await prisma.post.update({
+    where: { id: postId },
+    data: { 
+      content: newContent,
+      isEdited: true // Mark as edited
+    }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
 
 ================================================================================
 FILE: ./src/app/common-room/page.tsx
 ================================================================================
 
 import { PrismaClient } from "@prisma/client";
-import Link from "next/link";
+import { cookies } from "next/headers";
+import PostInput from "@/components/PostInput";
+import PostCard from "@/components/PostCard";
 
 const prisma = new PrismaClient();
 
-// Fetch posts directly from the database
+async function getUser() {
+  const cookieStore = await cookies()
+  const sessionId = cookieStore.get('session_id')?.value
+  if (!sessionId) return null
+
+  const user = await prisma.user.findUnique({
+    where: { id: sessionId },
+    select: { id: true, firstName: true, alias: true }
+  })
+  return user
+}
+
 async function getPosts() {
-  const posts = await prisma.post.findMany({
-    include: {
-      author: true, 
-    },
-    orderBy: {
-      createdAt: "desc", 
-    },
+  return await prisma.post.findMany({
+    include: { author: true },
+    orderBy: { createdAt: "desc" },
   });
-  return posts;
 }
 
 export default async function CommonRoom() {
-  const posts = await getPosts();
+  const [user, posts] = await Promise.all([getUser(), getPosts()]);
+  const welcomeName = user?.alias || user?.firstName || "Family Member";
 
   return (
     <main className="min-h-screen bg-slate-50 font-sans">
-      
-      {/* --- FEED CONTAINER --- */}
       <div className="max-w-2xl mx-auto p-4 mt-8 pb-20">
         
-        {/* --- PAGE TITLE --- */}
-        <h1 className="text-3xl font-bold text-brand-sky mb-6 tracking-tight">
-          The Common Room
-        </h1>
-        
-        {/* Post Input Placeholder */}
-        <div className="bg-white p-4 rounded-xl shadow-sm mb-8 border border-slate-200">
-          <p className="text-slate-400 text-sm mb-3 font-medium">Share an update with family...</p>
-          <div className="h-12 bg-slate-50 rounded-lg border border-slate-100 flex items-center px-4 text-slate-300 cursor-not-allowed">
-            Write something...
-          </div>
+        {/* --- HEADER ROW --- */}
+        <div className="flex flex-col md:flex-row justify-between md:items-end mb-6 gap-2">
+          <h1 className="text-3xl font-bold text-brand-sky tracking-tight">
+            The Common Room
+          </h1>
+          
+          <h2 className="text-slate-500 font-medium text-sm md:text-lg pb-1 md:text-right">
+            Welcome home, <span className="text-brand-pink font-bold">{welcomeName}</span>.
+          </h2>
         </div>
 
-        {/* The Posts Feed */}
+        {/* INPUT FORM */}
+        <PostInput />
+
+        {/* POSTS FEED */}
         <div className="space-y-6">
-          {posts.map((post) => {
-            const displayName = post.author.alias || post.author.firstName;
-            const firstLetter = displayName[0].toUpperCase();
+          {posts.map((post) => (
+            <PostCard key={post.id} post={post} currentUserId={user?.id || ''} />
+          ))}
 
-            return (
-              <div key={post.id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                
-                {/* User Header */}
-                <div className="flex items-center gap-3 mb-4">
-                  {/* Avatar */}
-                  <div className="w-12 h-12 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-xl shadow-sm">
-                    {firstLetter}
-                  </div>
-                  
-                  {/* User Info */}
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-bold text-slate-800 text-lg">
-                        {displayName}
-                      </p>
-                      
-                      {/* Family Position Badge */}
-                      <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-1 rounded-full font-bold uppercase tracking-wider border border-brand-sky/20">
-                        {post.author.position}
-                      </span>
-                    </div>
-                    
-                    <p className="text-xs text-slate-400 font-medium">
-                      {new Date(post.createdAt).toLocaleDateString(undefined, {
-                        weekday: 'short', 
-                        month: 'short', 
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Post Content */}
-                <p className="text-slate-700 leading-relaxed text-base">
-                  {post.content}
-                </p>
-
-              </div>
-            );
-          })}
-
-          {/* Empty State */}
           {posts.length === 0 && (
             <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
               <p className="text-4xl mb-4">🦗</p>
@@ -911,6 +1315,57 @@ export default async function CommonRoom() {
     </main>
   );
 }
+
+================================================================================
+FILE: ./prisma/schema.prisma
+================================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  alias     String?
+  position  String   // <--- ADD THIS LINE (e.g. "Cousin", "Aunt")
+  email     String   @unique
+  phone     String?
+  createdAt DateTime @default(now())
+  
+  posts     Post[]   @relation("UserPosts")
+  comments  Comment[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isEdited  Boolean  @default(false) // <--- ADD THIS LINE
+  authorId  String
+  author    User     @relation("UserPosts", fields: [authorId], references: [id])
+  comments  Comment[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
 
 ================================================================================
 FILE: ./prisma/seed.ts
@@ -950,54 +1405,4 @@ main()
     await prisma.$disconnect()
     process.exit(1)
   })
-
-
-================================================================================
-FILE: ./prisma/schema.prisma
-================================================================================
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
-}
-
-model User {
-  id        String   @id @default(cuid())
-  firstName String
-  lastName  String
-  alias     String?
-  position  String   // <--- ADD THIS LINE (e.g. "Cousin", "Aunt")
-  email     String   @unique
-  phone     String?
-  createdAt DateTime @default(now())
-  
-  posts     Post[]   @relation("UserPosts")
-  comments  Comment[]
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  content   String
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  authorId  String
-  author    User     @relation("UserPosts", fields: [authorId], references: [id])
-  comments  Comment[]
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
-}
 
