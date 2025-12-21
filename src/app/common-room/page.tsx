@@ -17,21 +17,34 @@ async function getUser() {
   return user
 }
 
-// UPDATED: Now fetches Likes too!
 async function getPosts(currentUserId?: string) {
   const posts = await prisma.post.findMany({
     include: { 
       author: true,
-      likes: true,
+      // 1. FETCH USERS FOR POST LIKES
+      likes: {
+        include: {
+          user: { select: { id: true, firstName: true, alias: true } }
+        }
+      },
       comments: {
         include: {
           author: true,
-          likes: true,
-          children: { // Fetch Level 2 (replies to replies)
+          // 2. FETCH USERS FOR COMMENT LIKES
+          likes: {
+            include: {
+              user: { select: { id: true, firstName: true, alias: true } }
+            }
+          },
+          children: {
             include: {
               author: true,
-              likes: true,
-              children: true // You can keep nesting if needed, usually 2-3 levels is enough for fetch
+              likes: {
+                include: {
+                  user: { select: { id: true, firstName: true, alias: true } }
+                }
+              },
+              children: true 
             }
           }
         },
@@ -43,9 +56,9 @@ async function getPosts(currentUserId?: string) {
 
   return posts.map(post => ({
     ...post,
+    // We pass the FULL array of likes now, not just the count
     likeCount: post.likes.length,
     isLikedByMe: currentUserId ? post.likes.some(like => like.userId === currentUserId) : false,
-    // Filter to only show Top-Level comments initially (those with no parentId)
     topLevelComments: post.comments.filter((c: any) => !c.parentId)
   }));
 }

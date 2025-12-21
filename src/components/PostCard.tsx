@@ -3,34 +3,29 @@
 import { useState } from 'react'
 import { deletePost, editPost, toggleLike, addComment } from '@/app/common-room/actions'
 import CommentItem from './CommentItem'
+import LikeButton from './LikeButton'
 
-export default function PostCard({ 
-  post, 
-  currentUserId, 
-  initialLikeCount = 0, 
-  initialIsLiked = false 
-}: any) {
-  // --- EXISTING STATES ---
+export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
+  // --- STATE: EDITING ---
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
-  
-  // --- LIKE STATES ---
-  const [isLiked, setIsLiked] = useState(initialIsLiked)
-  const [likeCount, setLikeCount] = useState(initialLikeCount)
 
-  // --- COMMENT STATES ---
+  // --- STATE: COMMENTS ---
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState('')
 
+  // --- PERMISSIONS ---
   const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
   const isAdmin = post.author.email === ADMIN_EMAIL
   const isAuthor = currentUserId === post.authorId
   
   const createdAt = new Date(post.createdAt).getTime()
   const timeDiff = Date.now() - createdAt
+  // Rule: Author only + Not edited yet + Less than 10 mins old
   const canEdit = isAuthor && !post.isEdited && timeDiff < 10 * 60 * 1000
 
-  // --- ACTIONS ---
+  // --- HANDLERS ---
+
   async function handleDelete() {
     if (confirm('Are you sure you want to delete this?')) {
       await deletePost(post.id)
@@ -46,21 +41,9 @@ export default function PostCard({
     }
   }
 
+  // Wrapper for the LikeButton component
   async function handleToggleLike() {
-    // Optimistic Update
-    const previousLiked = isLiked
-    const previousCount = likeCount
-    
-    setIsLiked(!isLiked)
-    setLikeCount((prev: number) => isLiked ? prev - 1 : prev + 1)
-
-    const result = await toggleLike(post.id)
-
-    if (!result?.success) {
-      // Revert if failed
-      setIsLiked(previousLiked)
-      setLikeCount(previousCount)
-    }
+    await toggleLike(post.id)
   }
 
   async function handleMainCommentSubmit(e: React.FormEvent) {
@@ -77,13 +60,15 @@ export default function PostCard({
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6 transition-all hover:border-slate-200">
       
-      {/* HEADER */}
+      {/* 1. HEADER (User Info + Actions) */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
+          {/* Avatar */}
           <div className="w-10 h-10 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-lg shadow-sm shrink-0">
             {firstLetter}
           </div>
           
+          {/* User Details */}
           <div className="flex flex-col">
             <span className="font-bold text-slate-800 leading-tight">
               {displayName}
@@ -97,6 +82,7 @@ export default function PostCard({
               {post.isEdited && <span className="italic ml-1">(Edited)</span>}
             </p>
 
+            {/* Badges */}
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-0.5 rounded-full font-bold uppercase border border-brand-sky/20">
                 {post.author.position}
@@ -111,7 +97,7 @@ export default function PostCard({
           </div>
         </div>
 
-        {/* POST ACTIONS (Edit/Delete) */}
+        {/* Edit/Delete Buttons */}
         {isAuthor && (
           <div className="flex gap-3 text-slate-400">
             {canEdit && !isEditing && (
@@ -139,7 +125,7 @@ export default function PostCard({
         )}
       </div>
 
-      {/* POST CONTENT */}
+      {/* 2. MAIN CONTENT AREA */}
       {isEditing ? (
         <div className="mt-2">
           <textarea
@@ -171,30 +157,17 @@ export default function PostCard({
         </div>
       )}
 
-      {/* FOOTER: LIKE & REPLY */}
+      {/* 3. ACTION BAR (Like & Reply) */}
       <div className="mt-5 pt-4 border-t border-slate-50 flex justify-between items-center">
         
-        {/* Left: Like Button */}
-        <button 
-          onClick={handleToggleLike}
-          className="group flex items-center gap-1.5 text-slate-400 hover:text-brand-sky transition-colors"
-        >
-          {isLiked ? (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-brand-sky animate-in zoom-in duration-200">
-              <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 group-hover:scale-110 transition-transform">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-            </svg>
-          )}
+        {/* New Like Button Component (Handles Long Press) */}
+        <LikeButton 
+          initialLikes={post.likes} 
+          currentUserId={currentUserId} 
+          onToggle={handleToggleLike} 
+        />
 
-          <span className={`text-sm font-bold ${isLiked ? 'text-brand-sky' : 'text-slate-400'}`}>
-            {likeCount}
-          </span>
-        </button>
-
-        {/* Right: Reply Toggle Button */}
+        {/* Reply Toggle Button */}
         <button 
           onClick={() => setShowComments(!showComments)} 
           className="flex items-center gap-2 text-slate-400 hover:text-brand-sky transition-colors font-medium text-sm group"
@@ -207,7 +180,7 @@ export default function PostCard({
 
       </div>
 
-      {/* --- COMMENTS SECTION --- */}
+      {/* 4. COMMENTS SECTION */}
       {showComments && (
         <div className="mt-6 animate-in slide-in-from-top-2 border-t border-slate-50 pt-4">
           
