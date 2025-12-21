@@ -1,47 +1,59 @@
 'use client'
 
-import { useEffect } from 'react'
-import { logout } from '@/app/actions'
+import { useEffect, useRef } from 'react'
+import { logout } from '@/app/actions' // Ensure this path is correct for your project!
 
-// --- CONFIGURATION ---
-// 15 Minutes (15 * 60 seconds * 1000 milliseconds)
-const TIMEOUT_MS = 15 * 60 * 1000 
+const TIMEOUT_MS = 15 * 60 * 1000 // 15 Minutes
 
 export default function AutoLogout() {
+  // Use a ref to store the timestamp without triggering re-renders
+  const lastActivity = useRef(Date.now())
+
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout
+    // 1. The Checker: Runs every minute to check strictly against the clock
+    const intervalId = setInterval(() => {
+      checkInactivity()
+    }, 10000) // Check every 10 seconds
 
-    const handleLogout = async () => {
-      console.log("⏳ Session expired. Logging out...")
+    const checkInactivity = () => {
+      const now = Date.now()
+      const timeSinceLastActivity = now - lastActivity.current
 
-      try {
-        await logout()
-      } catch (e) {
-        // Ignore errors during redirect
-      } finally {
-        // FORCE the browser to reload/redirect
-        window.location.href = '/'
+      if (timeSinceLastActivity > TIMEOUT_MS) {
+        performLogout()
       }
     }
 
-    const resetTimer = () => {
-      if (timeoutId) clearTimeout(timeoutId)
-      timeoutId = setTimeout(handleLogout, TIMEOUT_MS)
+    const performLogout = async () => {
+      console.log("⏳ Session expired (Timestamp check). Logging out...")
+      try {
+        await logout()
+      } catch (e) {
+        console.error("Logout failed", e)
+      } finally {
+        window.location.href = '/' // Force reload to home/login
+      }
     }
 
-    // Events that keep the session alive
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click']
+    const updateActivity = () => {
+      // Before resetting, check if we SHOULD have logged out already
+      // This catches the "Computer Waking Up" edge case
+      const now = Date.now()
+      if (now - lastActivity.current > TIMEOUT_MS) {
+        performLogout()
+      } else {
+        lastActivity.current = now
+      }
+    }
 
-    // Attach listeners
-    events.forEach(event => window.addEventListener(event, resetTimer))
-    
-    // Start the timer
-    resetTimer()
+    // 2. Event Listeners
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click']
+    events.forEach(event => window.addEventListener(event, updateActivity))
 
     // Cleanup
     return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-      events.forEach(event => window.removeEventListener(event, resetTimer))
+      clearInterval(intervalId)
+      events.forEach(event => window.removeEventListener(event, updateActivity))
     }
   }, [])
 
