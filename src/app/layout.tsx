@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import AutoLogout from "@/components/AutoLogout"; // <--- IMPORT THIS
 import FeedbackSection from "@/components/FeedbackSection";
+import FeedbackWidget from "@/components/FeedbackWidget";
 import { cookies } from "next/headers";           // <--- IMPORT THIS
 import "./globals.css";
 
@@ -34,18 +35,23 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         
         <Navbar />
-
         {isLoggedIn && <AutoLogout />}
         
         <main className="flex-1 pt-16"> 
           {children}
         </main>
 
-        {/* 2. INSERT FEEDBACK SECTION HERE */}
+        {/* 3. "WHAT DO YOU LOVE" SECTION (Sits above footer) */}
         <FeedbackSection />
 
-        {/* GLOBAL FOOTER */}
-        <footer className="bg-slate-800 text-brand-sky py-10 text-center border-t border-slate-700">
+        {/* 4. GLOBAL FOOTER */}
+        <footer className="bg-slate-800 text-brand-sky py-8 text-center border-t border-slate-700">
+          
+          {/* "ISSUES" LINK (Sits inside footer at the top) */}
+          <div className="container mx-auto px-4 mb-6 border-b border-slate-700/50 pb-6">
+            <FeedbackWidget />
+          </div>
+
           <p className="font-medium">© {new Date().getFullYear()} LoveMyFam.</p>
           <p className="text-sm text-slate-500 mt-2">
             Built with ❤️ by{' '}
