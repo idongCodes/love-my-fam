@@ -40,8 +40,8 @@ export async function getTestimonials() {
     orderBy: { createdAt: 'desc' },
     include: {
       author: {
-        // ✅ CRITICAL: We must select the email here!
-        select: { firstName: true, alias: true, email: true } 
+        // ✅ ADDED: profileImage
+        select: { firstName: true, alias: true, email: true, profileImage: true } 
       }
     }
   })
@@ -71,13 +71,14 @@ export async function getTestimonials() {
 
   // B. TRANSFORM DATA
   return testimonials.map(t => {
-    // If Guest, we hide the email (so badge won't show) and redact name
+    // If Guest, we hide email AND profile image
     if (isGuest) {
       return {
         id: t.id,
         content: t.content,
         createdAt: t.createdAt,
-        authorEmail: null, // Hide email from guests
+        authorEmail: null, 
+        authorProfileImage: null, // <--- HIDE IMAGE
         displayAuthor: "Family Member",
         displayAvatar: null,
         redactedContent: redactText(t.content)
@@ -89,7 +90,8 @@ export async function getTestimonials() {
       id: t.id,
       content: t.content,
       createdAt: t.createdAt,
-      authorEmail: t.author.email, // Pass email to frontend
+      authorEmail: t.author.email,
+      authorProfileImage: t.author.profileImage, // <--- PASS IMAGE
       displayAuthor: t.author.alias || t.author.firstName,
       displayAvatar: (t.author.alias || t.author.firstName)[0].toUpperCase(),
       redactedContent: t.content

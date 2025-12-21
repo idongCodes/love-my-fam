@@ -1,85 +1,81 @@
 import os
 
 # --- CONFIGURATION ---
-# 1. File types to include (covers your new components and actions)
+OUTPUT_FILE = 'project_bundle.txt'
+
+# File extensions to include in the bundle
 INCLUDED_EXTENSIONS = {
-    '.ts', '.tsx',      # React & TypeScript
-    '.js', '.jsx',      # JavaScript
-    '.css',             # Styles
-    '.prisma',          # Database Schema
-    '.json',            # Config files (package.json, tsconfig)
-    '.md'               # Documentation
+    '.ts', '.tsx', 
+    '.js', '.jsx', 
+    '.css', 
+    '.prisma',
+    '.json' 
 }
 
-# 2. Folders to ignore (keeps the bundle clean)
-IGNORED_DIRS = {
+# Directories to strictly ignore
+IGNORE_DIRS = {
     'node_modules', 
     '.next', 
     '.git', 
-    '.vscode', 
-    'public',   
+    '.vscode',
     'coverage',
     'dist',
     'build'
 }
 
-# 3. Specific files to ignore (SECURITY: Secrets are blocked here)
-IGNORED_FILES = {
+# Specific files to ignore (to reduce noise)
+IGNORE_FILES = {
     'package-lock.json', 
     'yarn.lock', 
-    'bun.lockb',
     'pnpm-lock.yaml',
-    'bundle.py',          # Don't bundle the bundler
-    'project_bundle.txt', # Don't bundle the output
-    '.DS_Store',
-    '.env',               # BLOCKED
-    '.env.local',         # BLOCKED
-    '.env.production',    # BLOCKED
-    '.eslintrc.json'      # Optional: skip lint config to save space
+    'bundle.py', 
+    'project_bundle.txt',
+    'next-env.d.ts',
+    'README.md',
+    '.DS_Store'
 }
 
-OUTPUT_FILE = 'project_bundle.txt'
-
-def is_text_file(filename):
+def is_relevant_file(filename):
+    """Check if file has a valid extension and isn't in the ignore list."""
+    if filename in IGNORE_FILES:
+        return False
     return any(filename.endswith(ext) for ext in INCLUDED_EXTENSIONS)
 
 def bundle_project():
-    print(f"📦 Bundling project into '{OUTPUT_FILE}'...")
-    file_count = 0
+    print(f"Bundling project into {OUTPUT_FILE}...")
     
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as outfile:
-        # Walk through the directory tree
+        # Walk through the current directory
         for root, dirs, files in os.walk('.'):
-            # Modify 'dirs' in-place to skip ignored directories
-            dirs[:] = [d for d in dirs if d not in IGNORED_DIRS]
-            
-            # Sort files to keep the output organized
-            files.sort()
-            
+            # Modify dirs in-place to prevent walking into ignored directories
+            dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
+
             for file in files:
-                if file in IGNORED_FILES:
-                    continue
-                
-                if is_text_file(file):
+                if is_relevant_file(file):
                     file_path = os.path.join(root, file)
                     
+                    # Create a clean relative path for the header (e.g., "src/app/page.tsx")
+                    relative_path = os.path.relpath(file_path, '.')
+
+                    print(f"Processing: {relative_path}")
+
                     try:
                         with open(file_path, 'r', encoding='utf-8') as infile:
                             content = infile.read()
                             
-                            # Write a clear separator and filename
-                            outfile.write(f"\n{'='*80}\n")
-                            outfile.write(f"FILE: {file_path}\n")
-                            outfile.write(f"{'='*80}\n\n")
-                            outfile.write(content)
-                            outfile.write("\n")
+                            # Write Header
+                            outfile.write("=" * 50 + "\n")
+                            outfile.write(f"FILE: {relative_path}\n")
+                            outfile.write("=" * 50 + "\n")
                             
-                        print(f"  - Added: {file_path}")
-                        file_count += 1
+                            # Write Content
+                            outfile.write(content)
+                            outfile.write("\n\n")
+                            
                     except Exception as e:
-                        print(f"  ! Error reading {file_path}: {e}")
+                        print(f"⚠️ Could not read {relative_path}: {e}")
 
-    print(f"\n✅ Success! Bundled {file_count} files into '{OUTPUT_FILE}'")
+    print(f"\n✅ Success! All files bundled into '{OUTPUT_FILE}'")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     bundle_project()
