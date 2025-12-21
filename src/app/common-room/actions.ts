@@ -13,17 +13,17 @@ async function getCurrentUserId() {
   return cookieStore.get('session_id')?.value
 }
 
-// --- 1. CREATE POST ---
+// =======================================================
+// 1. POST ACTIONS (Create, Edit, Delete, Feed)
+// =======================================================
+
 export async function createPost(formData: FormData) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: 'Unauthorized' }
 
-  const content = formData.get('content') as string || "" // Default to empty string
-  
-  // ✅ FIX: Changed 'media' to 'file' to match PostInput.tsx
+  const content = formData.get('content') as string || ""
   const imageFile = formData.get('file') as File | null 
 
-  // ✅ UPDATE VALIDATION: Allow post if it has text OR an image
   const hasText = content.trim().length > 0
   const hasImage = imageFile && imageFile.size > 0
 
@@ -33,7 +33,6 @@ export async function createPost(formData: FormData) {
 
   let imageUrl = null
 
-  // If there is a file, upload it to Vercel Blob
   if (hasImage) {
     const blob = await put(imageFile!.name, imageFile!, {
       access: 'public',
@@ -53,7 +52,6 @@ export async function createPost(formData: FormData) {
   return { success: true }
 }
 
-// --- 2. DELETE POST ---
 export async function deletePost(postId: string) {
   const userId = await getCurrentUserId()
   
@@ -67,7 +65,6 @@ export async function deletePost(postId: string) {
   return { success: true }
 }
 
-// --- 3. EDIT POST ---
 export async function editPost(postId: string, newContent: string) {
   const userId = await getCurrentUserId()
   const post = await prisma.post.findUnique({ where: { id: postId } })
@@ -87,7 +84,6 @@ export async function editPost(postId: string, newContent: string) {
   return { success: true }
 }
 
-// --- 4. TOGGLE LIKE ---
 export async function toggleLike(postId: string) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: "Unauthorized" }
@@ -111,7 +107,10 @@ export async function toggleLike(postId: string) {
   return { success: true }
 }
 
-// --- 5. ADD COMMENT ---
+// =======================================================
+// 2. COMMENT ACTIONS (Add, Edit, Delete, Like)
+// =======================================================
+
 export async function addComment(postId: string, content: string, parentId?: string) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: "Unauthorized" }
@@ -131,7 +130,6 @@ export async function addComment(postId: string, content: string, parentId?: str
   return { success: true }
 }
 
-// --- 6. TOGGLE COMMENT LIKE ---
 export async function toggleCommentLike(commentId: string) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: "Unauthorized" }
@@ -155,7 +153,6 @@ export async function toggleCommentLike(commentId: string) {
   return { success: true }
 }
 
-// --- 7. DELETE COMMENT ---
 export async function deleteComment(commentId: string) {
   const userId = await getCurrentUserId()
   
@@ -169,7 +166,6 @@ export async function deleteComment(commentId: string) {
   return { success: true }
 }
 
-// --- 8. EDIT COMMENT ---
 export async function editComment(commentId: string, newContent: string) {
   const userId = await getCurrentUserId()
   const comment = await prisma.comment.findUnique({ where: { id: commentId } })
@@ -187,4 +183,112 @@ export async function editComment(commentId: string, newContent: string) {
 
   revalidatePath('/common-room')
   return { success: true }
+}
+
+// =======================================================
+// 3. ANNOUNCEMENT ACTIONS (New)
+// =======================================================
+
+export async function createAnnouncement(formData: FormData) {
+  const userId = await getCurrentUserId()
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (user?.email !== ADMIN_EMAIL) {
+    return { success: false, message: "Only Admin can post announcements." }
+  }
+
+  const title = formData.get('title') as string
+  const message = formData.get('message') as string
+  const isUrgent = formData.get('isUrgent') === 'true'
+
+  if (!message || !title) return { success: false, message: "Title and Message are required." }
+
+  await prisma.post.create({
+    data: {
+      title,
+      content: message,
+      authorId: userId!,
+      isAnnouncement: true,
+      isUrgent: isUrgent
+    }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+export async function dismissAnnouncement(postId: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false }
+
+  await prisma.postDismissal.create({
+    data: {
+      userId,
+      postId
+    }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+export async function getAnnouncements() {
+  return await prisma.post.findMany({
+    where: { isAnnouncement: true },
+    orderBy: { createdAt: 'desc' },
+    take: 5
+  })
+}
+
+// =======================================================
+// 4. FEED FETCHING (Updated to split Urgent vs Regular)
+// =======================================================
+
+export async function getFeedData() {
+  const userId = await getCurrentUserId()
+  
+  // 1. Get Urgent Announcements (Not dismissed by me)
+  const urgentPosts = await prisma.post.findMany({
+    where: {
+      isAnnouncement: true,
+      isUrgent: true,
+      dismissals: {
+        none: { userId: userId } 
+      }
+    },
+    include: {
+      author: true,
+      likes: { include: { user: true } },
+      comments: { include: { author: true, likes: true, children: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  // 2. Get Regular Posts (Not announcements)
+  const regularPosts = await prisma.post.findMany({
+    where: {
+      isAnnouncement: false
+    },
+    include: {
+      author: true,
+      likes: { include: { user: true } },
+      comments: { include: { author: true, likes: true, children: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  // Helper to map data structure for frontend
+  const mapPost = (p: any) => ({
+    ...p,
+    likeCount: p.likes.length,
+    isLikedByMe: userId ? p.likes.some((l: any) => l.userId === userId) : false,
+    topLevelComments: p.comments.filter((c: any) => !c.parentId)
+  })
+
+  return {
+    urgentPosts: urgentPosts.map(mapPost),
+    regularPosts: regularPosts.map(mapPost),
+    currentUserId: userId
+  }
 }

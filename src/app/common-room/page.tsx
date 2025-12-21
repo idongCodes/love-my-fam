@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import { cookies } from "next/headers";
 import PostInput from "@/components/PostInput";
 import PostCard from "@/components/PostCard";
+import AnnouncementCarousel from "@/components/AnnouncementCarousel";
+import { getFeedData, getAnnouncements } from "./actions";
 
 const prisma = new PrismaClient();
 
@@ -10,62 +12,15 @@ async function getUser() {
   const sessionId = cookieStore.get('session_id')?.value
   if (!sessionId) return null
 
-  const user = await prisma.user.findUnique({
-    where: { id: sessionId },
-    select: { id: true, firstName: true, alias: true }
+  return await prisma.user.findUnique({
+    where: { id: sessionId }
   })
-  return user
-}
-
-async function getPosts(currentUserId?: string) {
-  const posts = await prisma.post.findMany({
-    include: { 
-      author: true,
-      // 1. FETCH USERS FOR POST LIKES
-      likes: {
-        include: {
-          user: { select: { id: true, firstName: true, alias: true, profileImage: true } }
-        }
-      },
-      comments: {
-        include: {
-          author: true,
-          // 2. FETCH USERS FOR COMMENT LIKES
-          likes: {
-            include: {
-              user: { select: { id: true, firstName: true, alias: true, profileImage: true } }
-            }
-          },
-          children: {
-            include: {
-              author: true,
-              likes: {
-                include: {
-                  user: { select: { id: true, firstName: true, alias: true, profileImage: true } }
-                }
-              },
-              children: true 
-            }
-          }
-        },
-        orderBy: { createdAt: 'asc' }
-      }
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return posts.map(post => ({
-    ...post,
-    // We pass the FULL array of likes now, not just the count
-    likeCount: post.likes.length,
-    isLikedByMe: currentUserId ? post.likes.some(like => like.userId === currentUserId) : false,
-    topLevelComments: post.comments.filter((c: any) => !c.parentId)
-  }));
 }
 
 export default async function CommonRoom() {
   const user = await getUser()
-  const posts = await getPosts(user?.id) // Pass user ID to check likes
+  const announcements = await getAnnouncements()
+  const { urgentPosts, regularPosts } = await getFeedData()
 
   const welcomeName = user?.alias || user?.firstName || "Family Member";
 
@@ -83,19 +38,36 @@ export default async function CommonRoom() {
           </h2>
         </div>
 
+        {/* ANNOUNCEMENTS CAROUSEL */}
+        <AnnouncementCarousel 
+          announcements={announcements} 
+          currentUserEmail={user?.email} 
+        />
+
         {/* INPUT FORM */}
         <PostInput />
 
-        {/* POSTS FEED */}
+        {/* FEED */}
         <div className="space-y-6">
-          {posts.map((post) => (
+          
+          {/* 1. URGENT ANNOUNCEMENTS (Pinned at top) */}
+          {urgentPosts.map((post) => (
+             <PostCard 
+              key={post.id} 
+              post={post} 
+              currentUserId={user?.id || ''}
+            />
+          ))}
+
+          {/* 2. REGULAR POSTS */}
+          {regularPosts.map((post) => (
             <PostCard 
               key={post.id} 
               post={post} 
               currentUserId={user?.id || ''}
             />
           ))}
-          {/* ... (Empty state remains same) */}
+
         </div>
       </div>
     </main>

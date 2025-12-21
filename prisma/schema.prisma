@@ -11,22 +11,23 @@ datasource db {
 
 // 2. USER MODEL
 model User {
-  id        String   @id @default(cuid())
-  firstName String
-  lastName  String
-  alias     String?
-  position  String
-  email     String   @unique
-  phone     String?
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  alias        String?
+  position     String
+  email        String   @unique
+  phone        String?
   profileImage String?
-  createdAt DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   // Relations
-  posts        Post[]        @relation("UserPosts")
-  comments     Comment[]
-  likes        Like[]
-  commentLikes CommentLike[]
-  Testimonial  Testimonial[]
+  posts         Post[]          @relation("UserPosts")
+  comments      Comment[]
+  likes         Like[]
+  commentLikes  CommentLike[]
+  Testimonial   Testimonial[]
+  PostDismissal PostDismissal[]
 }
 
 // 3. POST MODEL
@@ -38,11 +39,17 @@ model Post {
   updatedAt DateTime @updatedAt
   isEdited  Boolean  @default(false)
 
+  // --- NEW FIELDS FOR ANNOUNCEMENTS ---
+  title          String? // Optional title
+  isAnnouncement Boolean @default(false)
+  isUrgent       Boolean @default(false)
+
   // Relations
-  authorId String
-  author   User      @relation("UserPosts", fields: [authorId], references: [id])
-  comments Comment[]
-  likes    Like[]
+  authorId      String
+  author        User            @relation("UserPosts", fields: [authorId], references: [id])
+  comments      Comment[]
+  likes         Like[]
+  dismissals PostDismissal[]
 }
 
 // 4. POST LIKE MODEL
@@ -103,4 +110,16 @@ model Testimonial {
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
+}
+
+// NEW: POST DISMISSAL MODEL
+model PostDismissal {
+  id     String @id @default(cuid())
+  userId String
+  postId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
 }
