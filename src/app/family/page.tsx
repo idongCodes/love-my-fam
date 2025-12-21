@@ -33,9 +33,13 @@ export default async function FamilyDirectory() {
             return (
               <div key={user.id} className={`bg-white p-6 rounded-2xl shadow-sm border flex items-center gap-4 hover:shadow-md transition-shadow ${isAdmin ? 'border-brand-sky/30 bg-brand-sky/5' : 'border-slate-100'}`}>
                 
-                {/* Avatar Circle */}
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 ${isAdmin ? 'bg-slate-800 text-brand-yellow' : 'bg-brand-sky/20 text-brand-sky'}`}>
-                  {(user.alias || user.firstName)[0].toUpperCase()}
+                {/* UPDATE AVATAR LOGIC */}
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 overflow-hidden ${isAdmin && !user.profileImage ? 'bg-slate-800 text-brand-yellow' : 'bg-brand-sky/20 text-brand-sky'}`}>
+                  {user.profileImage ? (
+                    <img src={user.profileImage} alt={user.firstName} className="w-full h-full object-cover" />
+                  ) : (
+                    (user.alias || user.firstName)[0].toUpperCase()
+                  )}
                 </div>
 
                 {/* Info */}

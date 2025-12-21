@@ -24,7 +24,7 @@ async function getPosts(currentUserId?: string) {
       // 1. FETCH USERS FOR POST LIKES
       likes: {
         include: {
-          user: { select: { id: true, firstName: true, alias: true } }
+          user: { select: { id: true, firstName: true, alias: true, profileImage: true } }
         }
       },
       comments: {
@@ -33,7 +33,7 @@ async function getPosts(currentUserId?: string) {
           // 2. FETCH USERS FOR COMMENT LIKES
           likes: {
             include: {
-              user: { select: { id: true, firstName: true, alias: true } }
+              user: { select: { id: true, firstName: true, alias: true, profileImage: true } }
             }
           },
           children: {
@@ -41,7 +41,7 @@ async function getPosts(currentUserId?: string) {
               author: true,
               likes: {
                 include: {
-                  user: { select: { id: true, firstName: true, alias: true } }
+                  user: { select: { id: true, firstName: true, alias: true, profileImage: true } }
                 }
               },
               children: true 

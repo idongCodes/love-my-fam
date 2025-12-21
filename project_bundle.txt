@@ -1,130 +1,6 @@
-
-================================================================================
-FILE: ./README.md
-================================================================================
-
-# 💖 LoveMyFam (LMF)
-
-### "A safe space for family. No strangers. No public. Just family."
-
------
-
-## 💡 The Mission
-
-In the age of endless notifications and cluttered group chats, staying genuinely connected with family often feels like a chore. **LoveMyFam** is designed to eliminate the friction and fatigue of modern communication methods—no more long, unplanned phone calls or searching through hundreds of text messages for one update.
-
-LMF provides a private, asynchronous space built to facilitate **genuine and lasting communication** among family members.
-
-## 🏡 The Common Room (CR)
-
-The **Common Room** is the heart of the app. It acts as a central hub where all family members (FMs) can post concerns, share life updates, and collaborate on planning.
-
-### Why Post to the Common Room?
-
-| Pain Point Solved | LMF Solution |
-| :--- | :--- |
-| **Call Fatigue** | Skip the hassle of long phone calls and multiple video calls. |
-| **Cluttered Group Chats**| Post one update, and *everyone* sees it, ensuring crucial information isn't missed. |
-| **Exclusivity** | Our motto is our architecture: This is a **private, non-public** space. |
-
-## ✨ Current Features (MVP)
-
-As an ongoing project driven by continuous learning, the current feature set focuses on core communication:
-
-  * **Secure Sign-In:** Authenticates family members to ensure platform exclusivity.
-  * **Real-Time Feed:** Instantly pushes new updates to all active family members without requiring a page refresh.
-  * **Asynchronous Posting:** Family members can post updates at their convenience.
-  * **Database:** (Planned upgrade to PostgreSQL/Prisma).
-
-## 🚀 The Development Journey
-
-This project serves as a commitment to my ongoing growth as a full-stack developer. Building **LoveMyFam** allows me to integrate and master key concepts as I learn them.
-
-| Technology Focus | Status & Goal |
-| :--- | :--- |
-| **Frontend** | **Next.js (App Router)**: Using React Server Components and Tailwind CSS. |
-| **Backend** | **Next.js API Routes**: Handling business logic and database interactions. |
-| **Deployment** | **Vercel**: Serverless deployment for instant scalability. |
-
------
-
-## 🔗 Connect with Me
-
-Follow my journey as I build out new features for LMF and tackle new challenges!
-
-[![My BlueSky Profile](https://img.shields.io/badge/BlueSky-0077B5?style=for-the-badge&logo=bluesky&logoColor=white)](https://bsky.app/profile/idongcodes.bsky.social)
-[![My LinkedIn Profile](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/idongcodes/)
-
-
-================================================================================
-FILE: ./next-env.d.ts
-================================================================================
-
-/// <reference types="next" />
-/// <reference types="next/image-types/global" />
-import "./.next/dev/types/routes.d.ts";
-
-// NOTE: This file should not be edited
-// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
-
-
-================================================================================
-FILE: ./next.config.ts
-================================================================================
-
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
-};
-
-export default nextConfig;
-
-
-================================================================================
-FILE: ./package.json
-================================================================================
-
-{
-  "name": "love-my-fam",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "next": "16.1.0",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
-  },
-  "devDependencies": {
-    "@prisma/client": "^5.22.0",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.0",
-    "prisma": "^5.22.0",
-    "tailwindcss": "^4",
-    "ts-node": "^10.9.2",
-    "typescript": "^5"
-  },
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
-  }
-}
-
-
-================================================================================
-FILE: ./tsconfig.json
-================================================================================
-
+==================================================
+FILE: tsconfig.json
+==================================================
 {
   "compilerOptions": {
     "target": "ES2017",
@@ -161,10 +37,66 @@ FILE: ./tsconfig.json
 }
 
 
-================================================================================
-FILE: ./src/middleware.ts
-================================================================================
+==================================================
+FILE: package.json
+==================================================
+{
+  "name": "love-my-fam",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.0.0",
+    "emoji-picker-react": "^4.16.1",
+    "next": "16.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.0",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  }
+}
 
+
+==================================================
+FILE: next.config.ts
+==================================================
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  reactCompiler: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '20mb', // <--- Updated to 20mb
+    },
+  },
+};
+
+export default nextConfig;
+
+==================================================
+FILE: src/middleware.ts
+==================================================
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -200,10 +132,945 @@ export const config = {
   ],
 }
 
-================================================================================
-FILE: ./src/components/NavMenu.tsx
-================================================================================
+==================================================
+FILE: src/components/LikeButton.tsx
+==================================================
+'use client'
 
+import { useState } from 'react'
+import useLongPress from '@/hooks/useLongPress'
+
+interface UserLike {
+  userId: string;
+  user: {
+    id: string;
+    firstName: string;
+    alias?: string | null;
+  }
+}
+
+interface LikeButtonProps {
+  initialLikes: UserLike[];
+  currentUserId: string;
+  onToggle: () => Promise<void>;
+}
+
+export default function LikeButton({ initialLikes = [], currentUserId, onToggle }: LikeButtonProps) {
+  // --- STATE ---
+  const [likes, setLikes] = useState<UserLike[]>(initialLikes)
+  const isLikedByMe = likes.some(l => l.userId === currentUserId)
+  
+  const [showList, setShowList] = useState(false)
+
+  // --- HANDLERS ---
+  const handleToggle = async () => {
+    // Optimistic Update
+    if (isLikedByMe) {
+      setLikes(prev => prev.filter(l => l.userId !== currentUserId))
+    } else {
+      // Add fake user object for immediate feedback
+      setLikes(prev => [...prev, { 
+        userId: currentUserId, 
+        user: { id: currentUserId, firstName: 'Me', alias: 'Me' } 
+      }])
+    }
+    
+    await onToggle()
+  }
+
+  const handleLongPress = () => {
+    if (likes.length > 0) {
+      setShowList(true)
+    }
+  }
+
+  // Use our custom hook
+  const longPressProps = useLongPress(handleLongPress, handleToggle, { delay: 500 })
+
+  return (
+    <div className="relative inline-block">
+      
+      {/* 1. THE BUTTON (With Long Press support) */}
+      <button 
+        {...longPressProps}
+        className={`flex items-center gap-1.5 transition-colors font-bold text-xs 
+          ${isLikedByMe ? 'text-brand-pink' : 'text-slate-400 hover:text-brand-pink'}`}
+        title="Long press to see who liked"
+      >
+        {isLikedByMe ? (
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 animate-in zoom-in duration-200">
+            <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
+          </svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+          </svg>
+        )}
+        <span>{likes.length || 'Like'}</span>
+      </button>
+
+      {/* 2. THE FLOATING POPUP (Anchored) */}
+      {showList && (
+        <>
+          {/* Backdrop to close on click-away */}
+          <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setShowList(false) }} />
+          
+          <div className="absolute bottom-full left-0 mb-2 w-48 bg-white rounded-lg shadow-xl border border-slate-100 z-50 p-1 animate-in zoom-in-95 duration-150 origin-bottom-left">
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2 border-b border-slate-50">
+              Liked By
+            </div>
+            <div className="max-h-40 overflow-y-auto py-1">
+              {likes.map((like) => (
+                <div key={like.userId} className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-md">
+                   <div className="w-5 h-5 bg-brand-pink/20 text-brand-pink rounded-full flex items-center justify-center text-[10px] font-bold">
+                      {(like.user.alias || like.user.firstName)[0]}
+                   </div>
+                   <span className="text-xs text-slate-700 truncate font-medium">
+                     {like.user.alias || like.user.firstName}
+                   </span>
+                </div>
+              ))}
+            </div>
+            {/* Little Triangle Arrow */}
+            <div className="absolute top-full left-4 -mt-[1px] border-8 border-transparent border-t-white" />
+          </div>
+        </>
+      )}
+
+    </div>
+  )
+}
+
+==================================================
+FILE: src/components/AutoLogout.tsx
+==================================================
+'use client'
+
+import { useEffect, useRef } from 'react'
+import { logout } from '@/app/actions' // Ensure this path is correct for your project!
+
+const TIMEOUT_MS = 15 * 60 * 1000 // 15 Minutes
+
+export default function AutoLogout() {
+  // Use a ref to store the timestamp without triggering re-renders
+  const lastActivity = useRef(Date.now())
+
+  useEffect(() => {
+    // 1. The Checker: Runs every minute to check strictly against the clock
+    const intervalId = setInterval(() => {
+      checkInactivity()
+    }, 10000) // Check every 10 seconds
+
+    const checkInactivity = () => {
+      const now = Date.now()
+      const timeSinceLastActivity = now - lastActivity.current
+
+      if (timeSinceLastActivity > TIMEOUT_MS) {
+        performLogout()
+      }
+    }
+
+    const performLogout = async () => {
+      console.log("⏳ Session expired (Timestamp check). Logging out...")
+      try {
+        await logout()
+      } catch (e) {
+        console.error("Logout failed", e)
+      } finally {
+        window.location.href = '/' // Force reload to home/login
+      }
+    }
+
+    const updateActivity = () => {
+      // Before resetting, check if we SHOULD have logged out already
+      // This catches the "Computer Waking Up" edge case
+      const now = Date.now()
+      if (now - lastActivity.current > TIMEOUT_MS) {
+        performLogout()
+      } else {
+        lastActivity.current = now
+      }
+    }
+
+    // 2. Event Listeners
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click']
+    events.forEach(event => window.addEventListener(event, updateActivity))
+
+    // Cleanup
+    return () => {
+      clearInterval(intervalId)
+      events.forEach(event => window.removeEventListener(event, updateActivity))
+    }
+  }, [])
+
+  return null
+}
+
+==================================================
+FILE: src/components/TestimonialSection.tsx
+==================================================
+import { getTestimonials } from '@/app/testimonials/actions'
+import TestimonialSlider from './TestimonialSlider'
+
+export default async function TestimonialSection() {
+  // Fetch up to 9 items so the carousel has content to scroll through
+  // (You can adjust the limit in your actions.ts if needed, e.g. take: 9)
+  const testimonials = await getTestimonials()
+
+  if (testimonials.length === 0) return null
+
+  return (
+    <section className="bg-brand-sky py-20 px-4 relative overflow-hidden">
+      
+      {/* Background Decoration */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 right-0 w-64 h-64 bg-brand-pink rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        <h2 className="text-4xl font-extrabold text-white text-center mb-12 tracking-tight drop-shadow-sm">
+          Testimonials
+        </h2>
+
+        {/* Client Side Slider */}
+        <TestimonialSlider testimonials={testimonials} />
+        
+      </div>
+    </section>
+  )
+}
+
+==================================================
+FILE: src/components/PostCard.tsx
+==================================================
+'use client'
+
+import { useState } from 'react'
+import { deletePost, editPost, toggleLike, addComment } from '@/app/common-room/actions'
+import CommentItem from './CommentItem'
+import LikeButton from './LikeButton'
+import EmojiButton from './EmojiButton'
+
+export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
+  // --- STATE: EDITING ---
+  const [isEditing, setIsEditing] = useState(false)
+  const [editContent, setEditContent] = useState(post.content)
+
+  // --- STATE: COMMENTS ---
+  const [showComments, setShowComments] = useState(false)
+  const [commentText, setCommentText] = useState('')
+
+  // --- PERMISSIONS ---
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+  // Case insensitive check
+  const isAdmin = post.author.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+  const isAuthor = currentUserId === post.authorId
+  
+  const createdAt = new Date(post.createdAt).getTime()
+  const timeDiff = Date.now() - createdAt
+  // Rule: Author only + Not edited yet + Less than 10 mins old
+  const canEdit = isAuthor && !post.isEdited && timeDiff < 10 * 60 * 1000
+
+  // --- HANDLERS ---
+
+  async function handleDelete() {
+    if (confirm('Are you sure you want to delete this?')) {
+      await deletePost(post.id)
+    }
+  }
+
+  async function handleSave() {
+    const result = await editPost(post.id, editContent)
+    if (result.success) {
+      setIsEditing(false)
+    } else {
+      alert(result.message)
+    }
+  }
+
+  async function handleToggleLike() {
+    await toggleLike(post.id)
+  }
+
+  async function handleMainCommentSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if(!commentText.trim()) return
+
+    await addComment(post.id, commentText)
+    setCommentText('')
+  }
+
+  const displayName = post.author.alias || post.author.firstName
+  const firstLetter = displayName[0].toUpperCase()
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6 transition-all hover:border-slate-200">
+      
+      {/* 1. HEADER (User Info + Actions) */}
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center gap-3">
+          {/* Avatar */}
+          <div className="w-10 h-10 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-lg shadow-sm shrink-0">
+            {firstLetter}
+          </div>
+          
+          {/* User Details */}
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-slate-800 leading-tight">
+                {displayName}
+              </span>
+              <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-0.5 rounded-full font-bold uppercase border border-brand-sky/20">
+                {post.author.position}
+              </span>
+            </div>
+
+            {/* GREY ADMIN BADGE */}
+            {isAdmin && (
+              <span className="bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded w-fit flex items-center gap-1 mt-1 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5">
+                   <path fillRule="evenodd" d="M10.362 1.093a.75.75 0 0 0-.724 0L2.523 5.018 10 9.143l7.477-4.125-7.115-3.925ZM18 6.443l-7.25 4v8.25l6.862-3.786A.75.75 0 0 0 18 14.25V6.443Zm-8.75 12.25v-8.25l-7.25-4v7.807a.75.75 0 0 0 .388.657l6.862 3.786Z" clipRule="evenodd" />
+                </svg>
+                Admin
+              </span>
+            )}
+
+            <p className="text-xs text-slate-400 mt-0.5">
+              {new Date(post.createdAt).toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+              })}
+              {post.isEdited && <span className="italic ml-1">(Edited)</span>}
+            </p>
+          </div>
+        </div>
+
+        {/* Edit/Delete Buttons */}
+        {isAuthor && (
+          <div className="flex gap-3 text-slate-400">
+            {canEdit && !isEditing && (
+              <button 
+                onClick={() => setIsEditing(true)}
+                className="hover:text-brand-sky transition-colors p-1 rounded-full hover:bg-slate-50"
+                title="Edit Post"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+              </button>
+            )}
+            
+            <button 
+              onClick={handleDelete}
+              className="hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
+              title="Delete Post"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 2. MAIN CONTENT AREA */}
+      {isEditing ? (
+        <div className="mt-2">
+          {/* Textarea Wrapper for Emoji Button */}
+          <div className="relative">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-sky outline-none text-slate-700 pr-10"
+              rows={3}
+            />
+            {/* Emoji Button Inside - Bottom Right */}
+            <div className="absolute bottom-2 right-2">
+              {/* FIXED: Explicitly typed 'prev' */}
+              <EmojiButton onEmojiSelect={(emoji) => setEditContent((prev: string) => prev + emoji)} />
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-2 justify-end">
+            <button onClick={() => setIsEditing(false)} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
+            <button onClick={handleSave} className="text-xs bg-brand-sky text-white px-3 py-1 rounded-full hover:bg-sky-500">Save Update</button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap mb-3">
+            {post.content}
+          </p>
+          {post.imageUrl && (
+            <div className="mt-3 rounded-lg overflow-hidden border border-slate-100">
+              <img 
+                src={post.imageUrl} 
+                alt="Post attachment" 
+                className="w-full max-h-96 object-cover bg-slate-50"
+                loading="lazy"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 3. ACTION BAR (Like & Reply) */}
+      <div className="mt-5 pt-4 border-t border-slate-50 flex justify-between items-center">
+        
+        {/* Like Button */}
+        <LikeButton 
+          initialLikes={post.likes} 
+          currentUserId={currentUserId} 
+          onToggle={handleToggleLike} 
+        />
+
+        {/* Reply Toggle */}
+        <button 
+          onClick={() => setShowComments(!showComments)} 
+          className="flex items-center gap-2 text-slate-400 hover:text-brand-sky transition-colors font-medium text-sm group"
+        >
+          <span>{post.topLevelComments?.length || 0} Replies</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+          </svg>
+        </button>
+
+      </div>
+
+      {/* 4. COMMENTS SECTION */}
+      {showComments && (
+        <div className="mt-6 animate-in slide-in-from-top-2 border-t border-slate-50 pt-4">
+          
+          {/* Main Comment Input Form */}
+          <form onSubmit={handleMainCommentSubmit} className="flex gap-2 mb-6 items-center">
+            
+            {/* Input Wrapper for Emoji Button */}
+            <div className="relative flex-1">
+              <input 
+                type="text" 
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Write a comment..." 
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-4 pr-10 py-3 text-sm focus:ring-2 focus:ring-brand-sky outline-none transition-all"
+              />
+              {/* Emoji Button Inside - Right Center */}
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                {/* FIXED: Explicitly typed 'prev' */}
+                <EmojiButton onEmojiSelect={(emoji) => setCommentText((prev: string) => prev + emoji)} />
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={!commentText.trim()}
+              className="bg-brand-sky text-white font-bold px-4 py-2 rounded-lg hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Post
+            </button>
+          </form>
+
+          {/* List of Comments */}
+          <div className="space-y-4">
+            {post.topLevelComments?.map((comment: any) => (
+              <CommentItem 
+                key={comment.id} 
+                comment={comment} 
+                currentUserId={currentUserId}
+                postId={post.id}
+              />
+            ))}
+            
+            {(!post.topLevelComments || post.topLevelComments.length === 0) && (
+              <p className="text-center text-slate-400 text-xs italic">No comments yet. Be the first!</p>
+            )}
+          </div>
+        </div>
+      )}
+
+    </div>
+  )
+}
+
+==================================================
+FILE: src/components/CommentItem.tsx
+==================================================
+'use client'
+
+import { useState } from 'react'
+import { addComment, toggleCommentLike, deleteComment, editComment } from '@/app/common-room/actions'
+import LikeButton from './LikeButton'
+import EmojiButton from './EmojiButton'
+
+export default function CommentItem({ 
+  comment, 
+  currentUserId, 
+  postId 
+}: { 
+  comment: any, 
+  currentUserId: string, 
+  postId: string 
+}) {
+  // --- STATE ---
+  // Explicitly type as string to prevent "implicit any" errors
+  const [isReplying, setIsReplying] = useState(false)
+  const [replyContent, setReplyContent] = useState('')
+  
+  const [isEditing, setIsEditing] = useState(false)
+  const [editContent, setEditContent] = useState<string>(comment.content || '') 
+
+  // --- PERMISSIONS ---
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+  const isAdmin = comment.author?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+  
+  const isAuthor = currentUserId === comment.authorId
+  const createdAt = new Date(comment.createdAt).getTime()
+  const timeDiff = Date.now() - createdAt
+  const canEdit = isAuthor && !comment.isEdited && timeDiff < 10 * 60 * 1000
+
+  // --- HANDLERS ---
+
+  async function handleToggleLike() {
+    await toggleCommentLike(comment.id)
+  }
+
+  async function handleReplySubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!replyContent.trim()) return
+
+    await addComment(postId, replyContent, comment.id)
+    setIsReplying(false)
+    setReplyContent('')
+  }
+
+  async function handleDelete() {
+    if (confirm('Delete this comment?')) {
+      await deleteComment(comment.id)
+    }
+  }
+
+  async function handleEditSave() {
+    const result = await editComment(comment.id, editContent)
+    if (result.success) {
+      setIsEditing(false)
+    } else {
+      alert(result.message)
+    }
+  }
+
+  const displayName = comment.author?.alias || comment.author?.firstName || 'Family Member'
+  const firstLetter = displayName[0]?.toUpperCase() || '?'
+
+  return (
+    <div className="flex gap-3 mt-4 w-full">
+      {/* AVATAR */}
+      <div className="w-8 h-8 bg-brand-sky/20 rounded-full flex items-center justify-center text-brand-sky font-bold text-xs shrink-0">
+        {firstLetter}
+      </div>
+
+      <div className="flex-1">
+        {/* BUBBLE */}
+        <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100 group relative">
+          
+          {/* HEADER: Name + Badge + Timestamp + Icons */}
+          <div className="flex justify-between items-baseline mb-1">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-slate-700 text-sm">{displayName}</span>
+              
+              {/* GREY ADMIN BADGE */}
+              {isAdmin && (
+                <span className="bg-slate-700 text-white text-[9px] px-1.5 py-0.5 rounded border border-slate-500 font-bold uppercase tracking-wide flex items-center gap-0.5 shadow-sm">
+                  Admin
+                </span>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-slate-400">
+                {comment.createdAt ? new Date(comment.createdAt).toLocaleString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit'
+                }) : ''}
+                {comment.isEdited && <span className="italic ml-1">(Edited)</span>}
+              </span>
+
+              {/* Edit/Delete Icons */}
+              {isAuthor && !isEditing && (
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {canEdit && (
+                    <button onClick={() => setIsEditing(true)} className="text-slate-400 hover:text-brand-sky" title="Edit">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                      </svg>
+                    </button>
+                  )}
+                  <button onClick={handleDelete} className="text-slate-400 hover:text-red-500" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Content Area */}
+          {isEditing ? (
+            <div className="mt-1 relative">
+              <input
+                autoFocus
+                type="text"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full text-sm p-1 border-b border-brand-sky outline-none bg-transparent pr-8"
+              />
+              {/* Emoji Button Inside Input */}
+              <div className="absolute right-0 bottom-1">
+                {/* FIXED: Added type (prev: string) */}
+                <EmojiButton onEmojiSelect={(emoji) => setEditContent((prev: string) => prev + emoji)} />
+              </div>
+
+              <div className="flex gap-2 mt-2 justify-end text-[10px] font-bold">
+                <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-slate-600">Cancel</button>
+                <button onClick={handleEditSave} className="text-brand-sky hover:text-sky-600">Save</button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-600 break-words whitespace-pre-wrap">{comment.content}</p>
+          )}
+        </div>
+
+        {/* Action Footer */}
+        {!isEditing && (
+          <div className="flex gap-4 mt-1 ml-2 text-xs font-bold text-slate-400">
+            <LikeButton 
+              initialLikes={comment.likes || []} 
+              currentUserId={currentUserId} 
+              onToggle={handleToggleLike} 
+            />
+            <button 
+              onClick={() => setIsReplying(!isReplying)} 
+              className="hover:text-brand-sky transition-colors"
+            >
+              Reply
+            </button>
+          </div>
+        )}
+
+        {/* Reply Input Form */}
+        {isReplying && (
+          <form onSubmit={handleReplySubmit} className="mt-2 flex gap-2 animate-in slide-in-from-top-1 items-center">
+            <div className="relative flex-1">
+              <input 
+                autoFocus
+                type="text" 
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder={`Reply to ${displayName}...`}
+                className="w-full bg-white border border-slate-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:ring-2 focus:ring-brand-sky outline-none"
+              />
+              {/* Emoji Button Inside Input */}
+              <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                {/* FIXED: Added type (prev: string) */}
+                <EmojiButton onEmojiSelect={(emoji) => setReplyContent((prev: string) => prev + emoji)} />
+              </div>
+            </div>
+
+            <button type="submit" className="bg-brand-sky text-white px-3 py-1 rounded-lg text-xs font-bold">
+              Send
+            </button>
+          </form>
+        )}
+
+        {/* RECURSIVE CHILDREN */}
+        {comment.children && comment.children.length > 0 && (
+          <div className="border-l-2 border-slate-100 pl-4 mt-2">
+            {comment.children.map((child: any) => (
+              <CommentItem 
+                key={child.id} 
+                comment={child} 
+                currentUserId={currentUserId} 
+                postId={postId} 
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+==================================================
+FILE: src/components/Navbar.tsx
+==================================================
+import Link from 'next/link'
+import { cookies } from 'next/headers'
+import NavMenu from './NavMenu'
+
+export default async function Navbar() {
+  const cookieStore = await cookies()
+  const isLoggedIn = cookieStore.has('session_id')
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-brand-sky/70 backdrop-blur-md border-b border-white/20 shadow-sm transition-all">
+      <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+        
+        {/* Logo */}
+        <Link href="/" className="text-white font-bold text-xl tracking-tight hover:text-brand-cream transition-colors drop-shadow-sm z-50">
+          LoveMyFam
+        </Link>
+
+        {/* The Responsive Menu Component */}
+        <NavMenu isLoggedIn={isLoggedIn} />
+        
+      </div>
+    </nav>
+  )
+}
+
+==================================================
+FILE: src/components/PostInput.tsx
+==================================================
+'use client'
+
+import { useState, useRef } from 'react'
+import { createPost } from '@/app/common-room/actions'
+import EmojiButton from './EmojiButton'
+
+export default function PostInput() {
+  const [content, setContent] = useState('')
+  const [image, setImage] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isPosting, setIsPosting] = useState(false)
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImage(file)
+      setPreviewUrl(URL.createObjectURL(file))
+    }
+  }
+
+  async function handlePost() {
+    if (!content.trim() && !image) return
+    setIsPosting(true)
+
+    const formData = new FormData()
+    formData.append('content', content)
+    if (image) {
+      formData.append('file', image)
+    }
+
+    const result = await createPost(formData)
+    setIsPosting(false)
+
+    if (result.success) {
+      setContent('')
+      setImage(null)
+      setPreviewUrl(null)
+    } else {
+      alert(result.message)
+    }
+  }
+
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-8">
+      
+      {/* 1. INPUT AREA WRAPPER */}
+      <div className="relative">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Share a memory, update, or thought..."
+          // Added pr-12 to prevent text from typing behind the emoji button
+          className="w-full text-lg placeholder:text-slate-400 border-none resize-none focus:ring-0 text-slate-700 h-24 pr-12"
+        />
+        
+        {/* EMOJI BUTTON: Absolute Positioned Inside */}
+        <div className="absolute bottom-2 right-2">
+          <EmojiButton onEmojiSelect={(emoji) => setContent(prev => prev + emoji)} />
+        </div>
+      </div>
+      
+      {/* Image Preview */}
+      {previewUrl && (
+        <div className="relative mt-2 mb-4 w-fit">
+          <img src={previewUrl} alt="Preview" className="h-32 w-auto rounded-lg object-cover border border-slate-200" />
+          <button 
+            onClick={() => { setImage(null); setPreviewUrl(null); }}
+            className="absolute -top-2 -right-2 bg-slate-800 text-white rounded-full p-1 hover:bg-red-500 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Toolbar */}
+      <div className="flex justify-between items-center pt-2 border-t border-slate-100 mt-2">
+        <div>
+          <button 
+             onClick={() => fileInputRef.current?.click()}
+             className="text-slate-400 hover:text-brand-sky p-1.5 rounded-full hover:bg-slate-50 transition-colors group flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 group-hover:scale-110 transition-transform">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+            </svg>
+            <span className="text-xs font-medium hidden sm:inline">Add Photo</span>
+          </button>
+        </div>
+
+        <button 
+          onClick={handlePost} 
+          disabled={isPosting || (!content.trim() && !image)}
+          className="bg-brand-sky text-white px-6 py-2 rounded-full font-bold hover:bg-sky-500 disabled:opacity-50 transition-all shadow-sm"
+        >
+          {isPosting ? 'Posting...' : 'Post'}
+        </button>
+      </div>
+
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        className="hidden" 
+        accept="image/*"
+        onChange={handleImageChange}
+      />
+    </div>
+  )
+}
+
+==================================================
+FILE: src/components/FeedbackWidget.tsx
+==================================================
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { submitGeneralFeedback } from '@/app/actions'
+
+export default function FeedbackWidget() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [content, setContent] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
+
+  const handleSubmit = async () => {
+    if (!content.trim()) return
+
+    setIsSubmitting(true)
+    
+    // Server Action checks if we are logged in
+    const result = await submitGeneralFeedback(content)
+    
+    setIsSubmitting(false)
+
+    if (result.success) {
+      setIsOpen(false)
+      setContent('')
+      alert("Feedback received! We appreciate you.")
+    } else if (result.error === 'unauthorized') {
+      // Logic for Guest Users
+      setIsOpen(false)
+      if (confirm("Please log in to submit feedback.")) {
+        router.push('/login')
+      }
+    } else {
+      alert("Something went wrong. Please try again.")
+    }
+  }
+
+  return (
+    <>
+      {/* TRIGGER LINK */}
+      <div className="w-full text-center pb-4">
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="text-slate-400 hover:text-brand-sky text-sm font-medium transition-colors underline decoration-slate-700 underline-offset-4 hover:decoration-brand-sky"
+        >
+          Click here for issues, feature requests, suggestions or general feedback.
+        </button>
+      </div>
+
+      {/* MODAL */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsOpen(false)}
+          />
+
+          {/* Content */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 animate-in zoom-in-95 duration-200 border border-slate-100">
+            
+            {/* Header */}
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-bold text-slate-800">
+                Share your feedback
+              </h3>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Form */}
+            <div className="flex flex-col gap-4">
+              <p className="text-slate-500 text-sm">
+                Found a bug? Have an idea? Let us know how we can make LoveMyFam better for you.
+              </p>
+              
+              <textarea 
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Type your message here..."
+                rows={5}
+                className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-sky outline-none transition-all resize-none text-slate-700"
+                disabled={isSubmitting}
+              />
+              
+              <div className="flex justify-end gap-3 pt-2">
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-2 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-lg transition-colors"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !content.trim()}
+                  className="bg-brand-sky text-white font-bold py-2 px-6 rounded-lg hover:bg-sky-500 transition-colors shadow-sm text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Sending...' : 'Submit'}
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+==================================================
+FILE: src/components/NavMenu.tsx
+==================================================
 'use client'
 
 import { useState } from 'react'
@@ -285,215 +1152,250 @@ export default function NavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
   )
 }
 
-================================================================================
-FILE: ./src/components/Navbar.tsx
-================================================================================
-
-import Link from 'next/link'
-import { cookies } from 'next/headers'
-import NavMenu from './NavMenu'
-
-export default async function Navbar() {
-  const cookieStore = await cookies()
-  const isLoggedIn = cookieStore.has('session_id')
-
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-brand-sky/70 backdrop-blur-md border-b border-white/20 shadow-sm transition-all">
-      <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-        
-        {/* Logo */}
-        <Link href="/" className="text-white font-bold text-xl tracking-tight hover:text-brand-cream transition-colors drop-shadow-sm z-50">
-          LoveMyFam
-        </Link>
-
-        {/* The Responsive Menu Component */}
-        <NavMenu isLoggedIn={isLoggedIn} />
-        
-      </div>
-    </nav>
-  )
-}
-
-================================================================================
-FILE: ./src/components/PostCard.tsx
-================================================================================
-
+==================================================
+FILE: src/components/FeedbackSection.tsx
+==================================================
 'use client'
 
 import { useState } from 'react'
-import { deletePost, editPost } from '@/app/common-room/actions'
+import { useRouter } from 'next/navigation'
+import { submitTestimonial } from '@/app/testimonials/actions'
 
-export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editContent, setEditContent] = useState(post.content)
+export default function FeedbackSection() {
+  const router = useRouter()
+  const [content, setContent] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // 1. DEFINE WHO IS ADMIN (You!)
-  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
-  const isAdmin = post.author.email === ADMIN_EMAIL
+  const handleSubmit = async () => {
+    if (!content.trim()) return
 
-  const isAuthor = currentUserId === post.authorId
-  
-  const createdAt = new Date(post.createdAt).getTime()
-  const timeDiff = Date.now() - createdAt
-  const canEdit = isAuthor && !post.isEdited && timeDiff < 10 * 60 * 1000
+    setIsSubmitting(true)
+    const result = await submitTestimonial(content)
+    setIsSubmitting(false)
 
-  async function handleDelete() {
-    if (confirm('Are you sure you want to delete this?')) {
-      await deletePost(post.id)
-    }
-  }
-
-  async function handleSave() {
-    const result = await editPost(post.id, editContent)
     if (result.success) {
-      setIsEditing(false)
+      setContent('')
+      alert("Thank you! Your message has been posted.")
+      router.refresh()
     } else {
-      alert(result.message)
+      if (result.message === "Must be logged in") {
+        if (confirm("Please log in to share your love!")) {
+          router.push('/login')
+        }
+      } else {
+        alert(result.message || "Something went wrong.")
+      }
     }
   }
-
-  const displayName = post.author.alias || post.author.firstName
-  const firstLetter = displayName[0].toUpperCase()
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6 transition-all hover:border-slate-200">
-      
-      {/* HEADER */}
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-lg shadow-sm">
-            {firstLetter}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-800">{displayName}</span>
-              <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-0.5 rounded-full font-bold uppercase border border-brand-sky/20">
-                {post.author.position}
-              </span>
-            </div>
-
-            {/* --- NEW ADMIN BADGE --- */}
-            {isAdmin && (
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[10px] bg-slate-800 text-brand-yellow px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border border-slate-600 flex items-center gap-1">
-                  🛡️ Admin
-                </span>
-              </div>
-            )}
-            
-            <p className="text-xs text-slate-400 mt-0.5">
-              {new Date(post.createdAt).toLocaleDateString()}
-              {post.isEdited && <span className="italic ml-2">(Edited)</span>}
-            </p>
-          </div>
-        </div>
-
-        {/* ACTIONS */}
-        {isAuthor && (
-          <div className="flex gap-2 text-xs font-bold">
-            {canEdit && !isEditing && (
-              <button 
-                onClick={() => setIsEditing(true)}
-                className="text-brand-sky hover:underline"
-              >
-                Edit
-              </button>
-            )}
+    <section className="bg-slate-50 border-t border-slate-200 py-12 px-4 mt-auto">
+      <div className="max-w-2xl mx-auto">
+        
+        {/* HEADING */}
+        <h3 className="text-xl font-bold text-slate-800 mb-2 text-center">
+          What do you love about this app?
+        </h3>
+        
+        {/* SUBTEXT (Added Here) */}
+        <p className="text-slate-500 text-sm text-center mb-8">
+          The encouragement you share here will be visible in the Testimonials section on the homepage ♥️
+        </p>
+        
+        {/* FORM */}
+        <div className="flex flex-col gap-4">
+          <textarea 
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Share your thoughts..."
+            rows={3}
+            className="w-full p-4 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-brand-sky outline-none transition-all resize-y shadow-sm text-slate-700 disabled:opacity-50"
+            disabled={isSubmitting}
+          />
+          
+          <div className="flex justify-end">
             <button 
-              onClick={handleDelete}
-              className="text-red-300 hover:text-red-500 hover:underline"
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !content.trim()}
+              className="bg-brand-sky text-white font-bold py-2.5 px-6 rounded-lg hover:bg-sky-500 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Delete
+              {isSubmitting ? 'Posting...' : 'Submit'}
             </button>
           </div>
-        )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+==================================================
+FILE: src/components/TestimonialSlider.tsx
+==================================================
+'use client'
+
+import { useState, useEffect } from 'react'
+
+export default function TestimonialSlider({ testimonials }: { testimonials: any[] }) {
+  const [pageIndex, setPageIndex] = useState(0)
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+
+  // Items per page (matches the grid: 1 on mobile, 3 on desktop)
+  // In a real production app we might track window width, but for now we assume 3 for the logic
+  const itemsPerPage = 3 
+  const totalPages = Math.ceil(testimonials.length / itemsPerPage)
+
+  useEffect(() => {
+    if (totalPages <= 1) return
+
+    const interval = setInterval(() => {
+      setPageIndex((prev) => (prev + 1) % totalPages)
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [totalPages])
+
+  if (!testimonials.length) return null
+
+  return (
+    <div className="relative w-full overflow-hidden">
+      
+      {/* SLIDER TRACK */}
+      <div 
+        className="flex transition-transform duration-700 ease-in-out"
+        style={{ transform: `translateX(-${pageIndex * 100}%)` }}
+      >
+        {testimonials.map((t) => {
+          const isAdmin = t.authorEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+
+          return (
+            <div 
+              key={t.id} 
+              className="w-full md:w-1/2 lg:w-1/3 flex-shrink-0 px-3"
+            >
+              <div className="h-full min-h-[250px] p-6 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md shadow-xl flex flex-col justify-between">
+                
+                <p className="text-white/95 text-lg mb-6 leading-relaxed italic font-medium drop-shadow-sm line-clamp-4">
+                  "{t.redactedContent}"
+                </p>
+
+                <div className="flex items-center gap-3 border-t border-white/20 pt-4 mt-auto">
+                  {/* Avatar */}
+                  {t.displayAvatar ? (
+                    <div className="w-10 h-10 bg-brand-pink text-slate-900 font-bold rounded-full flex items-center justify-center shrink-0 shadow-lg border-2 border-white/20">
+                      {t.displayAvatar}
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shrink-0 text-white/50 border border-white/10">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white tracking-wide text-sm whitespace-nowrap">
+                        {t.displayAuthor}
+                      </span>
+                      {isAdmin && (
+                        <span className="bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-500 flex items-center gap-0.5 shadow-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5">
+                            <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" />
+                          </svg>
+                          Admin
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-blue-100/80 mt-0.5">
+                      {new Date(t.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
-      {/* CONTENT AREA */}
-      {isEditing ? (
-        <div className="mt-2">
-          <textarea
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-sky outline-none text-slate-700"
-            rows={3}
+      {/* Dots (One dot per PAGE, not per item) */}
+      <div className="flex justify-center gap-2 mt-8">
+        {Array.from({ length: totalPages }).map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setPageIndex(idx)}
+            className={`w-2 h-2 rounded-full transition-all ${
+              idx === pageIndex ? 'bg-white w-4' : 'bg-white/30 hover:bg-white/50'
+            }`}
           />
-          <div className="flex gap-2 mt-2 justify-end">
-            <button onClick={() => setIsEditing(false)} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
-            <button onClick={handleSave} className="text-xs bg-brand-sky text-white px-3 py-1 rounded-full hover:bg-sky-500">Save Update</button>
-          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+==================================================
+FILE: src/components/EmojiButton.tsx
+==================================================
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import EmojiPicker, { Theme } from 'emoji-picker-react'
+
+interface EmojiButtonProps {
+  onEmojiSelect: (emoji: string) => void
+  color?: string
+}
+
+export default function EmojiButton({ onEmojiSelect, color = "text-slate-400" }: EmojiButtonProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  // Close if clicked outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  return (
+    <div className="relative" ref={wrapperRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`${color} hover:text-brand-yellow transition-colors p-1.5 rounded-full hover:bg-slate-100 flex items-center justify-center`}
+        title="Add Emoji"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 bottom-full right-0 mb-2 shadow-xl rounded-xl border border-slate-100 animate-in zoom-in-95 duration-200">
+           <EmojiPicker
+             onEmojiClick={(data) => {
+               onEmojiSelect(data.emoji)
+               setIsOpen(false)
+             }}
+             theme={Theme.LIGHT}
+             lazyLoadEmojis={true}
+             width={300}
+             height={400}
+           />
         </div>
-      ) : (
-        <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap">
-          {post.content}
-        </p>
       )}
     </div>
   )
 }
 
-================================================================================
-FILE: ./src/components/PostInput.tsx
-================================================================================
-
-'use client'
-
-import { useRef } from 'react'
-import { createPost } from '@/app/common-room/actions'
-
-export default function PostInput() {
-  const formRef = useRef<HTMLFormElement>(null)
-
-  async function action(formData: FormData) {
-    await createPost(formData)
-    formRef.current?.reset() // Clear the box after posting
-  }
-
-  return (
-    <div className="bg-white p-4 rounded-xl shadow-sm mb-8 border border-slate-200">
-      <p className="text-slate-400 text-sm mb-3 font-medium">Share an update with family...</p>
-      
-      <form ref={formRef} action={action} className="flex gap-2">
-        <input 
-          name="content"
-          type="text" 
-          placeholder="Write something..."
-          required
-          className="flex-1 h-12 bg-slate-50 rounded-lg border border-slate-100 px-4 text-slate-700 focus:ring-2 focus:ring-brand-sky outline-none transition-all"
-        />
-        <button 
-          type="submit"
-          className="bg-brand-sky text-white font-bold px-6 rounded-lg hover:bg-sky-500 transition-colors shadow-sm"
-        >
-          Post
-        </button>
-      </form>
-    </div>
-  )
-}
-
-================================================================================
-FILE: ./src/app/actions.ts
-================================================================================
-
-'use server'
-
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-
-export async function logout() {
-  // 1. Delete the session cookie
-  const cookieStore = await cookies()
-  cookieStore.delete('session_id')
-
-  // 2. Redirect to the Home Page
-  redirect('/')
-}
-
-================================================================================
-FILE: ./src/app/globals.css
-================================================================================
-
+==================================================
+FILE: src/app/globals.css
+==================================================
 @import "tailwindcss";
 
 @theme {
@@ -516,13 +1418,16 @@ body {
 }
 
 
-================================================================================
-FILE: ./src/app/layout.tsx
-================================================================================
-
+==================================================
+FILE: src/app/layout.tsx
+==================================================
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
+import AutoLogout from "@/components/AutoLogout";
+import FeedbackSection from "@/components/FeedbackSection";
+import FeedbackWidget from "@/components/FeedbackWidget";
+import { cookies } from "next/headers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -540,25 +1445,41 @@ export const metadata: Metadata = {
   description: "A safe space for family.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Check Login Status (Used ONLY for AutoLogout visibility now)
+  const cookieStore = await cookies()
+  const isLoggedIn = cookieStore.has('session_id')
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         
-        {/* GLOBAL NAVBAR */}
         <Navbar />
+
+        {/* Auto Logout Watchdog (Only active if logged in) */}
+        {isLoggedIn && <AutoLogout />}
         
-        {/* Main Content: flex-1 makes it stretch to fill empty space */}
         <main className="flex-1 pt-16"> 
           {children}
         </main>
 
-        {/* GLOBAL FOOTER */}
-        <footer className="bg-slate-800 text-brand-sky py-10 text-center border-t border-slate-700">
+        {/* 1. Global Feedback Section (Sits above footer) */}
+        {/* We removed the 'isLoggedIn' prop to fix the layout bug */}
+        <FeedbackSection />
+
+        {/* 2. Global Footer */}
+        <footer className="bg-slate-800 text-brand-sky py-8 text-center border-t border-slate-700">
+          
+          {/* Feedback Widget Trigger (Sits inside footer) */}
+          <div className="container mx-auto px-4 mb-6 border-b border-slate-700/50 pb-6">
+             {/* We removed the 'isLoggedIn' prop here too */}
+            <FeedbackWidget />
+          </div>
+
           <p className="font-medium">© {new Date().getFullYear()} LoveMyFam.</p>
           <p className="text-sm text-slate-500 mt-2">
             Built with ❤️ by{' '}
@@ -578,12 +1499,12 @@ export default function RootLayout({
   );
 }
 
-================================================================================
-FILE: ./src/app/page.tsx
-================================================================================
-
+==================================================
+FILE: src/app/page.tsx
+==================================================
 import Image from "next/image";
 import Link from "next/link";
+import TestimonialSection from "@/components/TestimonialSection"; // <--- 1. Import this
 
 export default function Home() {
   return (
@@ -592,20 +1513,20 @@ export default function Home() {
       {/* --- HERO SECTION --- */}
       <section className="relative bg-brand-sky text-white pt-24 pb-32 px-6 text-center overflow-hidden">
         
-        {/* BACKGROUND IMAGE LAYER (The Fade Effect) */}
+        {/* BACKGROUND IMAGE LAYER */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/images/mom_charlie_bg.jpg"
             alt="Mom and Charlie background"
             fill
-            className="object-cover opacity-30" // Adjust opacity (20-50) if needed
+            className="object-cover opacity-30"
             priority
           />
-          {/* THE GRADIENT OVERLAY: Transparent top -> Solid Blue bottom */}
+          {/* THE GRADIENT OVERLAY */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-sky/20 to-brand-sky"></div>
         </div>
 
-        {/* CONTENT LAYER (z-10 sits on top of the background) */}
+        {/* CONTENT LAYER */}
         <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
           
           {/* Main Headline */}
@@ -627,7 +1548,6 @@ export default function Home() {
               Enter Common Room
             </Link>
             
-            {/* UPDATED LINK BELOW */}
             <Link 
               href="/register"
               className="bg-brand-pink text-slate-800 px-8 py-4 rounded-full font-bold shadow-lg hover:brightness-110 hover:scale-105 transition-all text-lg"
@@ -685,15 +1605,48 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* --- TESTIMONIALS SECTION --- */}
+      {/* 2. Added here to sit right above the global Feedback Section */}
+      <TestimonialSection />
+
     </main>
   );
 }
 
+==================================================
+FILE: src/app/actions.ts
+==================================================
+'use server'
 
-================================================================================
-FILE: ./src/app/my-room/page.tsx
-================================================================================
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
+// ... (keep your existing logout function) ...
+export async function logout() {
+  const cookieStore = await cookies()
+  cookieStore.delete('session_id')
+  redirect('/')
+}
+
+// NEW: Handle General Feedback
+export async function submitGeneralFeedback(content: string) {
+  const cookieStore = await cookies()
+  const userId = cookieStore.get('session_id')?.value
+
+  if (!userId) {
+    return { error: 'unauthorized' }
+  }
+
+  // TODO: Save this to a database table (e.g., 'Feedback') later.
+  console.log("Feedback received:", content, "From:", userId)
+
+  return { success: true }
+}
+
+==================================================
+FILE: src/app/my-room/page.tsx
+==================================================
 'use client'
 
 import { useState } from 'react'
@@ -765,52 +1718,9 @@ export default function MyRoom() {
   )
 }
 
-================================================================================
-FILE: ./src/app/login/actions.ts
-================================================================================
-
-'use server'
-
-import { PrismaClient } from '@prisma/client'
-import { cookies } from 'next/headers'
-
-const prisma = new PrismaClient()
-
-export async function login(formData: FormData) {
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-
-  // 1. Check the Shared Family Secret
-  if (password !== 'familyfirst') {
-    return { success: false, message: 'Wrong family secret!' }
-  }
-
-  // 2. Check if the user exists in our Database
-  const user = await prisma.user.findUnique({
-    where: { email: email }
-  })
-
-  if (!user) {
-    return { success: false, message: 'Email not found. Please register first!' }
-  }
-
-  // 3. Set the Session Cookie
-  const cookieStore = await cookies()
-  cookieStore.set('session_id', user.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-    path: '/',
-  })
-
-  return { success: true }
-}
-
-
-================================================================================
-FILE: ./src/app/login/page.tsx
-================================================================================
-
+==================================================
+FILE: src/app/login/page.tsx
+==================================================
 'use client'
 
 import { useState } from 'react'
@@ -894,10 +1804,9 @@ export default function LoginPage() {
 }
 
 
-================================================================================
-FILE: ./src/app/register/actions.ts
-================================================================================
-
+==================================================
+FILE: src/app/login/actions.ts
+==================================================
 'use server'
 
 import { PrismaClient } from '@prisma/client'
@@ -905,47 +1814,27 @@ import { cookies } from 'next/headers'
 
 const prisma = new PrismaClient()
 
-export async function registerUser(formData: FormData) {
-  const firstName = formData.get('firstName') as string
-  const lastName = formData.get('lastName') as string
-  const alias = formData.get('alias') as string || firstName
+export async function login(formData: FormData) {
   const email = formData.get('email') as string
-  const phone = formData.get('phone') as string
-  const securityAnswer = formData.get('securityAnswer') as string
-  
-  // 1. GRAB THE POSITION FROM THE FORM
-  const position = formData.get('position') as string 
+  const password = formData.get('password') as string
 
-  // 2. THE SECURITY CHECK
-  if (securityAnswer.trim().toLowerCase() !== 'mercy') {
-    return { success: false, message: "Incorrect security answer." }
+  // 1. Check the Shared Family Secret
+  if (password !== 'familyfirst') {
+    return { success: false, message: 'Wrong family secret!' }
   }
 
-  // 3. CHECK IF USER EXISTS
-  const existingUser = await prisma.user.findUnique({
+  // 2. Check if the user exists in our Database
+  const user = await prisma.user.findUnique({
     where: { email: email }
   })
 
-  if (existingUser) {
-    return { success: false, message: "This email is already registered. Please Login." }
+  if (!user) {
+    return { success: false, message: 'Email not found. Please register first!' }
   }
 
-  // 4. CREATE THE USER (INCLUDE POSITION!)
-  const newUser = await prisma.user.create({
-    data: {
-      firstName,
-      lastName,
-      alias,
-      email,
-      phone,
-      position, // <--- THIS WAS MISSING
-    }
-  })
-
-
-  // 5. SET SESSION COOKIE
+  // 3. Set the Session Cookie
   const cookieStore = await cookies()
-  cookieStore.set('session_id', newUser.id, {
+  cookieStore.set('session_id', user.id, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 60 * 60 * 24 * 7, // 1 week
@@ -956,10 +1845,111 @@ export async function registerUser(formData: FormData) {
 }
 
 
-================================================================================
-FILE: ./src/app/register/page.tsx
-================================================================================
+==================================================
+FILE: src/app/testimonials/actions.ts
+==================================================
+'use server'
 
+import { PrismaClient } from '@prisma/client'
+import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
+
+const prisma = new PrismaClient()
+
+async function getCurrentUserId() {
+  const cookieStore = await cookies()
+  return cookieStore.get('session_id')?.value
+}
+
+// 1. SUBMIT ACTION
+export async function submitTestimonial(content: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false, message: "Must be logged in" }
+  
+  if (!content.trim()) return { success: false, message: "Content empty" }
+
+  await prisma.testimonial.create({
+    data: {
+      content,
+      authorId: userId
+    }
+  })
+
+  revalidatePath('/') 
+  return { success: true }
+}
+
+// 2. SECURE FETCH ACTION
+export async function getTestimonials() {
+  const currentUserId = await getCurrentUserId()
+  const isGuest = !currentUserId
+
+  // Fetch testimonials (limit to recent 6)
+  const testimonials = await prisma.testimonial.findMany({
+    take: 6,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      author: {
+        // ✅ CRITICAL: We must select the email here!
+        select: { firstName: true, alias: true, email: true } 
+      }
+    }
+  })
+
+  // A. HELPER: List of sensitive names to redact
+  let sensitiveWords = new Set<string>()
+  if (isGuest) {
+    const allUsers = await prisma.user.findMany({
+      select: { firstName: true, alias: true }
+    })
+    allUsers.forEach(u => {
+      if (u.firstName) sensitiveWords.add(u.firstName.toLowerCase())
+      if (u.alias) sensitiveWords.add(u.alias.toLowerCase())
+    })
+  }
+
+  const redactText = (text: string) => {
+    const words = text.split(' ')
+    return words.map(word => {
+      const cleanWord = word.replace(/[^\w]/g, '').toLowerCase()
+      if (sensitiveWords.has(cleanWord)) {
+        return "Family Member"
+      }
+      return word
+    }).join(' ')
+  }
+
+  // B. TRANSFORM DATA
+  return testimonials.map(t => {
+    // If Guest, we hide the email (so badge won't show) and redact name
+    if (isGuest) {
+      return {
+        id: t.id,
+        content: t.content,
+        createdAt: t.createdAt,
+        authorEmail: null, // Hide email from guests
+        displayAuthor: "Family Member",
+        displayAvatar: null,
+        redactedContent: redactText(t.content)
+      }
+    }
+
+    // If Logged In, we show everything
+    return {
+      id: t.id,
+      content: t.content,
+      createdAt: t.createdAt,
+      authorEmail: t.author.email, // Pass email to frontend
+      displayAuthor: t.author.alias || t.author.firstName,
+      displayAvatar: (t.author.alias || t.author.firstName)[0].toUpperCase(),
+      redactedContent: t.content
+    }
+  })
+}
+
+==================================================
+FILE: src/app/register/page.tsx
+==================================================
 'use client'
 
 import { useState } from 'react'
@@ -1082,10 +2072,70 @@ export default function RegisterPage() {
 }
 
 
-================================================================================
-FILE: ./src/app/family/page.tsx
-================================================================================
+==================================================
+FILE: src/app/register/actions.ts
+==================================================
+'use server'
 
+import { PrismaClient } from '@prisma/client'
+import { cookies } from 'next/headers'
+
+const prisma = new PrismaClient()
+
+export async function registerUser(formData: FormData) {
+  const firstName = formData.get('firstName') as string
+  const lastName = formData.get('lastName') as string
+  const alias = formData.get('alias') as string || firstName
+  const email = formData.get('email') as string
+  const phone = formData.get('phone') as string
+  const securityAnswer = formData.get('securityAnswer') as string
+  
+  // 1. GRAB THE POSITION FROM THE FORM
+  const position = formData.get('position') as string 
+
+  // 2. THE SECURITY CHECK
+  if (securityAnswer.trim().toLowerCase() !== 'mercy') {
+    return { success: false, message: "Incorrect security answer." }
+  }
+
+  // 3. CHECK IF USER EXISTS
+  const existingUser = await prisma.user.findUnique({
+    where: { email: email }
+  })
+
+  if (existingUser) {
+    return { success: false, message: "This email is already registered. Please Login." }
+  }
+
+  // 4. CREATE THE USER (INCLUDE POSITION!)
+  const newUser = await prisma.user.create({
+    data: {
+      firstName,
+      lastName,
+      alias,
+      email,
+      phone,
+      position, // <--- THIS WAS MISSING
+    }
+  })
+
+
+  // 5. SET SESSION COOKIE
+  const cookieStore = await cookies()
+  cookieStore.set('session_id', newUser.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: '/',
+  })
+
+  return { success: true }
+}
+
+
+==================================================
+FILE: src/app/family/page.tsx
+==================================================
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -1161,94 +2211,9 @@ export default async function FamilyDirectory() {
   );
 }
 
-================================================================================
-FILE: ./src/app/common-room/actions.ts
-================================================================================
-
-'use server'
-
-import { PrismaClient } from '@prisma/client'
-import { cookies } from 'next/headers'
-import { revalidatePath } from 'next/cache'
-
-const prisma = new PrismaClient()
-
-// --- HELPER: GET CURRENT USER ID ---
-async function getCurrentUserId() {
-  const cookieStore = await cookies()
-  return cookieStore.get('session_id')?.value
-}
-
-// --- 1. CREATE POST ---
-export async function createPost(formData: FormData) {
-  const userId = await getCurrentUserId()
-  if (!userId) return { success: false, message: 'Unauthorized' }
-
-  const content = formData.get('content') as string
-  if (!content || content.trim().length === 0) return { success: false }
-
-  await prisma.post.create({
-    data: {
-      content,
-      authorId: userId
-    }
-  })
-
-  revalidatePath('/common-room')
-  return { success: true }
-}
-
-// --- 2. DELETE POST ---
-export async function deletePost(postId: string) {
-  const userId = await getCurrentUserId()
-  
-  // Verify ownership before deleting
-  const post = await prisma.post.findUnique({ where: { id: postId } })
-  if (!post || post.authorId !== userId) {
-    return { success: false, message: 'Unauthorized' }
-  }
-
-  await prisma.post.delete({ where: { id: postId } })
-  revalidatePath('/common-room')
-  return { success: true }
-}
-
-// --- 3. EDIT POST ---
-export async function editPost(postId: string, newContent: string) {
-  const userId = await getCurrentUserId()
-
-  const post = await prisma.post.findUnique({ where: { id: postId } })
-  if (!post || post.authorId !== userId) {
-    return { success: false, message: 'Unauthorized' }
-  }
-
-  // CHECK 1: Has it been edited before?
-  if (post.isEdited) {
-    return { success: false, message: 'Post can only be edited once.' }
-  }
-
-  // CHECK 2: Is it older than 10 minutes?
-  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
-  if (post.createdAt < tenMinutesAgo) {
-    return { success: false, message: 'Edit time limit (10 mins) expired.' }
-  }
-
-  await prisma.post.update({
-    where: { id: postId },
-    data: { 
-      content: newContent,
-      isEdited: true // Mark as edited
-    }
-  })
-
-  revalidatePath('/common-room')
-  return { success: true }
-}
-
-================================================================================
-FILE: ./src/app/common-room/page.tsx
-================================================================================
-
+==================================================
+FILE: src/app/common-room/page.tsx
+==================================================
 import { PrismaClient } from "@prisma/client";
 import { cookies } from "next/headers";
 import PostInput from "@/components/PostInput";
@@ -1268,27 +2233,67 @@ async function getUser() {
   return user
 }
 
-async function getPosts() {
-  return await prisma.post.findMany({
-    include: { author: true },
+async function getPosts(currentUserId?: string) {
+  const posts = await prisma.post.findMany({
+    include: { 
+      author: true,
+      // 1. FETCH USERS FOR POST LIKES
+      likes: {
+        include: {
+          user: { select: { id: true, firstName: true, alias: true } }
+        }
+      },
+      comments: {
+        include: {
+          author: true,
+          // 2. FETCH USERS FOR COMMENT LIKES
+          likes: {
+            include: {
+              user: { select: { id: true, firstName: true, alias: true } }
+            }
+          },
+          children: {
+            include: {
+              author: true,
+              likes: {
+                include: {
+                  user: { select: { id: true, firstName: true, alias: true } }
+                }
+              },
+              children: true 
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
+      }
+    },
     orderBy: { createdAt: "desc" },
   });
+
+  return posts.map(post => ({
+    ...post,
+    // We pass the FULL array of likes now, not just the count
+    likeCount: post.likes.length,
+    isLikedByMe: currentUserId ? post.likes.some(like => like.userId === currentUserId) : false,
+    topLevelComments: post.comments.filter((c: any) => !c.parentId)
+  }));
 }
 
 export default async function CommonRoom() {
-  const [user, posts] = await Promise.all([getUser(), getPosts()]);
+  const user = await getUser()
+  const posts = await getPosts(user?.id) // Pass user ID to check likes
+
   const welcomeName = user?.alias || user?.firstName || "Family Member";
 
   return (
     <main className="min-h-screen bg-slate-50 font-sans">
       <div className="max-w-2xl mx-auto p-4 mt-8 pb-20">
         
-        {/* --- HEADER ROW --- */}
+        {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between md:items-end mb-6 gap-2">
           <h1 className="text-3xl font-bold text-brand-sky tracking-tight">
             The Common Room
           </h1>
-          
           <h2 className="text-slate-500 font-medium text-sm md:text-lg pb-1 md:text-right">
             Welcome home, <span className="text-brand-pink font-bold">{welcomeName}</span>.
           </h2>
@@ -1300,78 +2305,273 @@ export default async function CommonRoom() {
         {/* POSTS FEED */}
         <div className="space-y-6">
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} currentUserId={user?.id || ''} />
+            <PostCard 
+              key={post.id} 
+              post={post} 
+              currentUserId={user?.id || ''}
+            />
           ))}
-
-          {posts.length === 0 && (
-            <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
-              <p className="text-4xl mb-4">🦗</p>
-              <p className="text-slate-500 font-medium">It's quiet in here...</p>
-              <p className="text-sm text-slate-400">Be the first to post!</p>
-            </div>
-          )}
+          {/* ... (Empty state remains same) */}
         </div>
       </div>
     </main>
   );
 }
 
-================================================================================
-FILE: ./prisma/schema.prisma
-================================================================================
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
-}
-
-model User {
-  id        String   @id @default(cuid())
-  firstName String
-  lastName  String
-  alias     String?
-  position  String   // <--- ADD THIS LINE (e.g. "Cousin", "Aunt")
-  email     String   @unique
-  phone     String?
-  createdAt DateTime @default(now())
-  
-  posts     Post[]   @relation("UserPosts")
-  comments  Comment[]
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  content   String
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isEdited  Boolean  @default(false) // <--- ADD THIS LINE
-  authorId  String
-  author    User     @relation("UserPosts", fields: [authorId], references: [id])
-  comments  Comment[]
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
-}
-
-
-================================================================================
-FILE: ./prisma/seed.ts
-================================================================================
+==================================================
+FILE: src/app/common-room/actions.ts
+==================================================
+'use server'
 
 import { PrismaClient } from '@prisma/client'
+import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
+import { put } from '@vercel/blob'
+
+const prisma = new PrismaClient()
+
+// --- HELPER: GET CURRENT USER ID ---
+async function getCurrentUserId() {
+  const cookieStore = await cookies()
+  return cookieStore.get('session_id')?.value
+}
+
+// --- 1. CREATE POST ---
+export async function createPost(formData: FormData) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false, message: 'Unauthorized' }
+
+  const content = formData.get('content') as string
+  const imageFile = formData.get('media') as File | null
+
+  if (!content || content.trim().length === 0) return { success: false }
+
+  let imageUrl = null
+
+  // If there is a file, upload it to Vercel Blob
+  if (imageFile && imageFile.size > 0) {
+    const blob = await put(imageFile.name, imageFile, {
+      access: 'public',
+    })
+    imageUrl = blob.url
+  }
+
+  await prisma.post.create({
+    data: {
+      content,
+      imageUrl,
+      authorId: userId
+    }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 2. DELETE POST ---
+export async function deletePost(postId: string) {
+  const userId = await getCurrentUserId()
+  
+  const post = await prisma.post.findUnique({ where: { id: postId } })
+  if (!post || post.authorId !== userId) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  await prisma.post.delete({ where: { id: postId } })
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 3. EDIT POST ---
+export async function editPost(postId: string, newContent: string) {
+  const userId = await getCurrentUserId()
+  const post = await prisma.post.findUnique({ where: { id: postId } })
+  
+  if (!post || post.authorId !== userId) return { success: false, message: 'Unauthorized' }
+  if (post.isEdited) return { success: false, message: 'Post can only be edited once.' }
+
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+  if (post.createdAt < tenMinutesAgo) return { success: false, message: 'Edit time limit expired.' }
+
+  await prisma.post.update({
+    where: { id: postId },
+    data: { content: newContent, isEdited: true }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 4. TOGGLE LIKE ---
+export async function toggleLike(postId: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false, message: "Unauthorized" }
+
+  // Check if like exists
+  const existingLike = await prisma.like.findUnique({
+    where: {
+      userId_postId: {
+        userId,
+        postId
+      }
+    }
+  })
+
+  if (existingLike) {
+    // UNLIKE
+    await prisma.like.delete({
+      where: { id: existingLike.id }
+    })
+  } else {
+    // LIKE
+    await prisma.like.create({
+      data: {
+        userId,
+        postId
+      }
+    })
+  }
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 5. ADD COMMENT ---
+export async function addComment(postId: string, content: string, parentId?: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false, message: "Unauthorized" }
+
+  if (!content || content.trim().length === 0) return { success: false }
+
+  await prisma.comment.create({
+    data: {
+      content,
+      postId,
+      authorId: userId,
+      parentId: parentId || null // If it's a reply, link to parent
+    }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 6. TOGGLE COMMENT LIKE ---
+export async function toggleCommentLike(commentId: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false, message: "Unauthorized" }
+
+  const existingLike = await prisma.commentLike.findUnique({
+    where: {
+      userId_commentId: {
+        userId,
+        commentId
+      }
+    }
+  })
+
+  if (existingLike) {
+    await prisma.commentLike.delete({ where: { id: existingLike.id } })
+  } else {
+    await prisma.commentLike.create({ data: { userId, commentId } })
+  }
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// ... (Previous imports and functions)
+
+// --- 7. DELETE COMMENT ---
+export async function deleteComment(commentId: string) {
+  const userId = await getCurrentUserId()
+  
+  const comment = await prisma.comment.findUnique({ where: { id: commentId } })
+  if (!comment || comment.authorId !== userId) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  await prisma.comment.delete({ where: { id: commentId } })
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 8. EDIT COMMENT ---
+export async function editComment(commentId: string, newContent: string) {
+  const userId = await getCurrentUserId()
+  const comment = await prisma.comment.findUnique({ where: { id: commentId } })
+  
+  if (!comment || comment.authorId !== userId) return { success: false, message: 'Unauthorized' }
+  if (comment.isEdited) return { success: false, message: 'Comment can only be edited once.' }
+
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+  if (comment.createdAt < tenMinutesAgo) return { success: false, message: 'Edit time limit expired.' }
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: { content: newContent, isEdited: true }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+==================================================
+FILE: src/hooks/useLongPress.ts
+==================================================
+import { useCallback, useRef, useState } from 'react';
+
+export default function useLongPress(
+  onLongPress: () => void,
+  onClick: () => void,
+  { shouldPreventDefault = true, delay = 500 } = {}
+) {
+  const [longPressTriggered, setLongPressTriggered] = useState(false);
+  const timeout = useRef<NodeJS.Timeout>(undefined);
+  const target = useRef<EventTarget>(undefined);
+
+  const start = useCallback(
+    (event: React.MouseEvent | React.TouchEvent) => {
+      if (shouldPreventDefault && event.target) {
+        target.current = event.target;
+      }
+      timeout.current = setTimeout(() => {
+        onLongPress();
+        setLongPressTriggered(true);
+      }, delay);
+    },
+    [onLongPress, delay, shouldPreventDefault]
+  );
+
+  const clear = useCallback(
+    (_event: React.MouseEvent | React.TouchEvent, shouldTriggerClick = true) => {
+      timeout.current && clearTimeout(timeout.current);
+      
+      // If the timer didn't finish (it wasn't a long press), trigger the normal click
+      if (shouldTriggerClick && !longPressTriggered) {
+        onClick();
+      }
+      
+      setLongPressTriggered(false);
+      target.current = undefined;
+    },
+    [onClick, longPressTriggered] // <--- FIXED: Removed 'shouldTriggerClick' from here
+  );
+
+  return {
+    onMouseDown: (e: any) => start(e),
+    onTouchStart: (e: any) => start(e),
+    onMouseUp: (e: any) => clear(e),
+    onMouseLeave: (e: any) => clear(e, false),
+    onTouchEnd: (e: any) => clear(e)
+  };
+}
+
+==================================================
+FILE: prisma/seed.ts
+==================================================
+const { PrismaClient } = require('@prisma/client')
+
 const prisma = new PrismaClient()
 
 async function main() {
@@ -1405,4 +2605,114 @@ main()
     await prisma.$disconnect()
     process.exit(1)
   })
+
+==================================================
+FILE: prisma/schema.prisma
+==================================================
+// 1. CONFIGURATION
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+// 2. USER MODEL
+model User {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  alias     String?
+  position  String
+  email     String   @unique
+  phone     String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  posts        Post[]        @relation("UserPosts")
+  comments     Comment[]
+  likes        Like[]
+  commentLikes CommentLike[]
+  Testimonial  Testimonial[]
+}
+
+// 3. POST MODEL
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isEdited  Boolean  @default(false)
+
+  // Relations
+  authorId String
+  author   User      @relation("UserPosts", fields: [authorId], references: [id])
+  comments Comment[]
+  likes    Like[]
+}
+
+// 4. POST LIKE MODEL
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId String
+  postId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId]) // A user can only like a post once
+}
+
+// 5. COMMENT MODEL (Supports Recursion & Editing)
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt // Tracks when it was edited
+  isEdited  Boolean  @default(false) // Tracks if it was edited
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  // Recursive Relations (Replies)
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  children Comment[] @relation("CommentReplies")
+
+  // Likes on Comments
+  likes CommentLike[]
+}
+
+// 6. COMMENT LIKE MODEL
+model CommentLike {
+  id String @id @default(cuid())
+
+  userId    String
+  commentId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId]) // A user can only like a comment once
+}
+
+// 7. TESTIMONIAL MODEL
+model Testimonial {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+}
+
 

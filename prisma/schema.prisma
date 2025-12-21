@@ -18,6 +18,7 @@ model User {
   position  String
   email     String   @unique
   phone     String?
+  profileImage String?
   createdAt DateTime @default(now())
 
   // Relations

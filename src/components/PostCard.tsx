@@ -57,6 +57,7 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
 
   const displayName = post.author.alias || post.author.firstName
   const firstLetter = displayName[0].toUpperCase()
+  const profileImage = post.author.profileImage
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6 transition-all hover:border-slate-200">
@@ -64,9 +65,13 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
       {/* 1. HEADER (User Info + Actions) */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          {/* Avatar */}
-          <div className="w-10 h-10 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-lg shadow-sm shrink-0">
-            {firstLetter}
+          {/* 2. UPDATE AVATAR LOGIC */}
+          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden bg-brand-pink text-slate-700 font-bold text-lg">
+            {profileImage ? (
+               <img src={profileImage} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+               <span>{firstLetter}</span>
+            )}
           </div>
           
           {/* User Details */}

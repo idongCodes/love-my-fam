@@ -9,6 +9,7 @@ interface UserLike {
     id: string;
     firstName: string;
     alias?: string | null;
+    profileImage?: string | null;
   }
 }
 
@@ -85,8 +86,13 @@ export default function LikeButton({ initialLikes = [], currentUserId, onToggle 
             <div className="max-h-40 overflow-y-auto py-1">
               {likes.map((like) => (
                 <div key={like.userId} className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-md">
-                   <div className="w-5 h-5 bg-brand-pink/20 text-brand-pink rounded-full flex items-center justify-center text-[10px] font-bold">
-                      {(like.user.alias || like.user.firstName)[0]}
+                   {/* UPDATE AVATAR */}
+                   <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold overflow-hidden bg-brand-pink/20 text-brand-pink shrink-0">
+                      {like.user.profileImage ? (
+                        <img src={like.user.profileImage} className="w-full h-full object-cover" />
+                      ) : (
+                        (like.user.alias || like.user.firstName)[0]
+                      )}
                    </div>
                    <span className="text-xs text-slate-700 truncate font-medium">
                      {like.user.alias || like.user.firstName}

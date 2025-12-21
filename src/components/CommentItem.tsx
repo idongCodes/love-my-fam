@@ -63,12 +63,18 @@ export default function CommentItem({
 
   const displayName = comment.author?.alias || comment.author?.firstName || 'Family Member'
   const firstLetter = displayName[0]?.toUpperCase() || '?'
+  const profileImage = comment.author?.profileImage
 
   return (
     <div className="flex gap-3 mt-4 w-full">
       {/* AVATAR */}
-      <div className="w-8 h-8 bg-brand-sky/20 rounded-full flex items-center justify-center text-brand-sky font-bold text-xs shrink-0">
-        {firstLetter}
+      {/* 2. UPDATE AVATAR LOGIC */}
+      <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-brand-sky/20 text-brand-sky font-bold text-xs">
+        {profileImage ? (
+           <img src={profileImage} alt={displayName} className="w-full h-full object-cover" />
+        ) : (
+           <span>{firstLetter}</span>
+        )}
       </div>
 
       <div className="flex-1">
