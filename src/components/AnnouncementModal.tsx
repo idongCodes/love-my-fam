@@ -1,21 +1,45 @@
 'use client'
 
 import { useState } from 'react'
-import { createAnnouncement } from '@/app/common-room/actions'
+import { createAnnouncement, editPost } from '@/app/common-room/actions'
 
-export default function AnnouncementModal({ onClose }: { onClose: () => void }) {
+interface AnnouncementModalProps {
+  onClose: () => void
+  initialData?: {
+    id: string
+    title: string
+    content: string
+    isUrgent: boolean
+  }
+}
+
+export default function AnnouncementModal({ onClose, initialData }: AnnouncementModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isUrgent, setIsUrgent] = useState(false)
+  
+  // Initialize state with props if editing, otherwise defaults
+  const [isUrgent, setIsUrgent] = useState(initialData?.isUrgent || false)
+  const [title, setTitle] = useState(initialData?.title || '')
+  const [message, setMessage] = useState(initialData?.content || '')
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const formData = new FormData(e.currentTarget)
-    // Manually append the checkbox state since checkboxes are tricky
-    formData.set('isUrgent', isUrgent.toString()) 
+    let result
+    
+    if (initialData) {
+      // EDIT MODE: Reuse existing editPost action
+      result = await editPost(initialData.id, message, title, isUrgent)
+    } else {
+      // CREATE MODE: Use createAnnouncement action
+      const formData = new FormData()
+      formData.append('title', title)
+      formData.append('message', message)
+      formData.append('isUrgent', isUrgent.toString())
+      
+      result = await createAnnouncement(formData)
+    }
 
-    const result = await createAnnouncement(formData)
     setIsSubmitting(false)
 
     if (result.success) {
@@ -30,7 +54,9 @@ export default function AnnouncementModal({ onClose }: { onClose: () => void }) 
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95">
-        <h2 className="text-xl font-bold text-slate-800 mb-4">New Announcement</h2>
+        <h2 className="text-xl font-bold text-slate-800 mb-4">
+          {initialData ? 'Edit Announcement' : 'New Announcement'}
+        </h2>
         
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           
@@ -38,7 +64,8 @@ export default function AnnouncementModal({ onClose }: { onClose: () => void }) 
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-1">TITLE</label>
             <input 
-              name="title" 
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               required 
               placeholder="e.g. Family Reunion" 
               className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none"
@@ -49,7 +76,8 @@ export default function AnnouncementModal({ onClose }: { onClose: () => void }) 
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-1">MESSAGE</label>
             <textarea 
-              name="message" 
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               required 
               rows={4}
               placeholder="What's happening?" 
@@ -75,7 +103,7 @@ export default function AnnouncementModal({ onClose }: { onClose: () => void }) 
               disabled={isSubmitting}
               className="bg-brand-sky text-white px-6 py-2 rounded-lg font-bold hover:bg-sky-500 shadow-sm disabled:opacity-50"
             >
-              {isSubmitting ? 'Posting...' : 'Post'}
+              {isSubmitting ? 'Saving...' : (initialData ? 'Update' : 'Post')}
             </button>
           </div>
 
