@@ -22,16 +22,31 @@ async function getPosts(currentUserId?: string) {
   const posts = await prisma.post.findMany({
     include: { 
       author: true,
-      likes: true // Include the likes so we can count them
+      likes: true,
+      comments: {
+        include: {
+          author: true,
+          likes: true,
+          children: { // Fetch Level 2 (replies to replies)
+            include: {
+              author: true,
+              likes: true,
+              children: true // You can keep nesting if needed, usually 2-3 levels is enough for fetch
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
+      }
     },
     orderBy: { createdAt: "desc" },
   });
 
-  // Transform the data to make it easy for the Frontend
   return posts.map(post => ({
     ...post,
     likeCount: post.likes.length,
-    isLikedByMe: currentUserId ? post.likes.some(like => like.userId === currentUserId) : false
+    isLikedByMe: currentUserId ? post.likes.some(like => like.userId === currentUserId) : false,
+    // Filter to only show Top-Level comments initially (those with no parentId)
+    topLevelComments: post.comments.filter((c: any) => !c.parentId)
   }));
 }
 
