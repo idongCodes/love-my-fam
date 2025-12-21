@@ -92,10 +92,7 @@ export default async function CommonRoom() {
             <PostCard 
               key={post.id} 
               post={post} 
-              currentUserId={user?.id || ''} 
-              // PASS THE REAL DATABASE DATA
-              initialLikeCount={post.likeCount}
-              initialIsLiked={post.isLikedByMe}
+              currentUserId={user?.id || ''}
             />
           ))}
           {/* ... (Empty state remains same) */}
