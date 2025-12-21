@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import TestimonialSection from "@/components/TestimonialSection"; // <--- 1. Import this
 
 export default function Home() {
   return (
@@ -8,20 +9,20 @@ export default function Home() {
       {/* --- HERO SECTION --- */}
       <section className="relative bg-brand-sky text-white pt-24 pb-32 px-6 text-center overflow-hidden">
         
-        {/* BACKGROUND IMAGE LAYER (The Fade Effect) */}
+        {/* BACKGROUND IMAGE LAYER */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/images/mom_charlie_bg.jpg"
             alt="Mom and Charlie background"
             fill
-            className="object-cover opacity-30" // Adjust opacity (20-50) if needed
+            className="object-cover opacity-30"
             priority
           />
-          {/* THE GRADIENT OVERLAY: Transparent top -> Solid Blue bottom */}
+          {/* THE GRADIENT OVERLAY */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-sky/20 to-brand-sky"></div>
         </div>
 
-        {/* CONTENT LAYER (z-10 sits on top of the background) */}
+        {/* CONTENT LAYER */}
         <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
           
           {/* Main Headline */}
@@ -43,7 +44,6 @@ export default function Home() {
               Enter Common Room
             </Link>
             
-            {/* UPDATED LINK BELOW */}
             <Link 
               href="/register"
               className="bg-brand-pink text-slate-800 px-8 py-4 rounded-full font-bold shadow-lg hover:brightness-110 hover:scale-105 transition-all text-lg"
@@ -101,6 +101,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* --- TESTIMONIALS SECTION --- */}
+      {/* 2. Added here to sit right above the global Feedback Section */}
+      <TestimonialSection />
+
     </main>
   );
 }

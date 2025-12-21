@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
-import AutoLogout from "@/components/AutoLogout"; // <--- IMPORT THIS
+import AutoLogout from "@/components/AutoLogout";
 import FeedbackSection from "@/components/FeedbackSection";
 import FeedbackWidget from "@/components/FeedbackWidget";
-import { cookies } from "next/headers";           // <--- IMPORT THIS
+import { cookies } from "next/headers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,6 +27,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Check Login Status (Used ONLY for AutoLogout visibility now)
   const cookieStore = await cookies()
   const isLoggedIn = cookieStore.has('session_id')
 
@@ -35,20 +36,24 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         
         <Navbar />
+
+        {/* Auto Logout Watchdog (Only active if logged in) */}
         {isLoggedIn && <AutoLogout />}
         
         <main className="flex-1 pt-16"> 
           {children}
         </main>
 
-        {/* 3. "WHAT DO YOU LOVE" SECTION (Sits above footer) */}
+        {/* 1. Global Feedback Section (Sits above footer) */}
+        {/* We removed the 'isLoggedIn' prop to fix the layout bug */}
         <FeedbackSection />
 
-        {/* 4. GLOBAL FOOTER */}
+        {/* 2. Global Footer */}
         <footer className="bg-slate-800 text-brand-sky py-8 text-center border-t border-slate-700">
           
-          {/* "ISSUES" LINK (Sits inside footer at the top) */}
+          {/* Feedback Widget Trigger (Sits inside footer) */}
           <div className="container mx-auto px-4 mb-6 border-b border-slate-700/50 pb-6">
+             {/* We removed the 'isLoggedIn' prop here too */}
             <FeedbackWidget />
           </div>
 
