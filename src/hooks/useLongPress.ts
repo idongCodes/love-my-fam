@@ -6,8 +6,8 @@ export default function useLongPress(
   { shouldPreventDefault = true, delay = 500 } = {}
 ) {
   const [longPressTriggered, setLongPressTriggered] = useState(false);
-  const timeout = useRef<NodeJS.Timeout>();
-  const target = useRef<EventTarget>();
+  const timeout = useRef<NodeJS.Timeout>(undefined);
+  const target = useRef<EventTarget>(undefined);
 
   const start = useCallback(
     (event: React.MouseEvent | React.TouchEvent) => {
@@ -25,13 +25,16 @@ export default function useLongPress(
   const clear = useCallback(
     (_event: React.MouseEvent | React.TouchEvent, shouldTriggerClick = true) => {
       timeout.current && clearTimeout(timeout.current);
+      
+      // If the timer didn't finish (it wasn't a long press), trigger the normal click
       if (shouldTriggerClick && !longPressTriggered) {
         onClick();
       }
+      
       setLongPressTriggered(false);
       target.current = undefined;
     },
-    [shouldTriggerClick, onClick, longPressTriggered]
+    [onClick, longPressTriggered] // <--- FIXED: Removed 'shouldTriggerClick' from here
   );
 
   return {
