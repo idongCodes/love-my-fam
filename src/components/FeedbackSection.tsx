@@ -4,15 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { submitTestimonial } from '@/app/testimonials/actions'
 
-export default function FeedbackSection() { // <--- REMOVE PROP HERE
+export default function FeedbackSection() {
   const router = useRouter()
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async () => {
-    // 1. REMOVE THE CLIENT-SIDE CHECK
-    // We will let the server decide if we are authorized.
-    
     if (!content.trim()) return
 
     setIsSubmitting(true)
@@ -22,9 +19,8 @@ export default function FeedbackSection() { // <--- REMOVE PROP HERE
     if (result.success) {
       setContent('')
       alert("Thank you! Your message has been posted.")
-      router.refresh() // Refresh page to show new testimonial immediately
+      router.refresh()
     } else {
-      // 2. CHECK SERVER RESPONSE
       if (result.message === "Must be logged in") {
         if (confirm("Please log in to share your love!")) {
           router.push('/login')
@@ -38,10 +34,18 @@ export default function FeedbackSection() { // <--- REMOVE PROP HERE
   return (
     <section className="bg-slate-50 border-t border-slate-200 py-12 px-4 mt-auto">
       <div className="max-w-2xl mx-auto">
-        <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">
+        
+        {/* HEADING */}
+        <h3 className="text-xl font-bold text-slate-800 mb-2 text-center">
           What do you love about this app?
         </h3>
         
+        {/* SUBTEXT (Added Here) */}
+        <p className="text-slate-500 text-sm text-center mb-8">
+          The encouragement you share here will be visible in the Testimonials section on the homepage ♥️
+        </p>
+        
+        {/* FORM */}
         <div className="flex flex-col gap-4">
           <textarea 
             value={content}
