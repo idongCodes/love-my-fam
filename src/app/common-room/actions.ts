@@ -18,16 +18,24 @@ export async function createPost(formData: FormData) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: 'Unauthorized' }
 
-  const content = formData.get('content') as string
-  const imageFile = formData.get('media') as File | null
+  const content = formData.get('content') as string || "" // Default to empty string
+  
+  // ✅ FIX: Changed 'media' to 'file' to match PostInput.tsx
+  const imageFile = formData.get('file') as File | null 
 
-  if (!content || content.trim().length === 0) return { success: false }
+  // ✅ UPDATE VALIDATION: Allow post if it has text OR an image
+  const hasText = content.trim().length > 0
+  const hasImage = imageFile && imageFile.size > 0
+
+  if (!hasText && !hasImage) {
+    return { success: false, message: "Post cannot be empty" }
+  }
 
   let imageUrl = null
 
   // If there is a file, upload it to Vercel Blob
-  if (imageFile && imageFile.size > 0) {
-    const blob = await put(imageFile.name, imageFile, {
+  if (hasImage) {
+    const blob = await put(imageFile!.name, imageFile!, {
       access: 'public',
     })
     imageUrl = blob.url
@@ -84,7 +92,6 @@ export async function toggleLike(postId: string) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: "Unauthorized" }
 
-  // Check if like exists
   const existingLike = await prisma.like.findUnique({
     where: {
       userId_postId: {
@@ -95,18 +102,9 @@ export async function toggleLike(postId: string) {
   })
 
   if (existingLike) {
-    // UNLIKE
-    await prisma.like.delete({
-      where: { id: existingLike.id }
-    })
+    await prisma.like.delete({ where: { id: existingLike.id } })
   } else {
-    // LIKE
-    await prisma.like.create({
-      data: {
-        userId,
-        postId
-      }
-    })
+    await prisma.like.create({ data: { userId, postId } })
   }
 
   revalidatePath('/common-room')
@@ -125,7 +123,7 @@ export async function addComment(postId: string, content: string, parentId?: str
       content,
       postId,
       authorId: userId,
-      parentId: parentId || null // If it's a reply, link to parent
+      parentId: parentId || null
     }
   })
 
@@ -156,8 +154,6 @@ export async function toggleCommentLike(commentId: string) {
   revalidatePath('/common-room')
   return { success: true }
 }
-
-// ... (Previous imports and functions)
 
 // --- 7. DELETE COMMENT ---
 export async function deleteComment(commentId: string) {
