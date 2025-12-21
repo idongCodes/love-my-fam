@@ -17,7 +17,8 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
 
   // --- PERMISSIONS ---
   const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
-  const isAdmin = post.author.email === ADMIN_EMAIL
+  // Case insensitive check
+  const isAdmin = post.author.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
   const isAuthor = currentUserId === post.authorId
   
   const createdAt = new Date(post.createdAt).getTime()
@@ -142,7 +143,8 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
             />
             {/* Emoji Button Inside - Bottom Right */}
             <div className="absolute bottom-2 right-2">
-              <EmojiButton onEmojiSelect={(emoji) => setEditContent(prev => prev + emoji)} />
+              {/* FIXED: Explicitly typed 'prev' */}
+              <EmojiButton onEmojiSelect={(emoji) => setEditContent((prev: string) => prev + emoji)} />
             </div>
           </div>
 
@@ -210,7 +212,8 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
               />
               {/* Emoji Button Inside - Right Center */}
               <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                <EmojiButton onEmojiSelect={(emoji) => setCommentText(prev => prev + emoji)} />
+                {/* FIXED: Explicitly typed 'prev' */}
+                <EmojiButton onEmojiSelect={(emoji) => setCommentText((prev: string) => prev + emoji)} />
               </div>
             </div>
 
