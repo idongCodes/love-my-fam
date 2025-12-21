@@ -1,13 +1,43 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { submitGeneralFeedback } from '@/app/actions'
 
 export default function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false)
+  const [content, setContent] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
+
+  const handleSubmit = async () => {
+    if (!content.trim()) return
+
+    setIsSubmitting(true)
+    
+    // Server Action checks if we are logged in
+    const result = await submitGeneralFeedback(content)
+    
+    setIsSubmitting(false)
+
+    if (result.success) {
+      setIsOpen(false)
+      setContent('')
+      alert("Feedback received! We appreciate you.")
+    } else if (result.error === 'unauthorized') {
+      // Logic for Guest Users
+      setIsOpen(false)
+      if (confirm("Please log in to submit feedback.")) {
+        router.push('/login')
+      }
+    } else {
+      alert("Something went wrong. Please try again.")
+    }
+  }
 
   return (
     <>
-      {/* 1. THE TRIGGER LINK (Sits in the footer) */}
+      {/* TRIGGER LINK */}
       <div className="w-full text-center pb-4">
         <button 
           onClick={() => setIsOpen(true)}
@@ -17,17 +47,17 @@ export default function FeedbackWidget() {
         </button>
       </div>
 
-      {/* 2. THE FLOATING MODAL (Hidden by default) */}
+      {/* MODAL */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           
-          {/* Backdrop (Darkens background & closes on click) */}
+          {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Modal Content */}
+          {/* Content */}
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 animate-in zoom-in-95 duration-200 border border-slate-100">
             
             {/* Header */}
@@ -52,23 +82,29 @@ export default function FeedbackWidget() {
               </p>
               
               <textarea 
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
                 placeholder="Type your message here..."
                 rows={5}
                 className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-sky outline-none transition-all resize-none text-slate-700"
+                disabled={isSubmitting}
               />
               
               <div className="flex justify-end gap-3 pt-2">
                 <button 
                   onClick={() => setIsOpen(false)}
                   className="px-4 py-2 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-lg transition-colors"
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </button>
                 <button 
                   type="button"
-                  className="bg-brand-sky text-white font-bold py-2 px-6 rounded-lg hover:bg-sky-500 transition-colors shadow-sm text-sm"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !content.trim()}
+                  className="bg-brand-sky text-white font-bold py-2 px-6 rounded-lg hover:bg-sky-500 transition-colors shadow-sm text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Submit
+                  {isSubmitting ? 'Sending...' : 'Submit'}
                 </button>
               </div>
             </div>
