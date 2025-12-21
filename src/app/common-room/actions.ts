@@ -156,3 +156,39 @@ export async function toggleCommentLike(commentId: string) {
   revalidatePath('/common-room')
   return { success: true }
 }
+
+// ... (Previous imports and functions)
+
+// --- 7. DELETE COMMENT ---
+export async function deleteComment(commentId: string) {
+  const userId = await getCurrentUserId()
+  
+  const comment = await prisma.comment.findUnique({ where: { id: commentId } })
+  if (!comment || comment.authorId !== userId) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  await prisma.comment.delete({ where: { id: commentId } })
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 8. EDIT COMMENT ---
+export async function editComment(commentId: string, newContent: string) {
+  const userId = await getCurrentUserId()
+  const comment = await prisma.comment.findUnique({ where: { id: commentId } })
+  
+  if (!comment || comment.authorId !== userId) return { success: false, message: 'Unauthorized' }
+  if (comment.isEdited) return { success: false, message: 'Comment can only be edited once.' }
+
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+  if (comment.createdAt < tenMinutesAgo) return { success: false, message: 'Edit time limit expired.' }
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: { content: newContent, isEdited: true }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
