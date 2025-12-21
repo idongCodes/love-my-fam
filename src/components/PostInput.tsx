@@ -1,113 +1,111 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState, useRef } from 'react'
 import { createPost } from '@/app/common-room/actions'
+import EmojiButton from './EmojiButton'
 
 export default function PostInput() {
-  const formRef = useRef<HTMLFormElement>(null)
-  const [fileName, setFileName] = useState<string | null>(null)
+  const [content, setContent] = useState('')
+  const [image, setImage] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isPosting, setIsPosting] = useState(false)
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  async function action(formData: FormData) {
-    await createPost(formData)
-    formRef.current?.reset()
-    setFileName(null)
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    
     if (file) {
-      // Safety Check: Warn if file is over 20MB
-      if (file.size > 20 * 1024 * 1024) {
-        alert("File is too large! Please choose a file under 20MB.")
-        e.target.value = "" // Clear the input
-        setFileName(null)
-        return
-      }
-      setFileName(file.name)
-    } else {
-      setFileName(null)
+      setImage(file)
+      setPreviewUrl(URL.createObjectURL(file))
     }
   }
 
-  // Helper to trigger the hidden file input
-  const triggerFileInput = () => {
-    const fileInput = document.getElementById('media-upload') as HTMLInputElement
-    if (fileInput) {
-      fileInput.click()
+  async function handlePost() {
+    if (!content.trim() && !image) return
+    setIsPosting(true)
+
+    const formData = new FormData()
+    formData.append('content', content)
+    if (image) {
+      formData.append('file', image)
+    }
+
+    const result = await createPost(formData)
+    setIsPosting(false)
+
+    if (result.success) {
+      setContent('')
+      setImage(null)
+      setPreviewUrl(null)
+    } else {
+      alert(result.message)
     }
   }
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm mb-8 border border-slate-200">
-      <p className="text-slate-400 text-sm mb-3 font-medium">Share an update with family...</p>
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-8">
       
-      <form ref={formRef} action={action} className="flex flex-col gap-3">
+      {/* 1. INPUT AREA WRAPPER */}
+      <div className="relative">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Share a memory, update, or thought..."
+          // Added pr-12 to prevent text from typing behind the emoji button
+          className="w-full text-lg placeholder:text-slate-400 border-none resize-none focus:ring-0 text-slate-700 h-24 pr-12"
+        />
         
-        <div className="flex gap-2 items-center">
-          {/* CONTAINER FOR INPUT + ICON */}
-          <div className="relative flex-1">
-            
-            <input 
-              name="content"
-              type="text" 
-              placeholder="Write something..."
-              required
-              className="w-full h-12 bg-slate-50 rounded-lg border border-slate-100 pl-4 pr-12 text-slate-700 focus:ring-2 focus:ring-brand-sky outline-none transition-all"
-            />
-
-            {/* --- RIGHT ALIGNED CAMERA BUTTON --- */}
-            <button 
-              type="button"
-              onClick={triggerFileInput}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-pink p-2 transition-colors rounded-full hover:bg-slate-50"
-              title="Upload photo or video"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-              </svg>
-            </button>
-
-            {/* HIDDEN FILE INPUT */}
-            <input 
-              id="media-upload"
-              name="media"
-              type="file" 
-              accept="image/*" 
-              className="hidden"
-              onChange={handleFileChange}
-            />
-          </div>
-
+        {/* EMOJI BUTTON: Absolute Positioned Inside */}
+        <div className="absolute bottom-2 right-2">
+          <EmojiButton onEmojiSelect={(emoji) => setContent(prev => prev + emoji)} />
+        </div>
+      </div>
+      
+      {/* Image Preview */}
+      {previewUrl && (
+        <div className="relative mt-2 mb-4 w-fit">
+          <img src={previewUrl} alt="Preview" className="h-32 w-auto rounded-lg object-cover border border-slate-200" />
           <button 
-            type="submit"
-            className="bg-brand-sky text-white font-bold px-6 rounded-lg hover:bg-sky-500 transition-colors shadow-sm h-12"
+            onClick={() => { setImage(null); setPreviewUrl(null); }}
+            className="absolute -top-2 -right-2 bg-slate-800 text-white rounded-full p-1 hover:bg-red-500 transition-colors"
           >
-            Post
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Toolbar */}
+      <div className="flex justify-between items-center pt-2 border-t border-slate-100 mt-2">
+        <div>
+          <button 
+             onClick={() => fileInputRef.current?.click()}
+             className="text-slate-400 hover:text-brand-sky p-1.5 rounded-full hover:bg-slate-50 transition-colors group flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 group-hover:scale-110 transition-transform">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+            </svg>
+            <span className="text-xs font-medium hidden sm:inline">Add Photo</span>
           </button>
         </div>
 
-        {/* --- FILE PREVIEW BADGE --- */}
-        {fileName && (
-          <div className="flex items-center gap-2 text-xs bg-slate-100 text-slate-600 px-3 py-2 rounded-lg w-fit animate-fade-in">
-            <span className="font-bold text-brand-pink">📎 Attached:</span>
-            <span className="truncate max-w-[200px]">{fileName}</span>
-            <button 
-              type="button" 
-              onClick={() => {
-                setFileName(null)
-                const fileInput = document.getElementById('media-upload') as HTMLInputElement
-                if (fileInput) fileInput.value = ''
-              }}
-              className="ml-2 text-slate-400 hover:text-red-500 font-bold"
-            >
-              ✕
-            </button>
-          </div>
-        )}
+        <button 
+          onClick={handlePost} 
+          disabled={isPosting || (!content.trim() && !image)}
+          className="bg-brand-sky text-white px-6 py-2 rounded-full font-bold hover:bg-sky-500 disabled:opacity-50 transition-all shadow-sm"
+        >
+          {isPosting ? 'Posting...' : 'Post'}
+        </button>
+      </div>
 
-      </form>
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        className="hidden" 
+        accept="image/*"
+        onChange={handleImageChange}
+      />
     </div>
   )
 }
