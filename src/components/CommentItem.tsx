@@ -13,24 +13,17 @@ export default function CommentItem({
   currentUserId: string, 
   postId: string 
 }) {
-  // --- STATE: REPLYING ---
   const [isReplying, setIsReplying] = useState(false)
   const [replyContent, setReplyContent] = useState('')
   
-  // --- STATE: EDITING ---
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(comment.content)
 
-  // --- PERMISSIONS ---
   const isAuthor = currentUserId === comment.authorId
   const createdAt = new Date(comment.createdAt).getTime()
   const timeDiff = Date.now() - createdAt
-  // Rule: Author only + Not edited yet + Less than 10 mins old
   const canEdit = isAuthor && !comment.isEdited && timeDiff < 10 * 60 * 1000
 
-  // --- HANDLERS ---
-
-  // Wrapper for the LikeButton component
   async function handleToggleLike() {
     await toggleCommentLike(comment.id)
   }
@@ -39,7 +32,7 @@ export default function CommentItem({
     e.preventDefault()
     if (!replyContent.trim()) return
 
-    await addComment(postId, replyContent, comment.id) // Pass comment.id as parent
+    await addComment(postId, replyContent, comment.id)
     setIsReplying(false)
     setReplyContent('')
   }
@@ -59,32 +52,37 @@ export default function CommentItem({
     }
   }
 
-  // Fallback for names/avatars
   const displayName = comment.author?.alias || comment.author?.firstName || 'Family Member'
   const firstLetter = displayName[0]?.toUpperCase() || '?'
 
   return (
     <div className="flex gap-3 mt-4 w-full">
-      {/* 1. AVATAR */}
+      {/* AVATAR */}
       <div className="w-8 h-8 bg-brand-sky/20 rounded-full flex items-center justify-center text-brand-sky font-bold text-xs shrink-0">
         {firstLetter}
       </div>
 
       <div className="flex-1">
-        {/* 2. COMMENT BUBBLE */}
+        {/* BUBBLE */}
         <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100 group relative">
           
-          {/* Header Row: Name + Date + Icons */}
+          {/* HEADER: Name + Timestamp + Icons */}
           <div className="flex justify-between items-baseline mb-1">
             <span className="font-bold text-slate-700 text-sm">{displayName}</span>
             
             <div className="flex items-center gap-2">
+              {/* --- UPDATED TIMESTAMP (Date & Time) --- */}
               <span className="text-[10px] text-slate-400">
-                {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : ''}
+                {comment.createdAt ? new Date(comment.createdAt).toLocaleString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit'
+                }) : ''}
                 {comment.isEdited && <span className="italic ml-1">(Edited)</span>}
               </span>
 
-              {/* Edit/Delete Icons (Visible on Hover if allowed) */}
+              {/* Edit/Delete Icons */}
               {isAuthor && !isEditing && (
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   {canEdit && (
@@ -104,7 +102,7 @@ export default function CommentItem({
             </div>
           </div>
 
-          {/* Content Area (Text vs Input) */}
+          {/* Content Area */}
           {isEditing ? (
             <div className="mt-1">
               <input
@@ -124,17 +122,14 @@ export default function CommentItem({
           )}
         </div>
 
-        {/* 3. ACTION FOOTER (Like / Reply) */}
+        {/* Action Footer */}
         {!isEditing && (
           <div className="flex gap-4 mt-1 ml-2 text-xs font-bold text-slate-400">
-            
-            {/* New Like Button Component */}
             <LikeButton 
               initialLikes={comment.likes || []} 
               currentUserId={currentUserId} 
               onToggle={handleToggleLike} 
             />
-
             <button 
               onClick={() => setIsReplying(!isReplying)} 
               className="hover:text-brand-sky transition-colors"
@@ -144,7 +139,7 @@ export default function CommentItem({
           </div>
         )}
 
-        {/* 4. REPLY INPUT FORM */}
+        {/* Reply Input */}
         {isReplying && (
           <form onSubmit={handleReplySubmit} className="mt-2 flex gap-2 animate-in slide-in-from-top-1">
             <input 
@@ -161,7 +156,7 @@ export default function CommentItem({
           </form>
         )}
 
-        {/* 5. RECURSIVE CHILDREN (REPLIES) */}
+        {/* RECURSIVE CHILDREN */}
         {comment.children && comment.children.length > 0 && (
           <div className="border-l-2 border-slate-100 pl-4 mt-2">
             {comment.children.map((child: any) => (
