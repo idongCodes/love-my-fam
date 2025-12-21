@@ -15,21 +15,20 @@ export default function CommentItem({
   postId: string 
 }) {
   // --- STATE ---
+  // Explicitly type as string to prevent "implicit any" errors
   const [isReplying, setIsReplying] = useState(false)
   const [replyContent, setReplyContent] = useState('')
   
   const [isEditing, setIsEditing] = useState(false)
-  const [editContent, setEditContent] = useState(comment.content)
+  const [editContent, setEditContent] = useState<string>(comment.content || '') 
 
   // --- PERMISSIONS ---
   const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
-  // Case-insensitive check for admin email
   const isAdmin = comment.author?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
   
   const isAuthor = currentUserId === comment.authorId
   const createdAt = new Date(comment.createdAt).getTime()
   const timeDiff = Date.now() - createdAt
-  // Rule: Author only + Not edited yet + Less than 10 mins old
   const canEdit = isAuthor && !comment.isEdited && timeDiff < 10 * 60 * 1000
 
   // --- HANDLERS ---
@@ -128,12 +127,12 @@ export default function CommentItem({
                 type="text"
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                // Added pr-8 to avoid overlap with emoji button
                 className="w-full text-sm p-1 border-b border-brand-sky outline-none bg-transparent pr-8"
               />
               {/* Emoji Button Inside Input */}
               <div className="absolute right-0 bottom-1">
-                <EmojiButton onEmojiSelect={(emoji) => setEditContent(prev => prev + emoji)} />
+                {/* FIXED: Added type (prev: string) */}
+                <EmojiButton onEmojiSelect={(emoji) => setEditContent((prev: string) => prev + emoji)} />
               </div>
 
               <div className="flex gap-2 mt-2 justify-end text-[10px] font-bold">
@@ -173,12 +172,12 @@ export default function CommentItem({
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
                 placeholder={`Reply to ${displayName}...`}
-                // Added pr-10
                 className="w-full bg-white border border-slate-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:ring-2 focus:ring-brand-sky outline-none"
               />
               {/* Emoji Button Inside Input */}
               <div className="absolute right-1 top-1/2 -translate-y-1/2">
-                <EmojiButton onEmojiSelect={(emoji) => setReplyContent(prev => prev + emoji)} />
+                {/* FIXED: Added type (prev: string) */}
+                <EmojiButton onEmojiSelect={(emoji) => setReplyContent((prev: string) => prev + emoji)} />
               </div>
             </div>
 
