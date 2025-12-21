@@ -112,3 +112,47 @@ export async function toggleLike(postId: string) {
   revalidatePath('/common-room')
   return { success: true }
 }
+
+// --- 5. ADD COMMENT ---
+export async function addComment(postId: string, content: string, parentId?: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false, message: "Unauthorized" }
+
+  if (!content || content.trim().length === 0) return { success: false }
+
+  await prisma.comment.create({
+    data: {
+      content,
+      postId,
+      authorId: userId,
+      parentId: parentId || null // If it's a reply, link to parent
+    }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 6. TOGGLE COMMENT LIKE ---
+export async function toggleCommentLike(commentId: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false, message: "Unauthorized" }
+
+  const existingLike = await prisma.commentLike.findUnique({
+    where: {
+      userId_commentId: {
+        userId,
+        commentId
+      }
+    }
+  })
+
+  if (existingLike) {
+    await prisma.commentLike.delete({ where: { id: existingLike.id } })
+  } else {
+    await prisma.commentLike.create({ data: { userId, commentId } })
+  }
+
+  revalidatePath('/common-room')
+  return { success: true }
+}

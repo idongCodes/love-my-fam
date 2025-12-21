@@ -23,6 +23,7 @@ model User {
   posts     Post[]   @relation("UserPosts")
   comments  Comment[]
   likes     Like[]   // <--- The new relation
+  commentLikes CommentLike[]
 }
 
 model Post {
@@ -46,6 +47,25 @@ model Comment {
   post      Post     @relation(fields: [postId], references: [id])
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
+
+  // --- NEW: NESTED REPLIES ---
+  parentId  String? 
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Comment[] @relation("CommentReplies")
+
+  // --- NEW: COMMENT LIKES ---
+  likes     CommentLike[]
+}
+
+// --- NEW MODEL ---
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String
+  commentId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
 }
 
 // 3. NEW LIKE MODEL
