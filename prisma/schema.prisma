@@ -1,3 +1,4 @@
+// 1. CONFIGURATION BLOCKS (These were missing!)
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,18 +9,20 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
+// 2. YOUR MODELS
 model User {
   id        String   @id @default(cuid())
   firstName String
   lastName  String
   alias     String?
-  position  String   // <--- ADD THIS LINE (e.g. "Cousin", "Aunt")
+  position  String
   email     String   @unique
   phone     String?
   createdAt DateTime @default(now())
   
   posts     Post[]   @relation("UserPosts")
   comments  Comment[]
+  likes     Like[]   // <--- The new relation
 }
 
 model Post {
@@ -28,10 +31,11 @@ model Post {
   imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  isEdited  Boolean  @default(false) // <--- ADD THIS LINE
+  isEdited  Boolean  @default(false)
   authorId  String
   author    User     @relation("UserPosts", fields: [authorId], references: [id])
   comments  Comment[]
+  likes     Like[]   // <--- The new relation
 }
 
 model Comment {
@@ -42,4 +46,16 @@ model Comment {
   post      Post     @relation(fields: [postId], references: [id])
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
+}
+
+// 3. NEW LIKE MODEL
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId]) // Ensures you can't like the same post twice
 }

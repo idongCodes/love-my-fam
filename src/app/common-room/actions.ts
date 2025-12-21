@@ -3,22 +3,23 @@
 import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { put } from '@vercel/blob' // <--- NEW IMPORT
+import { put } from '@vercel/blob'
 
 const prisma = new PrismaClient()
 
+// --- HELPER: GET CURRENT USER ID ---
 async function getCurrentUserId() {
   const cookieStore = await cookies()
   return cookieStore.get('session_id')?.value
 }
 
-// --- 1. CREATE POST (Now with Image Support) ---
+// --- 1. CREATE POST ---
 export async function createPost(formData: FormData) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: 'Unauthorized' }
 
   const content = formData.get('content') as string
-  const imageFile = formData.get('media') as File | null // <--- GRAB THE FILE
+  const imageFile = formData.get('media') as File | null
 
   if (!content || content.trim().length === 0) return { success: false }
 
@@ -26,19 +27,16 @@ export async function createPost(formData: FormData) {
 
   // If there is a file, upload it to Vercel Blob
   if (imageFile && imageFile.size > 0) {
-    // 1. Upload the file
     const blob = await put(imageFile.name, imageFile, {
       access: 'public',
     })
-    // 2. Get the public URL
     imageUrl = blob.url
   }
 
-  // 3. Save to Database
   await prisma.post.create({
     data: {
       content,
-      imageUrl, // <--- SAVE THE URL
+      imageUrl,
       authorId: userId
     }
   })
@@ -47,7 +45,7 @@ export async function createPost(formData: FormData) {
   return { success: true }
 }
 
-// ... (Keep deletePost and editPost the same as before)
+// --- 2. DELETE POST ---
 export async function deletePost(postId: string) {
   const userId = await getCurrentUserId()
   
@@ -61,6 +59,7 @@ export async function deletePost(postId: string) {
   return { success: true }
 }
 
+// --- 3. EDIT POST ---
 export async function editPost(postId: string, newContent: string) {
   const userId = await getCurrentUserId()
   const post = await prisma.post.findUnique({ where: { id: postId } })
@@ -75,6 +74,40 @@ export async function editPost(postId: string, newContent: string) {
     where: { id: postId },
     data: { content: newContent, isEdited: true }
   })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+// --- 4. TOGGLE LIKE ---
+export async function toggleLike(postId: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false, message: "Unauthorized" }
+
+  // Check if like exists
+  const existingLike = await prisma.like.findUnique({
+    where: {
+      userId_postId: {
+        userId,
+        postId
+      }
+    }
+  })
+
+  if (existingLike) {
+    // UNLIKE
+    await prisma.like.delete({
+      where: { id: existingLike.id }
+    })
+  } else {
+    // LIKE
+    await prisma.like.create({
+      data: {
+        userId,
+        postId
+      }
+    })
+  }
 
   revalidatePath('/common-room')
   return { success: true }
