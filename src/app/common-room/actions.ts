@@ -14,7 +14,7 @@ async function getCurrentUserId() {
 }
 
 // =======================================================
-// 1. POST ACTIONS (Create, Edit, Delete, Feed)
+// 1. POST ACTIONS
 // =======================================================
 
 export async function createPost(formData: FormData) {
@@ -65,19 +65,35 @@ export async function deletePost(postId: string) {
   return { success: true }
 }
 
-export async function editPost(postId: string, newContent: string) {
+// --- UPDATED: EDIT POST (Supports Title/Urgency for Announcements) ---
+export async function editPost(
+  postId: string, 
+  newContent: string, 
+  newTitle?: string, 
+  newIsUrgent?: boolean
+) {
   const userId = await getCurrentUserId()
   const post = await prisma.post.findUnique({ where: { id: postId } })
   
   if (!post || post.authorId !== userId) return { success: false, message: 'Unauthorized' }
-  if (post.isEdited) return { success: false, message: 'Post can only be edited once.' }
-
+  
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
-  if (post.createdAt < tenMinutesAgo) return { success: false, message: 'Edit time limit expired.' }
+  
+  // Rule: Regular posts have a 10-minute edit limit. Announcements (Admin) do not.
+  if (!post.isAnnouncement && post.createdAt < tenMinutesAgo) {
+      return { success: false, message: 'Edit time limit expired.' }
+  }
+
+  // Prepare update data
+  const data: any = { content: newContent, isEdited: true }
+  
+  // Only update title/urgent if provided (for announcements)
+  if (newTitle !== undefined) data.title = newTitle
+  if (newIsUrgent !== undefined) data.isUrgent = newIsUrgent
 
   await prisma.post.update({
     where: { id: postId },
-    data: { content: newContent, isEdited: true }
+    data
   })
 
   revalidatePath('/common-room')
@@ -108,7 +124,7 @@ export async function toggleLike(postId: string) {
 }
 
 // =======================================================
-// 2. COMMENT ACTIONS (Add, Edit, Delete, Like)
+// 2. COMMENT ACTIONS
 // =======================================================
 
 export async function addComment(postId: string, content: string, parentId?: string) {
@@ -186,7 +202,7 @@ export async function editComment(commentId: string, newContent: string) {
 }
 
 // =======================================================
-// 3. ANNOUNCEMENT ACTIONS (New)
+// 3. ANNOUNCEMENT ACTIONS
 // =======================================================
 
 export async function createAnnouncement(formData: FormData) {
@@ -242,7 +258,7 @@ export async function getAnnouncements() {
 }
 
 // =======================================================
-// 4. FEED FETCHING (Updated to split Urgent vs Regular)
+// 4. FEED FETCHING (Split Urgent vs Regular)
 // =======================================================
 
 export async function getFeedData() {
