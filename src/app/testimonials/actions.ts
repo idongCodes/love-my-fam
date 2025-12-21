@@ -25,7 +25,7 @@ export async function submitTestimonial(content: string) {
     }
   })
 
-  revalidatePath('/') // Refresh the home page to show new testimonial
+  revalidatePath('/') 
   return { success: true }
 }
 
@@ -34,61 +34,65 @@ export async function getTestimonials() {
   const currentUserId = await getCurrentUserId()
   const isGuest = !currentUserId
 
-  // Fetch testimonials (limit to recent 6 for design)
+  // Fetch testimonials (limit to recent 6)
   const testimonials = await prisma.testimonial.findMany({
     take: 6,
     orderBy: { createdAt: 'desc' },
     include: {
       author: {
-        select: { firstName: true, alias: true }
+        // ✅ CRITICAL: We must select the email here!
+        select: { firstName: true, alias: true, email: true } 
       }
     }
   })
 
-  // IF LOGGED IN: Return data as is
-  if (!isGuest) {
-    return testimonials.map(t => ({
-      ...t,
-      displayAuthor: t.author.alias || t.author.firstName,
-      displayAvatar: (t.author.alias || t.author.firstName)[0].toUpperCase(),
-      redactedContent: t.content
-    }))
+  // A. HELPER: List of sensitive names to redact
+  let sensitiveWords = new Set<string>()
+  if (isGuest) {
+    const allUsers = await prisma.user.findMany({
+      select: { firstName: true, alias: true }
+    })
+    allUsers.forEach(u => {
+      if (u.firstName) sensitiveWords.add(u.firstName.toLowerCase())
+      if (u.alias) sensitiveWords.add(u.alias.toLowerCase())
+    })
   }
 
-  // IF GUEST: Redact names and hide author info
-  
-  // A. Get list of sensitive names (All first names & aliases in DB)
-  const allUsers = await prisma.user.findMany({
-    select: { firstName: true, alias: true }
-  })
-  
-  const sensitiveWords = new Set<string>()
-  allUsers.forEach(u => {
-    if (u.firstName) sensitiveWords.add(u.firstName.toLowerCase())
-    if (u.alias) sensitiveWords.add(u.alias.toLowerCase())
-  })
-
-  // B. Redact Function
   const redactText = (text: string) => {
     const words = text.split(' ')
     return words.map(word => {
-      // Strip punctuation for checking (e.g., "John," -> "john")
       const cleanWord = word.replace(/[^\w]/g, '').toLowerCase()
       if (sensitiveWords.has(cleanWord)) {
-        return "Family Member" // The replacement text
+        return "Family Member"
       }
       return word
     }).join(' ')
   }
 
-  return testimonials.map(t => ({
-    id: t.id,
-    content: t.content,
-    createdAt: t.createdAt,
-    // HIDE AUTHOR IDENTITY
-    displayAuthor: "Family Member",
-    displayAvatar: null, 
-    // REDACT CONTENT
-    redactedContent: redactText(t.content)
-  }))
+  // B. TRANSFORM DATA
+  return testimonials.map(t => {
+    // If Guest, we hide the email (so badge won't show) and redact name
+    if (isGuest) {
+      return {
+        id: t.id,
+        content: t.content,
+        createdAt: t.createdAt,
+        authorEmail: null, // Hide email from guests
+        displayAuthor: "Family Member",
+        displayAvatar: null,
+        redactedContent: redactText(t.content)
+      }
+    }
+
+    // If Logged In, we show everything
+    return {
+      id: t.id,
+      content: t.content,
+      createdAt: t.createdAt,
+      authorEmail: t.author.email, // Pass email to frontend
+      displayAuthor: t.author.alias || t.author.firstName,
+      displayAvatar: (t.author.alias || t.author.firstName)[0].toUpperCase(),
+      redactedContent: t.content
+    }
+  })
 }
