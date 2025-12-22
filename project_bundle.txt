@@ -38,6 +38,74 @@ FILE: tsconfig.json
 
 
 ==================================================
+FILE: README.md
+==================================================
+# 💖 LoveMyFam (LMF)
+
+### "A safe space for family. No strangers. No public. Just family."
+
+-----
+
+## 💡 The Mission
+
+In the age of endless notifications and cluttered group chats, staying genuinely connected with family often feels like a chore. **LoveMyFam** is designed to eliminate the friction and fatigue of modern communication methods—no more long, unplanned phone calls or searching through hundreds of text messages for one update.
+
+LMF provides a private, asynchronous space built to facilitate **genuine and lasting communication** among family members.
+
+## 🏡 The Common Room (CR)
+
+The **Common Room** is the heart of the app. It acts as a central hub where all family members (FMs) can post concerns, share life updates, and collaborate on planning.
+
+### Why Post to the Common Room?
+
+| Pain Point Solved | LMF Solution |
+| :--- | :--- |
+| **Call Fatigue** | Skip the hassle of long phone calls and multiple video calls. |
+| **Cluttered Group Chats**| Post one update, and *everyone* sees it, ensuring crucial information isn't missed. |
+| **Exclusivity** | Our motto is our architecture: This is a **private, non-public** space. |
+
+## ✨ Current Features (MVP)
+
+As an ongoing project driven by continuous learning, the current feature set focuses on core communication:
+
+  * **Secure Sign-In:** Authenticates family members to ensure platform exclusivity.
+  * **Real-Time Feed:** Instantly pushes new updates to all active family members without requiring a page refresh.
+  * **Asynchronous Posting:** Family members can post updates at their convenience.
+  * **Database:** (Planned upgrade to PostgreSQL/Prisma).
+
+## 🚀 The Development Journey
+
+This project serves as a commitment to my ongoing growth as a full-stack developer. Building **LoveMyFam** allows me to integrate and master key concepts as I learn them.
+
+| Technology Focus | Status & Goal |
+| :--- | :--- |
+| **Frontend** | **Next.js (App Router)**: Using React Server Components and Tailwind CSS. |
+| **Backend** | **Next.js API Routes**: Handling business logic and database interactions. |
+| **Deployment** | **Vercel**: Serverless deployment for instant scalability. |
+
+-----
+
+## 🔗 Connect with Me
+
+Follow my journey as I build out new features for LMF and tackle new challenges!
+
+[![My BlueSky Profile](https://img.shields.io/badge/BlueSky-0077B5?style=for-the-badge&logo=bluesky&logoColor=white)](https://bsky.app/profile/idongcodes.bsky.social)
+[![My LinkedIn Profile](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/idongcodes/)
+
+
+==================================================
+FILE: postcss.config.mjs
+==================================================
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+
+
+==================================================
 FILE: package.json
 ==================================================
 {
@@ -95,6 +163,29 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 
 ==================================================
+FILE: eslint.config.mjs
+==================================================
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+
+
+==================================================
 FILE: src/middleware.ts
 ==================================================
 import { NextResponse } from 'next/server'
@@ -133,12 +224,131 @@ export const config = {
 }
 
 ==================================================
+FILE: src/components/AnnouncementModal.tsx
+==================================================
+'use client'
+
+import { useState } from 'react'
+import { createAnnouncement, editPost } from '@/app/common-room/actions'
+
+interface AnnouncementModalProps {
+  onClose: () => void
+  initialData?: {
+    id: string
+    title: string
+    content: string
+    isUrgent: boolean
+  }
+}
+
+export default function AnnouncementModal({ onClose, initialData }: AnnouncementModalProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Initialize state with props if editing, otherwise defaults
+  const [isUrgent, setIsUrgent] = useState(initialData?.isUrgent || false)
+  const [title, setTitle] = useState(initialData?.title || '')
+  const [message, setMessage] = useState(initialData?.content || '')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    let result
+    
+    if (initialData) {
+      // EDIT MODE: Reuse existing editPost action
+      result = await editPost(initialData.id, message, title, isUrgent)
+    } else {
+      // CREATE MODE: Use createAnnouncement action
+      const formData = new FormData()
+      formData.append('title', title)
+      formData.append('message', message)
+      formData.append('isUrgent', isUrgent.toString())
+      
+      result = await createAnnouncement(formData)
+    }
+
+    setIsSubmitting(false)
+
+    if (result.success) {
+      onClose()
+    } else {
+      alert(result.message)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+      
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95">
+        <h2 className="text-xl font-bold text-slate-800 mb-4">
+          {initialData ? 'Edit Announcement' : 'New Announcement'}
+        </h2>
+        
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          
+          {/* Title */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1">TITLE</label>
+            <input 
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required 
+              placeholder="e.g. Family Reunion" 
+              className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none"
+            />
+          </div>
+
+          {/* Message */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1">MESSAGE</label>
+            <textarea 
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              required 
+              rows={4}
+              placeholder="What's happening?" 
+              className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none resize-none"
+            />
+          </div>
+
+          {/* Urgent Toggle */}
+          <div 
+            onClick={() => setIsUrgent(!isUrgent)}
+            className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isUrgent ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-100'}`}
+          >
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isUrgent ? 'border-red-500' : 'border-slate-300'}`}>
+              {isUrgent && <div className="w-2.5 h-2.5 rounded-full bg-red-500" />}
+            </div>
+            <span className={`font-bold ${isUrgent ? 'text-red-500' : 'text-slate-500'}`}>Mark as Urgent</span>
+          </div>
+
+          <div className="flex gap-2 justify-end mt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-slate-400 hover:text-slate-600 font-bold">Cancel</button>
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="bg-brand-sky text-white px-6 py-2 rounded-lg font-bold hover:bg-sky-500 shadow-sm disabled:opacity-50"
+            >
+              {isSubmitting ? 'Saving...' : (initialData ? 'Update' : 'Post')}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  )
+}
+
+==================================================
 FILE: src/components/LikeButton.tsx
 ==================================================
 'use client'
 
 import { useState } from 'react'
 import useLongPress from '@/hooks/useLongPress'
+import StatusBadge from './StatusBadge' // <--- Import
 
 interface UserLike {
   userId: string;
@@ -146,6 +356,8 @@ interface UserLike {
     id: string;
     firstName: string;
     alias?: string | null;
+    profileImage?: string | null;
+    status?: string | null; // <--- Added Status
   }
 }
 
@@ -156,87 +368,70 @@ interface LikeButtonProps {
 }
 
 export default function LikeButton({ initialLikes = [], currentUserId, onToggle }: LikeButtonProps) {
-  // --- STATE ---
   const [likes, setLikes] = useState<UserLike[]>(initialLikes)
   const isLikedByMe = likes.some(l => l.userId === currentUserId)
-  
   const [showList, setShowList] = useState(false)
 
-  // --- HANDLERS ---
   const handleToggle = async () => {
-    // Optimistic Update
     if (isLikedByMe) {
       setLikes(prev => prev.filter(l => l.userId !== currentUserId))
     } else {
-      // Add fake user object for immediate feedback
-      setLikes(prev => [...prev, { 
-        userId: currentUserId, 
-        user: { id: currentUserId, firstName: 'Me', alias: 'Me' } 
-      }])
+      setLikes(prev => [...prev, { userId: currentUserId, user: { id: currentUserId, firstName: 'Me', alias: 'Me', profileImage: null } }])
     }
-    
     await onToggle()
   }
 
-  const handleLongPress = () => {
-    if (likes.length > 0) {
-      setShowList(true)
-    }
-  }
-
-  // Use our custom hook
+  const handleLongPress = () => { if (likes.length > 0) setShowList(true) }
   const longPressProps = useLongPress(handleLongPress, handleToggle, { delay: 500 })
 
   return (
     <div className="relative inline-block">
       
-      {/* 1. THE BUTTON (With Long Press support) */}
+      {/* BUTTON (Same as before) */}
       <button 
         {...longPressProps}
-        className={`flex items-center gap-1.5 transition-colors font-bold text-xs 
-          ${isLikedByMe ? 'text-brand-pink' : 'text-slate-400 hover:text-brand-pink'}`}
-        title="Long press to see who liked"
+        className={`flex items-center gap-1.5 transition-all font-bold text-sm select-none ${isLikedByMe ? 'text-pink-500' : 'text-slate-400 active:scale-95 [@media(hover:hover)]:hover:text-slate-600'}`}
       >
         {isLikedByMe ? (
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 animate-in zoom-in duration-200">
-            <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 animate-in zoom-in duration-200 text-pink-500"><path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" /></svg>
         ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
         )}
         <span>{likes.length || 'Like'}</span>
       </button>
 
-      {/* 2. THE FLOATING POPUP (Anchored) */}
+      {/* POPUP LIST */}
       {showList && (
         <>
-          {/* Backdrop to close on click-away */}
           <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setShowList(false) }} />
-          
           <div className="absolute bottom-full left-0 mb-2 w-48 bg-white rounded-lg shadow-xl border border-slate-100 z-50 p-1 animate-in zoom-in-95 duration-150 origin-bottom-left">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2 border-b border-slate-50">
-              Liked By
-            </div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2 border-b border-slate-50">Liked By</div>
             <div className="max-h-40 overflow-y-auto py-1">
-              {likes.map((like) => (
-                <div key={like.userId} className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-md">
-                   <div className="w-5 h-5 bg-brand-pink/20 text-brand-pink rounded-full flex items-center justify-center text-[10px] font-bold">
-                      {(like.user.alias || like.user.firstName)[0]}
-                   </div>
-                   <span className="text-xs text-slate-700 truncate font-medium">
-                     {like.user.alias || like.user.firstName}
-                   </span>
-                </div>
-              ))}
+              {likes.map((like) => {
+                 const statusEmoji = like.user.status ? Array.from(like.user.status)[0] : null
+                 return (
+                  <div key={like.userId} className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-md">
+                     <div className="relative">
+                       <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold overflow-hidden bg-brand-pink/20 text-brand-pink shrink-0">
+                          {like.user.profileImage ? (
+                            <img src={like.user.profileImage} alt="User" className="w-full h-full object-cover" />
+                          ) : (
+                            (like.user.alias || like.user.firstName)[0]
+                          )}
+                       </div>
+
+                       {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT (size="small") */}
+                     <StatusBadge status={like.user.status} size="small" />
+                     </div>
+                     <span className="text-xs text-slate-700 truncate font-medium">{like.user.alias || like.user.firstName}</span>
+                  </div>
+                 )
+              })}
             </div>
-            {/* Little Triangle Arrow */}
             <div className="absolute top-full left-4 -mt-[1px] border-8 border-transparent border-t-white" />
           </div>
         </>
       )}
-
     </div>
   )
 }
@@ -342,254 +537,587 @@ export default async function TestimonialSection() {
 }
 
 ==================================================
-FILE: src/components/PostCard.tsx
+FILE: src/components/MyRoomClient.tsx
 ==================================================
 'use client'
 
-import { useState } from 'react'
-import { deletePost, editPost, toggleLike, addComment } from '@/app/common-room/actions'
-import CommentItem from './CommentItem'
-import LikeButton from './LikeButton'
+import { useState, useRef, useEffect } from 'react'
+import { updateProfilePhoto, updateProfileDetails } from '@/app/my-room/actions'
+import { useRouter } from 'next/navigation'
 import EmojiButton from './EmojiButton'
+import StatusBadge from './StatusBadge'
 
-export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
-  // --- STATE: EDITING ---
-  const [isEditing, setIsEditing] = useState(false)
-  const [editContent, setEditContent] = useState(post.content)
-
-  // --- STATE: COMMENTS ---
-  const [showComments, setShowComments] = useState(false)
-  const [commentText, setCommentText] = useState('')
-
-  // --- PERMISSIONS ---
-  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
-  // Case insensitive check
-  const isAdmin = post.author.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
-  const isAuthor = currentUserId === post.authorId
+export default function MyRoomClient({ user }: { user: any }) {
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState('dashboard')
   
-  const createdAt = new Date(post.createdAt).getTime()
-  const timeDiff = Date.now() - createdAt
-  // Rule: Author only + Not edited yet + Less than 10 mins old
-  const canEdit = isAuthor && !post.isEdited && timeDiff < 10 * 60 * 1000
+  // --- PHOTO STATE ---
+  const [profileImage, setProfileImage] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(user?.profileImage || null)
+  const [isSavingPhoto, setIsSavingPhoto] = useState(false)
+  const selfieInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+
+  // --- PROFILE DETAILS STATE ---
+  const [isEditingDetails, setIsEditingDetails] = useState(false)
+  const [isSavingDetails, setIsSavingDetails] = useState(false)
+  
+  // Form Fields
+  const [firstName, setFirstName] = useState<string>(user.firstName || '')
+  const [lastName, setLastName] = useState<string>(user.lastName || '')
+  const [position, setPosition] = useState<string>(user.position || '')
+  const [bio, setBio] = useState<string>(user.bio || '')
+  const [location, setLocation] = useState<string>(user.location || '')
+  const [alias, setAlias] = useState<string>(user.alias || '')
+  const [status, setStatus] = useState<string>(user.status || '') 
+
+  // Sync state if user prop updates
+  useEffect(() => {
+    setFirstName(user.firstName || '')
+    setLastName(user.lastName || '')
+    setPosition(user.position || '')
+    setBio(user.bio || '')
+    setLocation(user.location || '')
+    setAlias(user.alias || '')
+    setStatus(user.status || '')
+  }, [user])
+
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+  const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
 
   // --- HANDLERS ---
-
-  async function handleDelete() {
-    if (confirm('Are you sure you want to delete this?')) {
-      await deletePost(post.id)
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setProfileImage(file)
+      setPreviewUrl(URL.createObjectURL(file))
     }
   }
 
-  async function handleSave() {
-    const result = await editPost(post.id, editContent)
+  const handleSavePhoto = async () => {
+    if (!profileImage) return
+    setIsSavingPhoto(true)
+    const formData = new FormData()
+    formData.append('file', profileImage)
+    const result = await updateProfilePhoto(formData)
+    setIsSavingPhoto(false)
     if (result.success) {
-      setIsEditing(false)
+      alert("Profile photo updated.")
+      setProfileImage(null)
+      router.refresh()
     } else {
       alert(result.message)
     }
   }
 
-  async function handleToggleLike() {
-    await toggleLike(post.id)
+  const handleCancelPhoto = () => {
+    setProfileImage(null)
+    setPreviewUrl(user?.profileImage || null)
   }
 
+  const handleSaveDetails = async () => {
+    setIsSavingDetails(true)
+    const formData = new FormData()
+    formData.append('firstName', firstName)
+    formData.append('lastName', lastName)
+    formData.append('position', position)
+    formData.append('bio', bio)
+    formData.append('location', location)
+    formData.append('alias', alias)
+    formData.append('status', status) 
+
+    const result = await updateProfileDetails(formData)
+    setIsSavingDetails(false)
+
+    if (result.success) {
+      setIsEditingDetails(false)
+      router.refresh()
+    } else {
+      alert(result.message)
+    }
+  }
+
+  const handleEmojiSelect = (emoji: string) => {
+    setStatus((prev: string) => prev + emoji)
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto mt-8">
+      {/* Page Header */}
+      <h1 className="text-3xl font-bold text-brand-sky mb-8 text-center md:text-left">
+        My Room
+      </h1>
+
+      {/* --- 1. PROFILE PHOTO CARD --- */}
+      <section className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-6 flex flex-col md:flex-row items-center gap-10 animate-in slide-in-from-top-4">
+        
+        {/* AVATAR + BUTTONS */}
+        <div className="relative group shrink-0">
+          <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-brand-sky/20 shadow-md bg-slate-50 flex items-center justify-center relative">
+            {previewUrl ? (
+              <img src={previewUrl} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-5xl text-brand-sky font-bold">
+                {(alias || firstName)?.[0]?.toUpperCase()}
+              </span>
+            )}
+          </div>
+          
+          {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT (size="large") */}
+          <StatusBadge status={status} size="large" />
+
+          <div className="absolute -bottom-2 -right-2 flex gap-2 z-20">
+            <button onClick={() => galleryInputRef.current?.click()} className="bg-white text-slate-600 p-2.5 rounded-full shadow-lg hover:scale-110 transition-transform border border-slate-200" title="Upload from Gallery">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+            </button>
+            <button onClick={() => selfieInputRef.current?.click()} className="bg-brand-pink text-slate-900 p-2.5 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white" title="Take a Selfie">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" /></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* DETAILS DISPLAY */}
+        <div className="flex-1 text-center md:text-left flex flex-col gap-1">
+          {isAdmin && (
+            <div className="mb-2">
+              <span className="bg-slate-800 text-brand-yellow text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border border-slate-600 shadow-sm inline-flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" /></svg>
+                Admin / Developer
+              </span>
+            </div>
+          )}
+          
+          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">
+            {firstName} {lastName}
+          </h2>
+          
+          {alias && <p className="text-slate-400 font-medium text-lg">@{alias}</p>}
+          
+          <div className="mt-2">
+            <span className="inline-block bg-brand-sky/10 text-brand-sky px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-brand-sky/20">
+              {position}
+            </span>
+          </div>
+
+          {location && (
+            <div className="mt-3 flex items-center justify-center md:justify-start gap-1.5 text-slate-500 text-sm font-medium animate-in fade-in">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-brand-pink shrink-0">
+                <path fillRule="evenodd" d="m9.69 18.933.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 0 0 .281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 1 0 3 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 0 0 2.273 1.765 11.842 11.842 0 0 0 .976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clipRule="evenodd" />
+              </svg>
+              {location}
+            </div>
+          )}
+
+          {/* STATUS DISPLAY */}
+          {status && (
+            <div className="mt-2 flex items-center justify-center md:justify-start gap-1.5 text-slate-600 text-sm animate-in fade-in bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 inline-flex w-fit mx-auto md:mx-0">
+               <span className="text-base">💭</span>
+               <span className="font-medium">{status}</span>
+            </div>
+          )}
+
+          {profileImage && (
+            <div className="mt-6 flex gap-3 justify-center md:justify-start animate-in fade-in slide-in-from-top-2">
+              <button onClick={handleSavePhoto} disabled={isSavingPhoto} className="bg-brand-sky text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-sky-500 transition-colors shadow-sm disabled:opacity-50">
+                {isSavingPhoto ? 'Saving...' : 'Save New Photo'}
+              </button>
+              <button onClick={handleCancelPhoto} disabled={isSavingPhoto} className="text-slate-400 hover:text-red-500 text-sm font-medium px-4 py-2">Cancel</button>
+            </div>
+          )}
+        </div>
+        
+        {/* Hidden inputs for photo upload */}
+        <input type="file" ref={selfieInputRef} accept="image/*" capture="user" className="hidden" onChange={handleImageChange} />
+        <input type="file" ref={galleryInputRef} accept="image/*" className="hidden" onChange={handleImageChange} />
+      </section>
+
+      {/* --- 2. EDIT DETAILS SECTION --- */}
+      <section className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-10 animate-in slide-in-from-top-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span>👋</span> About Me
+          </h2>
+          {!isEditingDetails && (
+            <button 
+              onClick={() => setIsEditingDetails(true)}
+              className="text-brand-sky text-sm font-bold hover:underline"
+            >
+              Edit Details
+            </button>
+          )}
+        </div>
+
+        {isEditingDetails ? (
+          <div className="flex flex-col gap-5">
+            
+            {/* Names */}
+            <div className="flex gap-4">
+               <div className="flex-1">
+                 <label className="block text-xs font-bold text-slate-500 mb-1">FIRST NAME</label>
+                 <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none bg-slate-50"/>
+               </div>
+               <div className="flex-1">
+                 <label className="block text-xs font-bold text-slate-500 mb-1">LAST NAME</label>
+                 <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none bg-slate-50"/>
+               </div>
+            </div>
+
+            {/* Position & Alias */}
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-slate-500 mb-1">FAMILY POSITION</label>
+                <input value={position} onChange={(e) => setPosition(e.target.value)} placeholder="e.g. Aunt, Cousin" className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none bg-slate-50"/>
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-slate-500 mb-1">ALIAS (NICKNAME)</label>
+                <input value={alias} onChange={(e) => setAlias(e.target.value)} className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none bg-slate-50"/>
+              </div>
+            </div>
+
+            {/* Location & Status */}
+            <div className="flex flex-col md:flex-row gap-4">
+               <div className="flex-1">
+                  <label className="block text-xs font-bold text-slate-500 mb-1">CURRENT CITY</label>
+                  <input value={location} onChange={(e) => setLocation(e.target.value)} className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none bg-slate-50"/>
+               </div>
+               
+               {/* STATUS INPUT WITH EMOJI PICKER */}
+               <div className="flex-1">
+                  <label className="block text-xs font-bold text-slate-500 mb-1">CURRENT STATUS</label>
+                  <div className="relative flex items-center">
+                    <div className="absolute left-2 z-10">
+                      <EmojiButton onEmojiSelect={handleEmojiSelect} />
+                    </div>
+                    <input 
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      placeholder="Feeling happy..."
+                      className="w-full p-3 pl-12 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none bg-slate-50"
+                    />
+                  </div>
+               </div>
+            </div>
+
+            {/* Bio */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">BIO</label>
+              <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none bg-slate-50 resize-none"/>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-2">
+              <button 
+                onClick={() => {
+                  setIsEditingDetails(false)
+                  setFirstName(user.firstName || '')
+                  setLastName(user.lastName || '')
+                  setPosition(user.position || '')
+                  setBio(user.bio || '')
+                  setLocation(user.location || '')
+                  setAlias(user.alias || '')
+                  setStatus(user.status || '')
+                }}
+                className="px-4 py-2 text-slate-400 font-bold text-sm hover:text-slate-600"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveDetails}
+                disabled={isSavingDetails}
+                className="bg-brand-sky text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-sky-500 transition-colors shadow-sm disabled:opacity-50"
+              >
+                {isSavingDetails ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 text-slate-600">
+            <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 text-lg leading-relaxed text-slate-700">
+              {bio ? bio : <span className="italic text-slate-400">Tell the family a bit about yourself...</span>}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* --- TAB NAVIGATION --- */}
+      <div className="flex border-b border-slate-200 mb-8">
+        <button onClick={() => setActiveTab('dashboard')} className={`pb-4 px-6 font-bold text-sm transition-all ${activeTab === 'dashboard' ? 'border-b-4 border-brand-sky text-brand-sky' : 'text-slate-400 hover:text-slate-600'}`}>Dashboard</button>
+        <button onClick={() => setActiveTab('mirror')} className={`pb-4 px-6 font-bold text-sm transition-all ${activeTab === 'mirror' ? 'border-b-4 border-brand-pink text-brand-pink' : 'text-slate-400 hover:text-slate-600'}`}>My Mirror</button>
+      </div>
+
+      {activeTab === 'dashboard' && (
+        <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center animate-fade-in">
+          <p className="text-5xl mb-4">🛏️</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Your Personal Space</h2>
+          <p className="text-slate-500">Personal dashboard, settings, and your post history will live here.</p>
+        </div>
+      )}
+
+      {activeTab === 'mirror' && (
+        <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center animate-fade-in">
+          <p className="text-5xl mb-4">🪞</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">My Mirror</h2>
+          <p className="text-slate-500 mb-6">Reflect on your journey. Your profile details and personal stats will appear here.</p>
+          <div className="inline-block bg-brand-pink/20 text-brand-pink px-4 py-2 rounded-full text-xs font-bold uppercase">Coming Soon</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+==================================================
+FILE: src/components/StatusBadge.tsx
+==================================================
+'use client'
+
+import { useState } from 'react'
+
+export default function StatusBadge({ 
+  status, 
+  size = 'normal' 
+}: { 
+  status?: string | null, 
+  size?: 'small' | 'normal' | 'large' 
+}) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  if (!status) return null
+
+  // Get first character (emoji)
+  const firstChar = Array.from(status)[0]
+
+  // CONFIGURATION
+  // We use 'left' positioning here so that expansion naturally flows to the right.
+  const sizeClasses = {
+    small:  { 
+      // Parent is usually w-8 (32px)
+      position: '-top-1 left-6', 
+      collapsed: 'w-3 h-3 text-[6px]', 
+      expanded: 'h-4 text-[8px] px-2' 
+    },
+    normal: { 
+      // Parent is usually w-10 (40px)
+      position: '-top-1 left-7', 
+      collapsed: 'w-5 h-5 text-[10px]',     
+      expanded: 'h-6 text-[10px] px-2.5' 
+    },
+    large:  { 
+      // Parent is usually w-40 (160px)
+      position: 'top-1 left-28',          
+      collapsed: 'w-10 h-10 text-xl',          
+      expanded: 'h-10 text-sm px-5' 
+    }
+  }
+
+  const current = sizeClasses[size]
+
+  return (
+    <div 
+      className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ease-out z-30 overflow-hidden origin-left
+        ${current.position}
+        
+        /* SHAPE & SIZE TRANSITION */
+        ${isExpanded 
+          ? `${current.expanded} w-auto rounded-xl shadow-xl border-brand-sky/20` 
+          : `${current.collapsed} rounded-full shadow-md border-white/30`
+        }
+
+        /* LIQUID GLASS STYLE */
+        bg-white/60 backdrop-blur-md border text-slate-900 ring-1 ring-white/40
+      `}
+      onMouseEnter={() => setIsExpanded(true)}
+      onMouseLeave={() => setIsExpanded(false)}
+      onClick={(e) => { 
+        e.stopPropagation(); 
+        setIsExpanded(!isExpanded); 
+      }}
+    >
+      <span className={`leading-none whitespace-nowrap select-none ${isExpanded ? 'font-bold ml-0.5' : ''}`}>
+        {isExpanded ? status : firstChar}
+      </span>
+    </div>
+  )
+}
+
+==================================================
+FILE: src/components/PostCard.tsx
+==================================================
+'use client'
+
+import { useState } from 'react'
+import { deletePost, editPost, toggleLike, addComment, dismissAnnouncement } from '@/app/common-room/actions'
+import CommentItem from './CommentItem'
+import LikeButton from './LikeButton'
+import EmojiButton from './EmojiButton'
+import { useRouter } from 'next/navigation'
+import StatusBadge from './StatusBadge'
+
+export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
+  const router = useRouter()
+  
+  // ... (Keep existing state: isEditing, editContent, etc.)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editContent, setEditContent] = useState(post.content)
+  const [editTitle, setEditTitle] = useState(post.title || '')
+  const [editIsUrgent, setEditIsUrgent] = useState(post.isUrgent || false)
+  const [showComments, setShowComments] = useState(false)
+  const [commentText, setCommentText] = useState('')
+
+  // ... (Keep permissions logic)
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+  const isAdmin = post.author.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+  const isAuthor = currentUserId === post.authorId
+  const createdAt = new Date(post.createdAt).getTime()
+  const timeDiff = Date.now() - createdAt
+  const canEdit = isAuthor && (post.isAnnouncement || (!post.isEdited && timeDiff < 10 * 60 * 1000))
+
+  // ... (Keep handlers: handleDelete, handleSave, etc.)
+  async function handleDelete() { if (confirm('Delete?')) await deletePost(post.id) }
+  async function handleSave() {
+    const result = await editPost(post.id, editContent, post.isAnnouncement ? editTitle : undefined, post.isAnnouncement ? editIsUrgent : undefined)
+    if (result.success) { setIsEditing(false); router.refresh(); } else { alert(result.message); }
+  }
+  async function handleToggleLike() { await toggleLike(post.id) }
   async function handleMainCommentSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if(!commentText.trim()) return
-
-    await addComment(post.id, commentText)
-    setCommentText('')
+    e.preventDefault(); if(!commentText.trim()) return; await addComment(post.id, commentText); setCommentText('');
   }
+  async function handleDismiss() { await dismissAnnouncement(post.id); router.refresh(); }
 
   const displayName = post.author.alias || post.author.firstName
   const firstLetter = displayName[0].toUpperCase()
+  const profileImage = post.author.profileImage
+  
+  // --- NEW: STATUS ICON LOGIC ---
+  const statusEmoji = post.author.status ? Array.from(post.author.status)[0] : null
+
+  // Styles
+  const isUrgent = post.isUrgent
+  const displayUrgent = isEditing ? editIsUrgent : isUrgent
+  const cardStyle = displayUrgent ? "bg-red-500/5 border-red-200/50 backdrop-blur-sm shadow-md" : "bg-white border-slate-100 shadow-sm"
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6 transition-all hover:border-slate-200">
+    <div className={`p-6 rounded-xl border mb-6 transition-all hover:border-slate-300 ${cardStyle}`}>
       
-      {/* 1. HEADER (User Info + Actions) */}
+      {/* 1. HEADER */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          {/* Avatar */}
-          <div className="w-10 h-10 bg-brand-pink rounded-full flex items-center justify-center text-slate-700 font-bold text-lg shadow-sm shrink-0">
-            {firstLetter}
+          
+          {/* AVATAR CONTAINER */}
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden bg-brand-pink text-slate-700 font-bold text-lg">
+              {profileImage ? (
+                 <img src={profileImage} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                 <span>{firstLetter}</span>
+              )}
+            </div>
+            
+            {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT */}
+            <StatusBadge status={post.author.status} size="normal" />
           </div>
           
-          {/* User Details */}
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-800 leading-tight">
-                {displayName}
-              </span>
-              <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-0.5 rounded-full font-bold uppercase border border-brand-sky/20">
-                {post.author.position}
-              </span>
+              <span className="font-bold text-slate-800 leading-tight">{displayName}</span>
+              <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-0.5 rounded-full font-bold uppercase border border-brand-sky/20">{post.author.position}</span>
             </div>
-
-            {/* GREY ADMIN BADGE */}
             {isAdmin && (
               <span className="bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded w-fit flex items-center gap-1 mt-1 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5">
-                   <path fillRule="evenodd" d="M10.362 1.093a.75.75 0 0 0-.724 0L2.523 5.018 10 9.143l7.477-4.125-7.115-3.925ZM18 6.443l-7.25 4v8.25l6.862-3.786A.75.75 0 0 0 18 14.25V6.443Zm-8.75 12.25v-8.25l-7.25-4v7.807a.75.75 0 0 0 .388.657l6.862 3.786Z" clipRule="evenodd" />
-                </svg>
-                Admin
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5"><path fillRule="evenodd" d="M10.362 1.093a.75.75 0 0 0-.724 0L2.523 5.018 10 9.143l7.477-4.125-7.115-3.925ZM18 6.443l-7.25 4v8.25l6.862-3.786A.75.75 0 0 0 18 14.25V6.443Zm-8.75 12.25v-8.25l-7.25-4v7.807a.75.75 0 0 0 .388.657l6.862 3.786Z" clipRule="evenodd" /></svg>
+                 Admin
               </span>
             )}
-
             <p className="text-xs text-slate-400 mt-0.5">
-              {new Date(post.createdAt).toLocaleString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-              })}
+              {new Date(post.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
               {post.isEdited && <span className="italic ml-1">(Edited)</span>}
             </p>
           </div>
         </div>
 
-        {/* Edit/Delete Buttons */}
+        {/* Buttons (Edit/Delete) */}
         {isAuthor && (
-          <div className="flex gap-3 text-slate-400">
-            {canEdit && !isEditing && (
-              <button 
-                onClick={() => setIsEditing(true)}
-                className="hover:text-brand-sky transition-colors p-1 rounded-full hover:bg-slate-50"
-                title="Edit Post"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                </svg>
-              </button>
-            )}
-            
-            <button 
-              onClick={handleDelete}
-              className="hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
-              title="Delete Post"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-              </svg>
-            </button>
-          </div>
+           <div className="flex gap-3 text-slate-400">
+             {canEdit && !isEditing && (
+               <button onClick={() => setIsEditing(true)} className="hover:text-brand-sky p-1 rounded-full hover:bg-slate-50">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+               </button>
+             )}
+             <button onClick={handleDelete} className="hover:text-red-500 p-1 rounded-full hover:bg-red-50">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+             </button>
+           </div>
         )}
       </div>
 
-      {/* 2. MAIN CONTENT AREA */}
+      {/* 2. CONTENT (Keep existing logic) */}
       {isEditing ? (
-        <div className="mt-2">
-          {/* Textarea Wrapper for Emoji Button */}
-          <div className="relative">
-            <textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-sky outline-none text-slate-700 pr-10"
-              rows={3}
-            />
-            {/* Emoji Button Inside - Bottom Right */}
-            <div className="absolute bottom-2 right-2">
-              {/* FIXED: Explicitly typed 'prev' */}
-              <EmojiButton onEmojiSelect={(emoji) => setEditContent((prev: string) => prev + emoji)} />
+        <div className="mt-2 flex flex-col gap-3">
+          {post.isAnnouncement && (
+            <div className="flex flex-col gap-3 animate-in slide-in-from-top-2">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Title</label>
+                <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full p-2 text-sm border rounded-lg focus:ring-2 focus:ring-brand-sky outline-none font-bold text-slate-700" placeholder="Announcement Title"/>
+              </div>
+              <div onClick={() => setEditIsUrgent(!editIsUrgent)} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer select-none transition-colors ${editIsUrgent ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
+                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${editIsUrgent ? 'border-red-500' : 'border-slate-300'}`}>
+                    {editIsUrgent && <div className="w-2 h-2 rounded-full bg-red-500" />}
+                 </div>
+                 <span className={`text-xs font-bold ${editIsUrgent ? 'text-red-500' : 'text-slate-500'}`}>Mark as Urgent</span>
+              </div>
             </div>
+          )}
+          <div className="relative">
+            <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-sky outline-none text-slate-700 pr-10" rows={3}/>
+            <div className="absolute bottom-2 right-2"><EmojiButton onEmojiSelect={(emoji) => setEditContent((p:string) => p + emoji)} /></div>
           </div>
-
-          <div className="flex gap-2 mt-2 justify-end">
-            <button onClick={() => setIsEditing(false)} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
-            <button onClick={handleSave} className="text-xs bg-brand-sky text-white px-3 py-1 rounded-full hover:bg-sky-500">Save Update</button>
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setIsEditing(false)} className="text-xs text-slate-400 hover:text-slate-600 font-bold px-2">Cancel</button>
+            <button onClick={handleSave} className="text-xs bg-brand-sky text-white px-4 py-1.5 rounded-full hover:bg-sky-500 font-bold shadow-sm">Save Changes</button>
           </div>
         </div>
       ) : (
         <div>
-          <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap mb-3">
-            {post.content}
-          </p>
+          {post.title && <h3 className="font-bold text-lg text-slate-800 mb-1">{post.title}</h3>}
+          <p className="text-slate-700 leading-relaxed text-base whitespace-pre-wrap mb-3">{post.content}</p>
           {post.imageUrl && (
             <div className="mt-3 rounded-lg overflow-hidden border border-slate-100">
-              <img 
-                src={post.imageUrl} 
-                alt="Post attachment" 
-                className="w-full max-h-96 object-cover bg-slate-50"
-                loading="lazy"
-              />
+              <img src={post.imageUrl} alt="Post attachment" className="w-full max-h-96 object-cover bg-slate-50" loading="lazy"/>
             </div>
           )}
         </div>
       )}
 
-      {/* 3. ACTION BAR (Like & Reply) */}
-      <div className="mt-5 pt-4 border-t border-slate-50 flex justify-between items-center">
-        
-        {/* Like Button */}
-        <LikeButton 
-          initialLikes={post.likes} 
-          currentUserId={currentUserId} 
-          onToggle={handleToggleLike} 
-        />
-
-        {/* Reply Toggle */}
-        <button 
-          onClick={() => setShowComments(!showComments)} 
-          className="flex items-center gap-2 text-slate-400 hover:text-brand-sky transition-colors font-medium text-sm group"
-        >
-          <span>{post.topLevelComments?.length || 0} Replies</span>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-          </svg>
-        </button>
-
+      {/* 3. ACTION BAR */}
+      <div className="mt-5 pt-4 border-t border-slate-50/50 flex justify-between items-center">
+        <LikeButton initialLikes={post.likes} currentUserId={currentUserId} onToggle={handleToggleLike} />
+        <div className="flex items-center gap-4">
+          <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 text-slate-400 hover:text-brand-sky transition-colors font-medium text-sm group">
+            <span>{post.topLevelComments?.length || 0} Replies</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
+          </button>
+          {post.isUrgent && (
+            <button onClick={handleDismiss} className="text-xs font-bold text-red-400 hover:text-red-600 hover:underline transition-colors">Dismiss</button>
+          )}
+        </div>
       </div>
 
-      {/* 4. COMMENTS SECTION */}
+      {/* 4. COMMENTS */}
       {showComments && (
         <div className="mt-6 animate-in slide-in-from-top-2 border-t border-slate-50 pt-4">
-          
-          {/* Main Comment Input Form */}
           <form onSubmit={handleMainCommentSubmit} className="flex gap-2 mb-6 items-center">
-            
-            {/* Input Wrapper for Emoji Button */}
             <div className="relative flex-1">
-              <input 
-                type="text" 
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Write a comment..." 
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-4 pr-10 py-3 text-sm focus:ring-2 focus:ring-brand-sky outline-none transition-all"
-              />
-              {/* Emoji Button Inside - Right Center */}
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                {/* FIXED: Explicitly typed 'prev' */}
-                <EmojiButton onEmojiSelect={(emoji) => setCommentText((prev: string) => prev + emoji)} />
-              </div>
+              <input type="text" value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Write a comment..." className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-4 pr-10 py-3 text-sm focus:ring-2 focus:ring-brand-sky outline-none transition-all"/>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2"><EmojiButton onEmojiSelect={(emoji) => setCommentText((p:string) => p + emoji)} /></div>
             </div>
-
-            <button 
-              type="submit" 
-              disabled={!commentText.trim()}
-              className="bg-brand-sky text-white font-bold px-4 py-2 rounded-lg hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Post
-            </button>
+            <button type="submit" disabled={!commentText.trim()} className="bg-brand-sky text-white font-bold px-4 py-2 rounded-lg hover:bg-sky-500 disabled:opacity-50 transition-colors">Post</button>
           </form>
-
-          {/* List of Comments */}
           <div className="space-y-4">
             {post.topLevelComments?.map((comment: any) => (
-              <CommentItem 
-                key={comment.id} 
-                comment={comment} 
-                currentUserId={currentUserId}
-                postId={post.id}
-              />
+              <CommentItem key={comment.id} comment={comment} currentUserId={currentUserId} postId={post.id}/>
             ))}
-            
-            {(!post.topLevelComments || post.topLevelComments.length === 0) && (
-              <p className="text-center text-slate-400 text-xs italic">No comments yet. Be the first!</p>
-            )}
+            {(!post.topLevelComments || post.topLevelComments.length === 0) && <p className="text-center text-slate-400 text-xs italic">No comments yet.</p>}
           </div>
         </div>
       )}
-
     </div>
   )
 }
@@ -603,199 +1131,105 @@ import { useState } from 'react'
 import { addComment, toggleCommentLike, deleteComment, editComment } from '@/app/common-room/actions'
 import LikeButton from './LikeButton'
 import EmojiButton from './EmojiButton'
+import StatusBadge from './StatusBadge'
 
-export default function CommentItem({ 
-  comment, 
-  currentUserId, 
-  postId 
-}: { 
-  comment: any, 
-  currentUserId: string, 
-  postId: string 
-}) {
-  // --- STATE ---
-  // Explicitly type as string to prevent "implicit any" errors
+export default function CommentItem({ comment, currentUserId, postId }: { comment: any, currentUserId: string, postId: string }) {
   const [isReplying, setIsReplying] = useState(false)
-  const [replyContent, setReplyContent] = useState('')
-  
+  const [replyText, setReplyText] = useState('')
   const [isEditing, setIsEditing] = useState(false)
-  const [editContent, setEditContent] = useState<string>(comment.content || '') 
+  const [editContent, setEditContent] = useState(comment.content)
 
-  // --- PERMISSIONS ---
-  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
-  const isAdmin = comment.author?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
-  
   const isAuthor = currentUserId === comment.authorId
-  const createdAt = new Date(comment.createdAt).getTime()
-  const timeDiff = Date.now() - createdAt
-  const canEdit = isAuthor && !comment.isEdited && timeDiff < 10 * 60 * 1000
-
-  // --- HANDLERS ---
-
-  async function handleToggleLike() {
-    await toggleCommentLike(comment.id)
-  }
-
-  async function handleReplySubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!replyContent.trim()) return
-
-    await addComment(postId, replyContent, comment.id)
-    setIsReplying(false)
-    setReplyContent('')
-  }
-
-  async function handleDelete() {
-    if (confirm('Delete this comment?')) {
-      await deleteComment(comment.id)
-    }
-  }
-
-  async function handleEditSave() {
-    const result = await editComment(comment.id, editContent)
-    if (result.success) {
-      setIsEditing(false)
-    } else {
-      alert(result.message)
-    }
-  }
-
+  
+  // Status Logic
+  const statusEmoji = comment.author?.status ? Array.from(comment.author.status)[0] : null
+  
   const displayName = comment.author?.alias || comment.author?.firstName || 'Family Member'
   const firstLetter = displayName[0]?.toUpperCase() || '?'
+  const profileImage = comment.author?.profileImage
+
+  async function handleReplySubmit(e: React.FormEvent) {
+    e.preventDefault(); if(!replyText.trim()) return; await addComment(postId, replyText, comment.id); setReplyText(''); setIsReplying(false);
+  }
+  async function handleEditSubmit(e: React.FormEvent) {
+    e.preventDefault(); if(!editContent.trim()) return; const res = await editComment(comment.id, editContent); if(res.success) setIsEditing(false);
+  }
+  async function handleDelete() { if(confirm('Delete comment?')) await deleteComment(comment.id) }
 
   return (
-    <div className="flex gap-3 mt-4 w-full">
-      {/* AVATAR */}
-      <div className="w-8 h-8 bg-brand-sky/20 rounded-full flex items-center justify-center text-brand-sky font-bold text-xs shrink-0">
-        {firstLetter}
+    <div className="flex gap-3 mt-4 w-full group">
+      {/* AVATAR + STATUS BADGE */}
+      <div className="relative shrink-0">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-brand-sky/20 text-brand-sky font-bold text-xs">
+          {profileImage ? (
+             <img src={profileImage} alt={displayName} className="w-full h-full object-cover" />
+          ) : (
+             <span>{firstLetter}</span>
+          )}
+        </div>
+        
+        <StatusBadge status={comment.author?.status} size="small" />
       </div>
 
       <div className="flex-1">
-        {/* BUBBLE */}
-        <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100 group relative">
-          
-          {/* HEADER: Name + Badge + Timestamp + Icons */}
-          <div className="flex justify-between items-baseline mb-1">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-700 text-sm">{displayName}</span>
-              
-              {/* GREY ADMIN BADGE */}
-              {isAdmin && (
-                <span className="bg-slate-700 text-white text-[9px] px-1.5 py-0.5 rounded border border-slate-500 font-bold uppercase tracking-wide flex items-center gap-0.5 shadow-sm">
-                  Admin
-                </span>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-slate-400">
-                {comment.createdAt ? new Date(comment.createdAt).toLocaleString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit'
-                }) : ''}
-                {comment.isEdited && <span className="italic ml-1">(Edited)</span>}
-              </span>
-
-              {/* Edit/Delete Icons */}
-              {isAuthor && !isEditing && (
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {canEdit && (
-                    <button onClick={() => setIsEditing(true)} className="text-slate-400 hover:text-brand-sky" title="Edit">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                      </svg>
-                    </button>
-                  )}
-                  <button onClick={handleDelete} className="text-slate-400 hover:text-red-500" title="Delete">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                    </svg>
-                  </button>
+        {/* Content Bubble */}
+        <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100 relative">
+           <div className="flex justify-between items-start mb-1">
+             <span className="text-xs font-bold text-slate-700">{displayName}</span>
+             <span className="text-[10px] text-slate-400">{new Date(comment.createdAt).toLocaleDateString()}</span>
+           </div>
+           
+           {isEditing ? (
+             <form onSubmit={handleEditSubmit}>
+                <input value={editContent} onChange={e => setEditContent(e.target.value)} className="w-full p-2 text-xs border rounded mb-2"/>
+                <div className="flex gap-2 text-[10px]">
+                  <button type="button" onClick={() => setIsEditing(false)} className="text-slate-400">Cancel</button>
+                  <button type="submit" className="text-brand-sky font-bold">Save</button>
                 </div>
-              )}
-            </div>
+             </form>
+           ) : (
+             <p className="text-sm text-slate-600 leading-snug">{comment.content}</p>
+           )}
+        </div>
+
+        {/* Action Bar */}
+        <div className="flex items-center gap-4 mt-1 pl-2">
+          {/* Like Button */}
+          <div className="scale-75 origin-left">
+            <LikeButton 
+              initialLikes={comment.likes} 
+              currentUserId={currentUserId} 
+              // ✅ FIXED: Wrapped in braces { } to ensure return type is void
+              onToggle={async () => { await toggleCommentLike(comment.id) }} 
+            />
           </div>
-
-          {/* Content Area */}
-          {isEditing ? (
-            <div className="mt-1 relative">
-              <input
-                autoFocus
-                type="text"
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className="w-full text-sm p-1 border-b border-brand-sky outline-none bg-transparent pr-8"
-              />
-              {/* Emoji Button Inside Input */}
-              <div className="absolute right-0 bottom-1">
-                {/* FIXED: Added type (prev: string) */}
-                <EmojiButton onEmojiSelect={(emoji) => setEditContent((prev: string) => prev + emoji)} />
-              </div>
-
-              <div className="flex gap-2 mt-2 justify-end text-[10px] font-bold">
-                <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-slate-600">Cancel</button>
-                <button onClick={handleEditSave} className="text-brand-sky hover:text-sky-600">Save</button>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-slate-600 break-words whitespace-pre-wrap">{comment.content}</p>
+          
+          <button onClick={() => setIsReplying(!isReplying)} className="text-xs font-bold text-slate-400 hover:text-brand-sky">Reply</button>
+          
+          {isAuthor && (
+            <>
+              <button onClick={() => setIsEditing(!isEditing)} className="text-xs text-slate-400 hover:text-slate-600">Edit</button>
+              <button onClick={handleDelete} className="text-xs text-slate-400 hover:text-red-500">Delete</button>
+            </>
           )}
         </div>
 
-        {/* Action Footer */}
-        {!isEditing && (
-          <div className="flex gap-4 mt-1 ml-2 text-xs font-bold text-slate-400">
-            <LikeButton 
-              initialLikes={comment.likes || []} 
-              currentUserId={currentUserId} 
-              onToggle={handleToggleLike} 
-            />
-            <button 
-              onClick={() => setIsReplying(!isReplying)} 
-              className="hover:text-brand-sky transition-colors"
-            >
-              Reply
-            </button>
-          </div>
-        )}
-
-        {/* Reply Input Form */}
+        {/* Reply Input */}
         {isReplying && (
-          <form onSubmit={handleReplySubmit} className="mt-2 flex gap-2 animate-in slide-in-from-top-1 items-center">
+          <form onSubmit={handleReplySubmit} className="mt-2 flex gap-2">
             <div className="relative flex-1">
-              <input 
-                autoFocus
-                type="text" 
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                placeholder={`Reply to ${displayName}...`}
-                className="w-full bg-white border border-slate-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:ring-2 focus:ring-brand-sky outline-none"
-              />
-              {/* Emoji Button Inside Input */}
-              <div className="absolute right-1 top-1/2 -translate-y-1/2">
-                {/* FIXED: Added type (prev: string) */}
-                <EmojiButton onEmojiSelect={(emoji) => setReplyContent((prev: string) => prev + emoji)} />
-              </div>
+              <input autoFocus value={replyText} onChange={(e) => setReplyText(e.target.value)} className="w-full text-xs p-2 border rounded-lg pr-8" placeholder="Write a reply..."/>
+               <div className="absolute right-1 top-1/2 -translate-y-1/2"><EmojiButton onEmojiSelect={(emoji) => setReplyText(p => p + emoji)} /></div>
             </div>
-
-            <button type="submit" className="bg-brand-sky text-white px-3 py-1 rounded-lg text-xs font-bold">
-              Send
-            </button>
+            <button type="submit" disabled={!replyText.trim()} className="text-xs bg-brand-sky text-white px-3 py-1 rounded-lg">Reply</button>
           </form>
         )}
 
-        {/* RECURSIVE CHILDREN */}
+        {/* Nested Comments */}
         {comment.children && comment.children.length > 0 && (
-          <div className="border-l-2 border-slate-100 pl-4 mt-2">
+          <div className="mt-2 border-l-2 border-slate-100 pl-3">
             {comment.children.map((child: any) => (
-              <CommentItem 
-                key={child.id} 
-                comment={child} 
-                currentUserId={currentUserId} 
-                postId={postId} 
-              />
+              <CommentItem key={child.id} comment={child} currentUserId={currentUserId} postId={postId}/>
             ))}
           </div>
         )}
@@ -1230,18 +1664,178 @@ export default function FeedbackSection() {
 }
 
 ==================================================
+FILE: src/components/AnnouncementCarousel.tsx
+==================================================
+'use client'
+
+import { useState, useEffect } from 'react'
+import AnnouncementModal from './AnnouncementModal'
+import { deletePost } from '@/app/common-room/actions'
+import { useRouter } from 'next/navigation'
+
+export default function AnnouncementCarousel({ 
+  announcements, 
+  currentUserEmail 
+}: { 
+  announcements: any[], 
+  currentUserEmail?: string 
+}) {
+  const router = useRouter()
+  const [index, setIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
+  
+  // State for modals
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingItem, setEditingItem] = useState<any | null>(null)
+
+  const isAdmin = currentUserEmail === 'idongesit_essien@ymail.com'
+
+  // Auto-scroll logic
+  useEffect(() => {
+    // Don't scroll if paused OR if we are currently editing something
+    if (announcements.length <= 1 || isPaused || editingItem) return
+
+    const timer = setInterval(() => {
+      setIndex(prev => (prev + 1) % announcements.length)
+    }, 5000)
+
+    return () => clearInterval(timer)
+  }, [announcements.length, isPaused, editingItem])
+
+  // Handle Delete
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this announcement?")) {
+      await deletePost(id)
+      setIndex(0) // Reset index so we don't get stuck on a deleted item
+      router.refresh()
+    }
+  }
+
+  const currentAnnouncement = announcements[index]
+
+  if (announcements.length === 0 && !isAdmin) return null
+
+  return (
+    <div className="mb-8">
+      
+      {/* CAROUSEL CONTAINER */}
+      {announcements.length > 0 && currentAnnouncement && (
+        <div 
+          className="relative overflow-hidden bg-brand-sky rounded-2xl shadow-sm border border-brand-sky/20 text-white p-6 cursor-pointer group"
+          onClick={() => setIsPaused(true)} 
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* CONTENT */}
+          <div className="relative h-20 flex items-center">
+             {announcements.map((ann, i) => (
+               <div 
+                 key={ann.id}
+                 className={`absolute inset-0 transition-all duration-500 ease-in-out flex flex-col justify-center
+                   ${i === index ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10 pointer-events-none'}
+                 `}
+               >
+                 <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                   {ann.isUrgent && <span>🚨</span>}
+                   {ann.title}
+                 </h3>
+                 <p className="text-white/90 text-sm line-clamp-2 leading-relaxed">
+                   {ann.content}
+                 </p>
+               </div>
+             ))}
+          </div>
+
+          {/* ADMIN CONTROLS (Overlay) */}
+          {isAdmin && (
+            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setEditingItem(currentAnnouncement)
+                }}
+                className="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-full backdrop-blur-md transition-colors"
+                title="Edit"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+              </button>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDelete(currentAnnouncement.id)
+                }}
+                className="bg-white/20 hover:bg-red-500/80 text-white p-1.5 rounded-full backdrop-blur-md transition-colors"
+                title="Delete"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Dots */}
+          <div className="absolute bottom-3 right-4 flex gap-1.5">
+            {announcements.map((_, i) => (
+              <div 
+                key={i} 
+                className={`w-1.5 h-1.5 rounded-full transition-all ${i === index ? 'bg-white' : 'bg-white/30'}`} 
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ADMIN ADD BUTTON */}
+      {isAdmin && (
+        <div className="text-right mt-2">
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="text-xs font-bold text-brand-sky hover:text-sky-600 flex items-center justify-end gap-1 ml-auto"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+            </svg>
+            Add Announcement
+          </button>
+        </div>
+      )}
+
+      {/* CREATE MODAL */}
+      {showAddModal && (
+        <AnnouncementModal onClose={() => setShowAddModal(false)} />
+      )}
+
+      {/* EDIT MODAL */}
+      {editingItem && (
+        <AnnouncementModal 
+          initialData={{
+            id: editingItem.id,
+            title: editingItem.title,
+            content: editingItem.content,
+            isUrgent: editingItem.isUrgent
+          }}
+          onClose={() => setEditingItem(null)} 
+        />
+      )}
+    </div>
+  )
+}
+
+==================================================
 FILE: src/components/TestimonialSlider.tsx
 ==================================================
 'use client'
 
 import { useState, useEffect } from 'react'
+import StatusBadge from './StatusBadge'
 
 export default function TestimonialSlider({ testimonials }: { testimonials: any[] }) {
   const [pageIndex, setPageIndex] = useState(0)
   const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
 
-  // Items per page (matches the grid: 1 on mobile, 3 on desktop)
-  // In a real production app we might track window width, but for now we assume 3 for the logic
   const itemsPerPage = 3 
   const totalPages = Math.ceil(testimonials.length / itemsPerPage)
 
@@ -1267,6 +1861,9 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
       >
         {testimonials.map((t) => {
           const isAdmin = t.authorEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+          
+          // STATUS LOGIC
+          const statusEmoji = t.authorStatus ? Array.from(t.authorStatus)[0] : null
 
           return (
             <div 
@@ -1280,18 +1877,32 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
                 </p>
 
                 <div className="flex items-center gap-3 border-t border-white/20 pt-4 mt-auto">
-                  {/* Avatar */}
-                  {t.displayAvatar ? (
-                    <div className="w-10 h-10 bg-brand-pink text-slate-900 font-bold rounded-full flex items-center justify-center shrink-0 shadow-lg border-2 border-white/20">
-                      {t.displayAvatar}
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shrink-0 text-white/50 border border-white/10">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                      </svg>
-                    </div>
-                  )}
+                  
+                  {/* AVATAR + BADGE */}
+                  <div className="relative">
+                    {t.authorProfileImage ? (
+                      <div className="w-10 h-10 rounded-full shrink-0 shadow-lg border-2 border-white/20 overflow-hidden">
+                        <img 
+                          src={t.authorProfileImage} 
+                          alt={t.displayAuthor} 
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                    ) : t.displayAvatar ? (
+                      <div className="w-10 h-10 bg-brand-pink text-slate-900 font-bold rounded-full flex items-center justify-center shrink-0 shadow-lg border-2 border-white/20">
+                        {t.displayAvatar}
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shrink-0 text-white/50 border border-white/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                        </svg>
+                      </div>
+                    )}
+                    
+                    {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT */}
+                    <StatusBadge status={t.authorStatus} size="normal" />
+                  </div>
                   
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
@@ -1318,7 +1929,7 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
         })}
       </div>
 
-      {/* Dots (One dot per PAGE, not per item) */}
+      {/* Dots */}
       <div className="flex justify-center gap-2 mt-8">
         {Array.from({ length: totalPages }).map((_, idx) => (
           <button
@@ -1647,75 +2258,127 @@ export async function submitGeneralFeedback(content: string) {
 ==================================================
 FILE: src/app/my-room/page.tsx
 ==================================================
-'use client'
+import { PrismaClient } from '@prisma/client'
+import { cookies } from 'next/headers'
+import MyRoomClient from '@/components/MyRoomClient'
 
-import { useState } from 'react'
+const prisma = new PrismaClient()
 
-export default function MyRoom() {
-  const [activeTab, setActiveTab] = useState('dashboard')
+async function getUser() {
+  const cookieStore = await cookies()
+  const userId = cookieStore.get('session_id')?.value
+  if (!userId) return null
+
+  return await prisma.user.findUnique({
+    where: { id: userId }
+  })
+}
+
+export default async function MyRoom() {
+  const user = await getUser()
+
+  if (!user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center font-sans">
+        <p>Please log in to view your room.</p>
+      </main>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 font-sans p-8">
-      <div className="max-w-4xl mx-auto mt-8">
-        
-        {/* Page Header */}
-        <h1 className="text-3xl font-bold text-brand-sky mb-6">My Room</h1>
-
-        {/* --- TAB NAVIGATION --- */}
-        <div className="flex border-b border-slate-200 mb-8">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`pb-4 px-6 font-bold text-sm transition-all ${
-              activeTab === 'dashboard'
-                ? 'border-b-4 border-brand-sky text-brand-sky'
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            Dashboard
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('mirror')}
-            className={`pb-4 px-6 font-bold text-sm transition-all ${
-              activeTab === 'mirror'
-                ? 'border-b-4 border-brand-pink text-brand-pink' // Pink for the "Mirror" vibe
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            My Mirror
-          </button>
-        </div>
-
-        {/* --- TAB CONTENT --- */}
-        
-        {/* VIEW 1: DASHBOARD (Your original content) */}
-        {activeTab === 'dashboard' && (
-          <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center animate-fade-in">
-            <p className="text-5xl mb-4">🛏️</p>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Your Personal Space</h2>
-            <p className="text-slate-500">
-              Personal dashboard, settings, and your post history will live here.
-            </p>
-          </div>
-        )}
-
-        {/* VIEW 2: MY MIRROR (The new tab) */}
-        {activeTab === 'mirror' && (
-          <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center animate-fade-in">
-            <p className="text-5xl mb-4">🪞</p>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">My Mirror</h2>
-            <p className="text-slate-500 mb-6">
-              Reflect on your journey. Your profile details and personal stats will appear here.
-            </p>
-            <div className="inline-block bg-brand-pink/20 text-brand-pink px-4 py-2 rounded-full text-xs font-bold uppercase">
-              Coming Soon
-            </div>
-          </div>
-        )}
-
-      </div>
+      <MyRoomClient user={user} />
     </main>
   )
+}
+
+==================================================
+FILE: src/app/my-room/actions.ts
+==================================================
+'use server'
+
+import { PrismaClient } from '@prisma/client'
+import { cookies } from 'next/headers'
+import { put } from '@vercel/blob'
+import { revalidatePath } from 'next/cache'
+
+const prisma = new PrismaClient()
+
+// --- 1. UPDATE PROFILE PHOTO ---
+export async function updateProfilePhoto(formData: FormData) {
+  const cookieStore = await cookies()
+  const userId = cookieStore.get('session_id')?.value
+
+  if (!userId) return { success: false, message: "Unauthorized" }
+
+  const imageFile = formData.get('file') as File | null
+
+  if (!imageFile || imageFile.size === 0) {
+    return { success: false, message: "No image provided" }
+  }
+
+  try {
+    const blob = await put(imageFile.name, imageFile, { access: 'public' })
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { profileImage: blob.url }
+    })
+
+    revalidatePath('/my-room')
+    revalidatePath('/common-room')
+    revalidatePath('/family')
+    revalidatePath('/') 
+
+    return { success: true, url: blob.url }
+  } catch (error) {
+    console.error("Upload failed:", error)
+    return { success: false, message: "Failed to upload image" }
+  }
+}
+
+// --- 2. UPDATE PROFILE DETAILS (Updated with Status) ---
+export async function updateProfileDetails(formData: FormData) {
+  const cookieStore = await cookies()
+  const userId = cookieStore.get('session_id')?.value
+
+  if (!userId) return { success: false, message: "Unauthorized" }
+
+  const bio = formData.get('bio') as string
+  const location = formData.get('location') as string
+  const alias = formData.get('alias') as string 
+  const firstName = formData.get('firstName') as string
+  const lastName = formData.get('lastName') as string
+  const position = formData.get('position') as string
+  const status = formData.get('status') as string // <--- NEW
+
+  if (!firstName || !lastName || !position) {
+    return { success: false, message: "Name and Position are required." }
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        bio,
+        location,
+        alias,
+        firstName,
+        lastName,
+        position,
+        status // <--- Save Status
+      }
+    })
+
+    revalidatePath('/my-room')
+    revalidatePath('/family') 
+    revalidatePath('/common-room')
+    
+    return { success: true }
+  } catch (error) {
+    console.error("Update failed:", error)
+    return { success: false, message: "Failed to update profile" }
+  }
 }
 
 ==================================================
@@ -1884,19 +2547,18 @@ export async function getTestimonials() {
   const currentUserId = await getCurrentUserId()
   const isGuest = !currentUserId
 
-  // Fetch testimonials (limit to recent 6)
   const testimonials = await prisma.testimonial.findMany({
     take: 6,
     orderBy: { createdAt: 'desc' },
     include: {
       author: {
-        // ✅ CRITICAL: We must select the email here!
-        select: { firstName: true, alias: true, email: true } 
+        // ✅ ADDED: 'status' to selection
+        select: { firstName: true, alias: true, email: true, profileImage: true, status: true } 
       }
     }
   })
 
-  // A. HELPER: List of sensitive names to redact
+  // HELPER: List of sensitive names to redact
   let sensitiveWords = new Set<string>()
   if (isGuest) {
     const allUsers = await prisma.user.findMany({
@@ -1919,15 +2581,16 @@ export async function getTestimonials() {
     }).join(' ')
   }
 
-  // B. TRANSFORM DATA
   return testimonials.map(t => {
-    // If Guest, we hide the email (so badge won't show) and redact name
+    // If Guest, we hide email AND profile image AND status
     if (isGuest) {
       return {
         id: t.id,
         content: t.content,
         createdAt: t.createdAt,
-        authorEmail: null, // Hide email from guests
+        authorEmail: null, 
+        authorProfileImage: null, 
+        authorStatus: null, // <--- Hide status
         displayAuthor: "Family Member",
         displayAvatar: null,
         redactedContent: redactText(t.content)
@@ -1939,7 +2602,9 @@ export async function getTestimonials() {
       id: t.id,
       content: t.content,
       createdAt: t.createdAt,
-      authorEmail: t.author.email, // Pass email to frontend
+      authorEmail: t.author.email,
+      authorProfileImage: t.author.profileImage,
+      authorStatus: t.author.status, // <--- Pass status
       displayAuthor: t.author.alias || t.author.firstName,
       displayAvatar: (t.author.alias || t.author.firstName)[0].toUpperCase(),
       redactedContent: t.content
@@ -2136,79 +2801,99 @@ export async function registerUser(formData: FormData) {
 ==================================================
 FILE: src/app/family/page.tsx
 ==================================================
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client'
+import { cookies } from 'next/headers'
+import Link from 'next/link'
+import StatusBadge from '@/components/StatusBadge' // <--- Import
 
-const prisma = new PrismaClient();
-const ADMIN_EMAIL = 'idongesit_essien@ymail.com';
+const prisma = new PrismaClient()
 
-async function getFamilyMembers() {
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: 'asc' }
-  });
-  return users;
+async function getUsers() {
+  return await prisma.user.findMany({
+    orderBy: { createdAt: 'asc' },
+    // ✅ Make sure to select 'status'
+    select: { 
+      id: true, 
+      firstName: true, 
+      lastName: true, 
+      alias: true, 
+      position: true, 
+      profileImage: true, 
+      email: true,
+      status: true // <--- FETCHING STATUS
+    }
+  })
 }
 
 export default async function FamilyDirectory() {
-  const users = await getFamilyMembers();
+  const users = await getUsers()
+  const cookieStore = await cookies()
+  const currentUserEmail = 'idongesit_essien@ymail.com' // Admin check
+  
+  // Find current user's session to determine if they are admin (optional logic)
+  const sessionId = cookieStore.get('session_id')?.value
+  const currentUser = users.find(u => u.id === sessionId)
+  const isAdmin = currentUser?.email === currentUserEmail
 
   return (
     <main className="min-h-screen bg-slate-50 font-sans p-8">
-      <div className="max-w-5xl mx-auto mt-8">
+      <div className="max-w-6xl mx-auto mt-8">
         
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-brand-sky mb-2">The Family Directory</h1>
-          <p className="text-slate-500">
-            We have <span className="font-bold text-brand-pink">{users.length}</span> members joined so far.
-          </p>
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-brand-sky">Family Directory</h1>
+            <p className="text-slate-500">Meet the fam.</p>
+          </div>
+          <Link href="/common-room" className="text-sm font-bold text-slate-400 hover:text-brand-pink transition-colors">
+            &larr; Back to Common Room
+          </Link>
         </div>
 
-        {/* The Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {users.map((user) => {
-            const isAdmin = user.email === ADMIN_EMAIL;
-            
-            return (
-              <div key={user.id} className={`bg-white p-6 rounded-2xl shadow-sm border flex items-center gap-4 hover:shadow-md transition-shadow ${isAdmin ? 'border-brand-sky/30 bg-brand-sky/5' : 'border-slate-100'}`}>
-                
-                {/* Avatar Circle */}
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 ${isAdmin ? 'bg-slate-800 text-brand-yellow' : 'bg-brand-sky/20 text-brand-sky'}`}>
-                  {(user.alias || user.firstName)[0].toUpperCase()}
-                </div>
-
-                {/* Info */}
-                <div className="overflow-hidden">
-                  <h3 className="font-bold text-slate-800 text-lg truncate flex items-center gap-2">
-                    {user.alias || user.firstName}
-                  </h3>
-                  
-                  <p className="text-xs text-brand-pink font-bold uppercase tracking-wider mb-1">
-                    {user.position}
-                  </p>
-
-                  {/* --- ADMIN BADGE --- */}
-                  {isAdmin && (
-                     <span className="inline-block text-[9px] bg-slate-800 text-brand-yellow px-2 py-0.5 rounded mb-2 font-bold uppercase tracking-wider border border-slate-600">
-                      🛡️ Admin
-                    </span>
+          {users.map((user) => (
+            <div key={user.id} className={`bg-white p-6 rounded-2xl shadow-sm border flex items-center gap-4 hover:shadow-md transition-shadow relative group ${isAdmin && user.email === currentUserEmail ? 'border-brand-sky/30 bg-brand-sky/5' : 'border-slate-100'}`}>
+              
+              {/* AVATAR + STATUS */}
+              <div className="relative">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 overflow-hidden ${!user.profileImage ? 'bg-brand-sky/20 text-brand-sky' : ''}`}>
+                  {user.profileImage ? (
+                    <img src={user.profileImage} alt={user.firstName} className="w-full h-full object-cover" />
+                  ) : (
+                    (user.alias || user.firstName)[0].toUpperCase()
                   )}
-                  
-                  <p className="text-xs text-slate-400 truncate">
-                    {user.firstName} {user.lastName}
-                  </p>
-                  <p className="text-xs text-slate-400 truncate mt-1">
-                    {user.email}
-                  </p>
                 </div>
-
+                
+                {/* ✅ ADD STATUS BADGE */}
+                <StatusBadge status={user.status} size="normal" />
               </div>
-            )
-          })}
+
+              {/* INFO */}
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800 text-lg truncate">
+                    {user.firstName} {user.lastName}
+                  </span>
+                  {user.id === sessionId && (
+                    <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">YOU</span>
+                  )}
+                </div>
+                
+                {user.alias && (
+                  <span className="text-sm text-slate-400 font-medium truncate">@{user.alias}</span>
+                )}
+                
+                <span className="text-xs text-brand-sky font-bold uppercase tracking-wider mt-1 truncate">
+                  {user.position}
+                </span>
+              </div>
+
+            </div>
+          ))}
         </div>
 
       </div>
     </main>
-  );
+  )
 }
 
 ==================================================
@@ -2218,6 +2903,8 @@ import { PrismaClient } from "@prisma/client";
 import { cookies } from "next/headers";
 import PostInput from "@/components/PostInput";
 import PostCard from "@/components/PostCard";
+import AnnouncementCarousel from "@/components/AnnouncementCarousel";
+import { getFeedData, getAnnouncements } from "./actions";
 
 const prisma = new PrismaClient();
 
@@ -2226,62 +2913,15 @@ async function getUser() {
   const sessionId = cookieStore.get('session_id')?.value
   if (!sessionId) return null
 
-  const user = await prisma.user.findUnique({
-    where: { id: sessionId },
-    select: { id: true, firstName: true, alias: true }
+  return await prisma.user.findUnique({
+    where: { id: sessionId }
   })
-  return user
-}
-
-async function getPosts(currentUserId?: string) {
-  const posts = await prisma.post.findMany({
-    include: { 
-      author: true,
-      // 1. FETCH USERS FOR POST LIKES
-      likes: {
-        include: {
-          user: { select: { id: true, firstName: true, alias: true } }
-        }
-      },
-      comments: {
-        include: {
-          author: true,
-          // 2. FETCH USERS FOR COMMENT LIKES
-          likes: {
-            include: {
-              user: { select: { id: true, firstName: true, alias: true } }
-            }
-          },
-          children: {
-            include: {
-              author: true,
-              likes: {
-                include: {
-                  user: { select: { id: true, firstName: true, alias: true } }
-                }
-              },
-              children: true 
-            }
-          }
-        },
-        orderBy: { createdAt: 'asc' }
-      }
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return posts.map(post => ({
-    ...post,
-    // We pass the FULL array of likes now, not just the count
-    likeCount: post.likes.length,
-    isLikedByMe: currentUserId ? post.likes.some(like => like.userId === currentUserId) : false,
-    topLevelComments: post.comments.filter((c: any) => !c.parentId)
-  }));
 }
 
 export default async function CommonRoom() {
   const user = await getUser()
-  const posts = await getPosts(user?.id) // Pass user ID to check likes
+  const announcements = await getAnnouncements()
+  const { urgentPosts, regularPosts } = await getFeedData()
 
   const welcomeName = user?.alias || user?.firstName || "Family Member";
 
@@ -2299,19 +2939,36 @@ export default async function CommonRoom() {
           </h2>
         </div>
 
+        {/* ANNOUNCEMENTS CAROUSEL */}
+        <AnnouncementCarousel 
+          announcements={announcements} 
+          currentUserEmail={user?.email} 
+        />
+
         {/* INPUT FORM */}
         <PostInput />
 
-        {/* POSTS FEED */}
+        {/* FEED */}
         <div className="space-y-6">
-          {posts.map((post) => (
+          
+          {/* 1. URGENT ANNOUNCEMENTS (Pinned at top) */}
+          {urgentPosts.map((post) => (
+             <PostCard 
+              key={post.id} 
+              post={post} 
+              currentUserId={user?.id || ''}
+            />
+          ))}
+
+          {/* 2. REGULAR POSTS */}
+          {regularPosts.map((post) => (
             <PostCard 
               key={post.id} 
               post={post} 
               currentUserId={user?.id || ''}
             />
           ))}
-          {/* ... (Empty state remains same) */}
+
         </div>
       </div>
     </main>
@@ -2336,21 +2993,28 @@ async function getCurrentUserId() {
   return cookieStore.get('session_id')?.value
 }
 
-// --- 1. CREATE POST ---
+// =======================================================
+// 1. POST ACTIONS
+// =======================================================
+
 export async function createPost(formData: FormData) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: 'Unauthorized' }
 
-  const content = formData.get('content') as string
-  const imageFile = formData.get('media') as File | null
+  const content = formData.get('content') as string || ""
+  const imageFile = formData.get('file') as File | null 
 
-  if (!content || content.trim().length === 0) return { success: false }
+  const hasText = content.trim().length > 0
+  const hasImage = imageFile && imageFile.size > 0
+
+  if (!hasText && !hasImage) {
+    return { success: false, message: "Post cannot be empty" }
+  }
 
   let imageUrl = null
 
-  // If there is a file, upload it to Vercel Blob
-  if (imageFile && imageFile.size > 0) {
-    const blob = await put(imageFile.name, imageFile, {
+  if (hasImage) {
+    const blob = await put(imageFile!.name, imageFile!, {
       access: 'public',
     })
     imageUrl = blob.url
@@ -2368,7 +3032,6 @@ export async function createPost(formData: FormData) {
   return { success: true }
 }
 
-// --- 2. DELETE POST ---
 export async function deletePost(postId: string) {
   const userId = await getCurrentUserId()
   
@@ -2382,32 +3045,45 @@ export async function deletePost(postId: string) {
   return { success: true }
 }
 
-// --- 3. EDIT POST ---
-export async function editPost(postId: string, newContent: string) {
+// --- UPDATED: EDIT POST (Supports Title/Urgency for Announcements) ---
+export async function editPost(
+  postId: string, 
+  newContent: string, 
+  newTitle?: string, 
+  newIsUrgent?: boolean
+) {
   const userId = await getCurrentUserId()
   const post = await prisma.post.findUnique({ where: { id: postId } })
   
   if (!post || post.authorId !== userId) return { success: false, message: 'Unauthorized' }
-  if (post.isEdited) return { success: false, message: 'Post can only be edited once.' }
-
+  
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
-  if (post.createdAt < tenMinutesAgo) return { success: false, message: 'Edit time limit expired.' }
+  
+  // Rule: Regular posts have a 10-minute edit limit. Announcements (Admin) do not.
+  if (!post.isAnnouncement && post.createdAt < tenMinutesAgo) {
+      return { success: false, message: 'Edit time limit expired.' }
+  }
+
+  // Prepare update data
+  const data: any = { content: newContent, isEdited: true }
+  
+  // Only update title/urgent if provided (for announcements)
+  if (newTitle !== undefined) data.title = newTitle
+  if (newIsUrgent !== undefined) data.isUrgent = newIsUrgent
 
   await prisma.post.update({
     where: { id: postId },
-    data: { content: newContent, isEdited: true }
+    data
   })
 
   revalidatePath('/common-room')
   return { success: true }
 }
 
-// --- 4. TOGGLE LIKE ---
 export async function toggleLike(postId: string) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: "Unauthorized" }
 
-  // Check if like exists
   const existingLike = await prisma.like.findUnique({
     where: {
       userId_postId: {
@@ -2418,25 +3094,19 @@ export async function toggleLike(postId: string) {
   })
 
   if (existingLike) {
-    // UNLIKE
-    await prisma.like.delete({
-      where: { id: existingLike.id }
-    })
+    await prisma.like.delete({ where: { id: existingLike.id } })
   } else {
-    // LIKE
-    await prisma.like.create({
-      data: {
-        userId,
-        postId
-      }
-    })
+    await prisma.like.create({ data: { userId, postId } })
   }
 
   revalidatePath('/common-room')
   return { success: true }
 }
 
-// --- 5. ADD COMMENT ---
+// =======================================================
+// 2. COMMENT ACTIONS
+// =======================================================
+
 export async function addComment(postId: string, content: string, parentId?: string) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: "Unauthorized" }
@@ -2448,7 +3118,7 @@ export async function addComment(postId: string, content: string, parentId?: str
       content,
       postId,
       authorId: userId,
-      parentId: parentId || null // If it's a reply, link to parent
+      parentId: parentId || null
     }
   })
 
@@ -2456,7 +3126,6 @@ export async function addComment(postId: string, content: string, parentId?: str
   return { success: true }
 }
 
-// --- 6. TOGGLE COMMENT LIKE ---
 export async function toggleCommentLike(commentId: string) {
   const userId = await getCurrentUserId()
   if (!userId) return { success: false, message: "Unauthorized" }
@@ -2480,9 +3149,6 @@ export async function toggleCommentLike(commentId: string) {
   return { success: true }
 }
 
-// ... (Previous imports and functions)
-
-// --- 7. DELETE COMMENT ---
 export async function deleteComment(commentId: string) {
   const userId = await getCurrentUserId()
   
@@ -2496,7 +3162,6 @@ export async function deleteComment(commentId: string) {
   return { success: true }
 }
 
-// --- 8. EDIT COMMENT ---
 export async function editComment(commentId: string, newContent: string) {
   const userId = await getCurrentUserId()
   const comment = await prisma.comment.findUnique({ where: { id: commentId } })
@@ -2514,6 +3179,114 @@ export async function editComment(commentId: string, newContent: string) {
 
   revalidatePath('/common-room')
   return { success: true }
+}
+
+// =======================================================
+// 3. ANNOUNCEMENT ACTIONS
+// =======================================================
+
+export async function createAnnouncement(formData: FormData) {
+  const userId = await getCurrentUserId()
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (user?.email !== ADMIN_EMAIL) {
+    return { success: false, message: "Only Admin can post announcements." }
+  }
+
+  const title = formData.get('title') as string
+  const message = formData.get('message') as string
+  const isUrgent = formData.get('isUrgent') === 'true'
+
+  if (!message || !title) return { success: false, message: "Title and Message are required." }
+
+  await prisma.post.create({
+    data: {
+      title,
+      content: message,
+      authorId: userId!,
+      isAnnouncement: true,
+      isUrgent: isUrgent
+    }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+export async function dismissAnnouncement(postId: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) return { success: false }
+
+  await prisma.postDismissal.create({
+    data: {
+      userId,
+      postId
+    }
+  })
+
+  revalidatePath('/common-room')
+  return { success: true }
+}
+
+export async function getAnnouncements() {
+  return await prisma.post.findMany({
+    where: { isAnnouncement: true },
+    orderBy: { createdAt: 'desc' },
+    take: 5
+  })
+}
+
+// =======================================================
+// 4. FEED FETCHING (Split Urgent vs Regular)
+// =======================================================
+
+export async function getFeedData() {
+  const userId = await getCurrentUserId()
+  
+  // 1. Get Urgent Announcements (Not dismissed by me)
+  const urgentPosts = await prisma.post.findMany({
+    where: {
+      isAnnouncement: true,
+      isUrgent: true,
+      dismissals: {
+        none: { userId: userId } 
+      }
+    },
+    include: {
+      author: true,
+      likes: { include: { user: true } },
+      comments: { include: { author: true, likes: true, children: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  // 2. Get Regular Posts (Not announcements)
+  const regularPosts = await prisma.post.findMany({
+    where: {
+      isAnnouncement: false
+    },
+    include: {
+      author: true,
+      likes: { include: { user: true } },
+      comments: { include: { author: true, likes: true, children: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  // Helper to map data structure for frontend
+  const mapPost = (p: any) => ({
+    ...p,
+    likeCount: p.likes.length,
+    isLikedByMe: userId ? p.likes.some((l: any) => l.userId === userId) : false,
+    topLevelComments: p.comments.filter((c: any) => !c.parentId)
+  })
+
+  return {
+    urgentPosts: urgentPosts.map(mapPost),
+    regularPosts: regularPosts.map(mapPost),
+    currentUserId: userId
+  }
 }
 
 ==================================================
@@ -2622,21 +3395,29 @@ datasource db {
 
 // 2. USER MODEL
 model User {
-  id        String   @id @default(cuid())
-  firstName String
-  lastName  String
-  alias     String?
-  position  String
-  email     String   @unique
-  phone     String?
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  alias        String?
+  position     String
+  email        String   @unique
+  phone        String?
+  profileImage String?
+
+  // --- NEW FIELDS ---
+  bio       String?  // About Me
+  location  String?  // Current City/State
+  status    String?
+
+  createdAt    DateTime @default(now())
 
   // Relations
-  posts        Post[]        @relation("UserPosts")
-  comments     Comment[]
-  likes        Like[]
-  commentLikes CommentLike[]
-  Testimonial  Testimonial[]
+  posts         Post[]          @relation("UserPosts")
+  comments      Comment[]
+  likes         Like[]
+  commentLikes  CommentLike[]
+  Testimonial   Testimonial[]
+  dismissals    PostDismissal[]
 }
 
 // 3. POST MODEL
@@ -2648,11 +3429,17 @@ model Post {
   updatedAt DateTime @updatedAt
   isEdited  Boolean  @default(false)
 
+  // --- NEW FIELDS FOR ANNOUNCEMENTS ---
+  title          String? // Optional title
+  isAnnouncement Boolean @default(false)
+  isUrgent       Boolean @default(false)
+
   // Relations
-  authorId String
-  author   User      @relation("UserPosts", fields: [authorId], references: [id])
-  comments Comment[]
-  likes    Like[]
+  authorId      String
+  author        User            @relation("UserPosts", fields: [authorId], references: [id])
+  comments      Comment[]
+  likes         Like[]
+  dismissals PostDismissal[]
 }
 
 // 4. POST LIKE MODEL
@@ -2713,6 +3500,18 @@ model Testimonial {
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
+}
+
+// NEW: POST DISMISSAL MODEL
+model PostDismissal {
+  id     String @id @default(cuid())
+  userId String
+  postId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
 }
 
 

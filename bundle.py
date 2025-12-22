@@ -6,10 +6,11 @@ OUTPUT_FILE = 'project_bundle.txt'
 # File extensions to include in the bundle
 INCLUDED_EXTENSIONS = {
     '.ts', '.tsx', 
-    '.js', '.jsx', 
+    '.js', '.jsx', '.mjs',
     '.css', 
     '.prisma',
-    '.json' 
+    '.json',
+    '.md' 
 }
 
 # Directories to strictly ignore
@@ -20,7 +21,8 @@ IGNORE_DIRS = {
     '.vscode',
     'coverage',
     'dist',
-    'build'
+    'build',
+    'public' # Often contains images, safe to ignore for code bundles
 }
 
 # Specific files to ignore (to reduce noise)
@@ -31,8 +33,9 @@ IGNORE_FILES = {
     'bundle.py', 
     'project_bundle.txt',
     'next-env.d.ts',
-    'README.md',
-    '.DS_Store'
+    '.DS_Store',
+    '.eslintrc.json',
+    'postcss.config.js'
 }
 
 def is_relevant_file(filename):
@@ -43,6 +46,8 @@ def is_relevant_file(filename):
 
 def bundle_project():
     print(f"Bundling project into {OUTPUT_FILE}...")
+    
+    file_count = 0
     
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as outfile:
         # Walk through the current directory
@@ -71,11 +76,12 @@ def bundle_project():
                             # Write Content
                             outfile.write(content)
                             outfile.write("\n\n")
+                            file_count += 1
                             
                     except Exception as e:
                         print(f"⚠️ Could not read {relative_path}: {e}")
 
-    print(f"\n✅ Success! All files bundled into '{OUTPUT_FILE}'")
+    print(f"\n✅ Success! {file_count} files bundled into '{OUTPUT_FILE}'")
 
 if __name__ == "__main__":
     bundle_project()
