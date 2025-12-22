@@ -19,6 +19,12 @@ model User {
   email        String   @unique
   phone        String?
   profileImage String?
+
+  // --- NEW FIELDS ---
+  bio       String?  // About Me
+  location  String?  // Current City/State
+  status    String?
+
   createdAt    DateTime @default(now())
 
   // Relations
@@ -27,7 +33,7 @@ model User {
   likes         Like[]
   commentLikes  CommentLike[]
   Testimonial   Testimonial[]
-  PostDismissal PostDismissal[]
+  dismissals    PostDismissal[]
 }
 
 // 3. POST MODEL
