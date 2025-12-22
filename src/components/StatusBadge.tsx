@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 export default function StatusBadge({ 
   status, 
-  size = 'normal' // 'normal' (posts/comments) or 'large' (profile page)
+  size = 'normal' 
 }: { 
   status?: string | null, 
   size?: 'small' | 'normal' | 'large' 
@@ -13,25 +13,47 @@ export default function StatusBadge({
 
   if (!status) return null
 
-  // Get first character (emoji) safely
+  // Get first character (emoji)
   const firstChar = Array.from(status)[0]
 
-  // Size configurations
+  // CONFIGURATION
+  // We use 'left' positioning here so that expansion naturally flows to the right.
   const sizeClasses = {
-    small:  { collapsed: 'w-3 h-3 text-[6px] -top-0.5 -right-0.5', expanded: 'h-4 text-[8px] -top-0.5 -right-0.5' },
-    normal: { collapsed: 'w-5 h-5 text-[10px] -top-1 -right-1',     expanded: 'h-6 text-[10px] -top-1 -right-1' },
-    large:  { collapsed: 'w-10 h-10 text-xl top-1 right-2',          expanded: 'h-10 text-sm top-1 right-2' }
+    small:  { 
+      // Parent is usually w-8 (32px)
+      position: '-top-1 left-6', 
+      collapsed: 'w-3 h-3 text-[6px]', 
+      expanded: 'h-4 text-[8px] px-2' 
+    },
+    normal: { 
+      // Parent is usually w-10 (40px)
+      position: '-top-1 left-7', 
+      collapsed: 'w-5 h-5 text-[10px]',     
+      expanded: 'h-6 text-[10px] px-2.5' 
+    },
+    large:  { 
+      // Parent is usually w-40 (160px)
+      position: 'top-1 left-28',          
+      collapsed: 'w-10 h-10 text-xl',          
+      expanded: 'h-10 text-sm px-5' 
+    }
   }
 
-  const currentSize = sizeClasses[size]
+  const current = sizeClasses[size]
 
   return (
     <div 
-      className={`absolute bg-white flex items-center justify-center shadow-sm border border-slate-100 cursor-pointer transition-all duration-200 ease-out z-20 overflow-hidden 
+      className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ease-out z-30 overflow-hidden origin-left
+        ${current.position}
+        
+        /* SHAPE & SIZE TRANSITION */
         ${isExpanded 
-          ? `${currentSize.expanded} w-auto px-3 rounded-full shadow-md border-brand-sky/30` 
-          : `${currentSize.collapsed} rounded-full`
+          ? `${current.expanded} w-auto rounded-xl shadow-xl border-brand-sky/20` 
+          : `${current.collapsed} rounded-full shadow-md border-white/30`
         }
+
+        /* LIQUID GLASS STYLE */
+        bg-white/60 backdrop-blur-md border text-slate-900 ring-1 ring-white/40
       `}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
@@ -40,7 +62,7 @@ export default function StatusBadge({
         setIsExpanded(!isExpanded); 
       }}
     >
-      <span className={`leading-none whitespace-nowrap select-none ${isExpanded ? 'font-bold text-slate-700' : ''}`}>
+      <span className={`leading-none whitespace-nowrap select-none ${isExpanded ? 'font-bold ml-0.5' : ''}`}>
         {isExpanded ? status : firstChar}
       </span>
     </div>
