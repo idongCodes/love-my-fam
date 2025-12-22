@@ -122,7 +122,7 @@ export default function MyRoomClient({ user }: { user: any }) {
             )}
           </div>
           
-          {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT (size="large") */}
+          {/* STATUS BADGE */}
           <StatusBadge status={status} size="large" />
 
           <div className="absolute -bottom-2 -right-2 flex gap-2 z-20">
@@ -167,7 +167,6 @@ export default function MyRoomClient({ user }: { user: any }) {
             </div>
           )}
 
-          {/* STATUS DISPLAY */}
           {status && (
             <div className="mt-2 flex items-center justify-center md:justify-start gap-1.5 text-slate-600 text-sm animate-in fade-in bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 inline-flex w-fit mx-auto md:mx-0">
                <span className="text-base">💭</span>
@@ -185,12 +184,11 @@ export default function MyRoomClient({ user }: { user: any }) {
           )}
         </div>
         
-        {/* Hidden inputs for photo upload */}
         <input type="file" ref={selfieInputRef} accept="image/*" capture="user" className="hidden" onChange={handleImageChange} />
         <input type="file" ref={galleryInputRef} accept="image/*" className="hidden" onChange={handleImageChange} />
       </section>
 
-      {/* --- 2. EDIT DETAILS SECTION --- */}
+      {/* --- 2. ABOUT ME / EDIT DETAILS --- */}
       <section className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-10 animate-in slide-in-from-top-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -208,8 +206,6 @@ export default function MyRoomClient({ user }: { user: any }) {
 
         {isEditingDetails ? (
           <div className="flex flex-col gap-5">
-            
-            {/* Names */}
             <div className="flex gap-4">
                <div className="flex-1">
                  <label className="block text-xs font-bold text-slate-500 mb-1">FIRST NAME</label>
@@ -221,7 +217,6 @@ export default function MyRoomClient({ user }: { user: any }) {
                </div>
             </div>
 
-            {/* Position & Alias */}
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <label className="block text-xs font-bold text-slate-500 mb-1">FAMILY POSITION</label>
@@ -233,14 +228,11 @@ export default function MyRoomClient({ user }: { user: any }) {
               </div>
             </div>
 
-            {/* Location & Status */}
             <div className="flex flex-col md:flex-row gap-4">
                <div className="flex-1">
                   <label className="block text-xs font-bold text-slate-500 mb-1">CURRENT CITY</label>
                   <input value={location} onChange={(e) => setLocation(e.target.value)} className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none bg-slate-50"/>
                </div>
-               
-               {/* STATUS INPUT WITH EMOJI PICKER */}
                <div className="flex-1">
                   <label className="block text-xs font-bold text-slate-500 mb-1">CURRENT STATUS</label>
                   <div className="relative flex items-center">
@@ -257,7 +249,6 @@ export default function MyRoomClient({ user }: { user: any }) {
                </div>
             </div>
 
-            {/* Bio */}
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">BIO</label>
               <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-sky outline-none bg-slate-50 resize-none"/>
@@ -304,10 +295,53 @@ export default function MyRoomClient({ user }: { user: any }) {
       </div>
 
       {activeTab === 'dashboard' && (
-        <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center animate-fade-in">
-          <p className="text-5xl mb-4">🛏️</p>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Your Personal Space</h2>
-          <p className="text-slate-500">Personal dashboard, settings, and your post history will live here.</p>
+        <div className="grid md:grid-cols-2 gap-6 animate-fade-in">
+          
+          {/* PRIVATE DETAILS CARD */}
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <span>🔐</span> Private Details
+            </h3>
+            
+            <div className="space-y-6">
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Email</label>
+                <div className="flex items-center gap-3 text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-brand-sky"><path d="M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3Z" /><path d="m19 8.839-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z" /></svg>
+                  <span className="font-medium">{user.email}</span>
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Phone</label>
+                <div className="flex items-center gap-3 text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-brand-sky"><path fillRule="evenodd" d="M2 3.5A1.5 1.5 0 0 1 3.5 2h1.148a1.5 1.5 0 0 1 1.465 1.175l.716 3.223a1.5 1.5 0 0 1-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 0 0 6.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 0 1 1.767-1.052l3.223.716A1.5 1.5 0 0 1 18 15.352V16.5a1.5 1.5 0 0 1-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 0 1 2.43 8.326 13.019 13.019 0 0 1 2 5V3.5Z" clipRule="evenodd" /></svg>
+                  <span className="font-medium">{user.phone || 'Not provided'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* FAMILY SECRET CARD */}
+          <div className="bg-brand-sky/10 p-8 rounded-2xl shadow-sm border border-brand-sky/20">
+            <h3 className="text-xl font-bold text-brand-sky mb-4 flex items-center gap-2">
+              <span>🤫</span> Family Secret
+            </h3>
+            <p className="text-slate-600 text-sm mb-6 leading-relaxed">
+              This is the password used to register new family members. Share it wisely!
+            </p>
+            
+            <div className="bg-white p-4 rounded-xl border border-brand-sky/20 text-center">
+              <span className="font-mono text-2xl font-bold text-slate-800 tracking-wider">familyfirst</span>
+            </div>
+            
+            <p className="text-center text-xs text-brand-sky/60 mt-3 font-medium uppercase tracking-wide">
+              Tap to copy (coming soon)
+            </p>
+          </div>
+
         </div>
       )}
 
