@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import TestimonialSection from "@/components/TestimonialSection"; // <--- 1. Import this
+import TestimonialSection from "@/components/TestimonialSection";
+import DailyVerse from "@/components/DailyVerse"; // <--- 1. Import
 
 export default function Home() {
   return (
@@ -36,7 +37,7 @@ export default function Home() {
           </p>
 
           {/* Call to Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center mb-8">
             <Link 
               href="/common-room"
               className="bg-brand-yellow text-slate-800 px-8 py-4 rounded-full font-bold shadow-lg hover:bg-white hover:scale-105 transition-all text-lg"
@@ -51,28 +52,31 @@ export default function Home() {
               Join Family
             </Link>
           </div>
+
+          {/* --- NEW: DAILY VERSE --- */}
+          <DailyVerse />
+
         </div>
       </section>
 
-      {/* --- THE MISSION (WHY?) --- */}
+      {/* ... (Rest of your sections: The Mission, Features, Testimonials) ... */}
+      
       <section className="py-20 px-6 bg-white">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-8 text-brand-sky">The Mission</h2>
           <p className="text-lg text-slate-600 leading-relaxed mb-8">
-            In the age of endless notifications and cluttered group chats, staying genuinely connected feels like a chore. 
+            In the age of endless notifications and cluttered group chats, staying genuinely connected feels like a chore.
             <strong className="text-brand-pink"> LoveMyFam</strong> is designed to eliminate friction. 
             No more long, unplanned phone calls or searching through hundreds of text messages for one update.
           </p>
         </div>
       </section>
 
-      {/* --- FEATURES GRID --- */}
       <section className="bg-brand-cream py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold mb-12 text-center text-slate-700">How It Works</h2>
           
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
             <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
               <div className="text-4xl mb-4">🏡</div>
               <h3 className="font-bold text-xl mb-3 text-brand-sky">The Common Room</h3>
@@ -81,7 +85,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Feature 2 */}
             <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
               <div className="text-4xl mb-4">🔇</div>
               <h3 className="font-bold text-xl mb-3 text-brand-sky">Beat Call Fatigue</h3>
@@ -90,7 +93,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Feature 3 */}
             <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
               <div className="text-4xl mb-4">🔒</div>
               <h3 className="font-bold text-xl mb-3 text-brand-sky">Invite Only</h3>
@@ -102,8 +104,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* --- TESTIMONIALS SECTION --- */}
-      {/* 2. Added here to sit right above the global Feedback Section */}
       <TestimonialSection />
 
     </main>
