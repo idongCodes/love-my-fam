@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { updateProfilePhoto, updateProfileDetails } from '@/app/my-room/actions'
 import { useRouter } from 'next/navigation'
-import EmojiButton from './EmojiButton' // <--- Make sure this import path is correct
+import EmojiButton from './EmojiButton' // <--- Fixed import path
 
 export default function MyRoomClient({ user }: { user: any }) {
   const router = useRouter()
@@ -20,14 +20,14 @@ export default function MyRoomClient({ user }: { user: any }) {
   const [isEditingDetails, setIsEditingDetails] = useState(false)
   const [isSavingDetails, setIsSavingDetails] = useState(false)
   
-  // Form Fields
-  const [firstName, setFirstName] = useState(user.firstName || '')
-  const [lastName, setLastName] = useState(user.lastName || '')
-  const [position, setPosition] = useState(user.position || '')
-  const [bio, setBio] = useState(user.bio || '')
-  const [location, setLocation] = useState(user.location || '')
-  const [alias, setAlias] = useState(user.alias || '')
-  const [status, setStatus] = useState(user.status || '') // <--- New State
+  // Form Fields - Typed explicitly to avoid 'any' errors
+  const [firstName, setFirstName] = useState<string>(user.firstName || '')
+  const [lastName, setLastName] = useState<string>(user.lastName || '')
+  const [position, setPosition] = useState<string>(user.position || '')
+  const [bio, setBio] = useState<string>(user.bio || '')
+  const [location, setLocation] = useState<string>(user.location || '')
+  const [alias, setAlias] = useState<string>(user.alias || '')
+  const [status, setStatus] = useState<string>(user.status || '') 
 
   // Sync state if user prop updates
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function MyRoomClient({ user }: { user: any }) {
     formData.append('bio', bio)
     formData.append('location', location)
     formData.append('alias', alias)
-    formData.append('status', status) // <--- Send Status
+    formData.append('status', status) 
 
     const result = await updateProfileDetails(formData)
     setIsSavingDetails(false)
@@ -95,9 +95,9 @@ export default function MyRoomClient({ user }: { user: any }) {
     }
   }
 
-  // Helper for emoji picker
+  // ✅ FIXED: Explicitly typed 'prev' as string
   const handleEmojiSelect = (emoji: string) => {
-    setStatus(prev => prev + emoji)
+    setStatus((prev: string) => prev + emoji)
   }
 
   return (
@@ -163,7 +163,7 @@ export default function MyRoomClient({ user }: { user: any }) {
             </div>
           )}
 
-          {/* STATUS DISPLAY (New) */}
+          {/* STATUS DISPLAY */}
           {status && (
             <div className="mt-2 flex items-center justify-center md:justify-start gap-1.5 text-slate-600 text-sm animate-in fade-in bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 inline-flex w-fit mx-auto md:mx-0">
                <span className="text-base">💭</span>
@@ -229,7 +229,7 @@ export default function MyRoomClient({ user }: { user: any }) {
               </div>
             </div>
 
-            {/* Location & Status (New) */}
+            {/* Location & Status */}
             <div className="flex flex-col md:flex-row gap-4">
                <div className="flex-1">
                   <label className="block text-xs font-bold text-slate-500 mb-1">CURRENT CITY</label>
@@ -240,7 +240,6 @@ export default function MyRoomClient({ user }: { user: any }) {
                <div className="flex-1">
                   <label className="block text-xs font-bold text-slate-500 mb-1">CURRENT STATUS</label>
                   <div className="relative flex items-center">
-                    {/* Left Side Emoji Picker */}
                     <div className="absolute left-2 z-10">
                       <EmojiButton onEmojiSelect={handleEmojiSelect} />
                     </div>
