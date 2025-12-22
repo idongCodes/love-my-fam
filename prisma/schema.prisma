@@ -129,3 +129,9 @@ model PostDismissal {
 
   @@unique([userId, postId])
 }
+
+// NEW: SYSTEM SETTINGS (Singleton)
+model SystemSettings {
+  id           String @id @default("global") // We only need one row
+  familySecret String @default("familyfirst")
+}
