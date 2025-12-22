@@ -83,3 +83,32 @@ export async function updateProfileDetails(formData: FormData) {
     return { success: false, message: "Failed to update profile" }
   }
 }
+
+// --- 3. UPDATE FAMILY SECRET (Admin Only) ---
+export async function updateFamilySecret(newSecret: string) {
+  const cookieStore = await cookies()
+  const userId = cookieStore.get('session_id')?.value
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+
+  if (!userId) return { success: false, message: "Unauthorized" }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  
+  if (user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    return { success: false, message: "Only Admin can change the family secret." }
+  }
+
+  if (!newSecret || newSecret.trim().length < 4) {
+    return { success: false, message: "Secret must be at least 4 characters." }
+  }
+
+  // Update or Create the settings row
+  await prisma.systemSettings.upsert({
+    where: { id: 'global' },
+    update: { familySecret: newSecret },
+    create: { id: 'global', familySecret: newSecret }
+  })
+
+  revalidatePath('/my-room')
+  return { success: true }
+}

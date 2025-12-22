@@ -3,9 +3,10 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 async function main() {
-  const user = await prisma.user.upsert({
+  // 1. Create Admin User (Existing)
+  await prisma.user.upsert({
     where: { email: 'idongesit_essien@ymail.com' },
-    update: {}, // If you already exist, do nothing
+    update: {},
     create: {
       email: 'idongesit_essien@ymail.com',
       firstName: 'Idongesit',
@@ -21,7 +22,17 @@ async function main() {
     },
   })
 
-  console.log('Seed successful! Created user:', user)
+  // 2. Create Default Settings (NEW)
+  await prisma.systemSettings.upsert({
+    where: { id: 'global' },
+    update: {},
+    create: {
+      id: 'global',
+      familySecret: 'familyfirst'
+    }
+  })
+
+  console.log('Seed successful!')
 }
 
 main()

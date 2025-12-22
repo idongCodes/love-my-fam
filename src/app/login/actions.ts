@@ -9,12 +9,20 @@ export async function login(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
-  // 1. Check the Shared Family Secret
-  if (password !== 'familyfirst') {
+  // 1. FETCH SECRET FROM DB
+  const settings = await prisma.systemSettings.findUnique({
+    where: { id: 'global' }
+  })
+  
+  // Fallback to 'familyfirst' if DB record is missing (safety net)
+  const currentSecret = settings?.familySecret || 'familyfirst'
+
+  // 2. CHECK PASSWORD
+  if (password !== currentSecret) {
     return { success: false, message: 'Wrong family secret!' }
   }
 
-  // 2. Check if the user exists in our Database
+  // 3. CHECK USER
   const user = await prisma.user.findUnique({
     where: { email: email }
   })
@@ -23,7 +31,6 @@ export async function login(formData: FormData) {
     return { success: false, message: 'Email not found. Please register first!' }
   }
 
-  // 3. Set the Session Cookie
   const cookieStore = await cookies()
   cookieStore.set('session_id', user.id, {
     httpOnly: true,
