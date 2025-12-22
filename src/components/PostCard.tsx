@@ -6,52 +6,33 @@ import CommentItem from './CommentItem'
 import LikeButton from './LikeButton'
 import EmojiButton from './EmojiButton'
 import { useRouter } from 'next/navigation'
+import StatusBadge from './StatusBadge'
 
 export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
   const router = useRouter()
   
-  // --- STATE ---
+  // ... (Keep existing state: isEditing, editContent, etc.)
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
-  
-  // NEW: State for Announcement Editing
   const [editTitle, setEditTitle] = useState(post.title || '')
   const [editIsUrgent, setEditIsUrgent] = useState(post.isUrgent || false)
-
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState('')
 
-  // --- PERMISSIONS ---
+  // ... (Keep permissions logic)
   const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
   const isAdmin = post.author.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
   const isAuthor = currentUserId === post.authorId
-  
   const createdAt = new Date(post.createdAt).getTime()
   const timeDiff = Date.now() - createdAt
-  
-  // Relax edit rules for Announcements (Admin can always edit them)
   const canEdit = isAuthor && (post.isAnnouncement || (!post.isEdited && timeDiff < 10 * 60 * 1000))
 
-  // --- HANDLERS ---
+  // ... (Keep handlers: handleDelete, handleSave, etc.)
   async function handleDelete() { if (confirm('Delete?')) await deletePost(post.id) }
-  
   async function handleSave() {
-    // Pass extra args if it's an announcement
-    const result = await editPost(
-      post.id, 
-      editContent, 
-      post.isAnnouncement ? editTitle : undefined, 
-      post.isAnnouncement ? editIsUrgent : undefined
-    )
-    
-    if (result.success) {
-      setIsEditing(false)
-      router.refresh()
-    } else {
-      alert(result.message)
-    }
+    const result = await editPost(post.id, editContent, post.isAnnouncement ? editTitle : undefined, post.isAnnouncement ? editIsUrgent : undefined)
+    if (result.success) { setIsEditing(false); router.refresh(); } else { alert(result.message); }
   }
-
   async function handleToggleLike() { await toggleLike(post.id) }
   async function handleMainCommentSubmit(e: React.FormEvent) {
     e.preventDefault(); if(!commentText.trim()) return; await addComment(post.id, commentText); setCommentText('');
@@ -61,15 +42,14 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
   const displayName = post.author.alias || post.author.firstName
   const firstLetter = displayName[0].toUpperCase()
   const profileImage = post.author.profileImage
+  
+  // --- NEW: STATUS ICON LOGIC ---
+  const statusEmoji = post.author.status ? Array.from(post.author.status)[0] : null
 
   // Styles
   const isUrgent = post.isUrgent
-  // If we are editing and toggle urgent off, show regular style temporarily
   const displayUrgent = isEditing ? editIsUrgent : isUrgent
-  
-  const cardStyle = displayUrgent 
-    ? "bg-red-500/5 border-red-200/50 backdrop-blur-sm shadow-md" 
-    : "bg-white border-slate-100 shadow-sm"
+  const cardStyle = displayUrgent ? "bg-red-500/5 border-red-200/50 backdrop-blur-sm shadow-md" : "bg-white border-slate-100 shadow-sm"
 
   return (
     <div className={`p-6 rounded-xl border mb-6 transition-all hover:border-slate-300 ${cardStyle}`}>
@@ -77,12 +57,19 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
       {/* 1. HEADER */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden bg-brand-pink text-slate-700 font-bold text-lg">
-            {profileImage ? (
-               <img src={profileImage} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-               <span>{firstLetter}</span>
-            )}
+          
+          {/* AVATAR CONTAINER */}
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden bg-brand-pink text-slate-700 font-bold text-lg">
+              {profileImage ? (
+                 <img src={profileImage} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                 <span>{firstLetter}</span>
+              )}
+            </div>
+            
+            {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT */}
+            <StatusBadge status={post.author.status} size="normal" />
           </div>
           
           <div className="flex flex-col">
@@ -92,8 +79,8 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
             </div>
             {isAdmin && (
               <span className="bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded w-fit flex items-center gap-1 mt-1 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5"><path fillRule="evenodd" d="M10.362 1.093a.75.75 0 0 0-.724 0L2.523 5.018 10 9.143l7.477-4.125-7.115-3.925ZM18 6.443l-7.25 4v8.25l6.862-3.786A.75.75 0 0 0 18 14.25V6.443Zm-8.75 12.25v-8.25l-7.25-4v7.807a.75.75 0 0 0 .388.657l6.862 3.786Z" clipRule="evenodd" /></svg>
-                Admin
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5"><path fillRule="evenodd" d="M10.362 1.093a.75.75 0 0 0-.724 0L2.523 5.018 10 9.143l7.477-4.125-7.115-3.925ZM18 6.443l-7.25 4v8.25l6.862-3.786A.75.75 0 0 0 18 14.25V6.443Zm-8.75 12.25v-8.25l-7.25-4v7.807a.75.75 0 0 0 .388.657l6.862 3.786Z" clipRule="evenodd" /></svg>
+                 Admin
               </span>
             )}
             <p className="text-xs text-slate-400 mt-0.5">
@@ -118,27 +105,16 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
         )}
       </div>
 
-      {/* 2. CONTENT */}
+      {/* 2. CONTENT (Keep existing logic) */}
       {isEditing ? (
         <div className="mt-2 flex flex-col gap-3">
-          
-          {/* --- ANNOUNCEMENT EDIT FIELDS --- */}
           {post.isAnnouncement && (
             <div className="flex flex-col gap-3 animate-in slide-in-from-top-2">
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase">Title</label>
-                <input 
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full p-2 text-sm border rounded-lg focus:ring-2 focus:ring-brand-sky outline-none font-bold text-slate-700"
-                  placeholder="Announcement Title"
-                />
+                <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full p-2 text-sm border rounded-lg focus:ring-2 focus:ring-brand-sky outline-none font-bold text-slate-700" placeholder="Announcement Title"/>
               </div>
-
-              <div 
-                onClick={() => setEditIsUrgent(!editIsUrgent)}
-                className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer select-none transition-colors ${editIsUrgent ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-100'}`}
-              >
+              <div onClick={() => setEditIsUrgent(!editIsUrgent)} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer select-none transition-colors ${editIsUrgent ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${editIsUrgent ? 'border-red-500' : 'border-slate-300'}`}>
                     {editIsUrgent && <div className="w-2 h-2 rounded-full bg-red-500" />}
                  </div>
@@ -146,13 +122,10 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
               </div>
             </div>
           )}
-
-          {/* MAIN CONTENT EDIT */}
           <div className="relative">
             <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-sky outline-none text-slate-700 pr-10" rows={3}/>
             <div className="absolute bottom-2 right-2"><EmojiButton onEmojiSelect={(emoji) => setEditContent((p:string) => p + emoji)} /></div>
           </div>
-          
           <div className="flex gap-2 justify-end">
             <button onClick={() => setIsEditing(false)} className="text-xs text-slate-400 hover:text-slate-600 font-bold px-2">Cancel</button>
             <button onClick={handleSave} className="text-xs bg-brand-sky text-white px-4 py-1.5 rounded-full hover:bg-sky-500 font-bold shadow-sm">Save Changes</button>
@@ -173,21 +146,13 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
       {/* 3. ACTION BAR */}
       <div className="mt-5 pt-4 border-t border-slate-50/50 flex justify-between items-center">
         <LikeButton initialLikes={post.likes} currentUserId={currentUserId} onToggle={handleToggleLike} />
-        
         <div className="flex items-center gap-4">
           <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 text-slate-400 hover:text-brand-sky transition-colors font-medium text-sm group">
             <span>{post.topLevelComments?.length || 0} Replies</span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
           </button>
-          
-          {/* DISMISS LINK (Only for Urgent posts) */}
           {post.isUrgent && (
-            <button 
-              onClick={handleDismiss}
-              className="text-xs font-bold text-red-400 hover:text-red-600 hover:underline transition-colors"
-            >
-              Dismiss
-            </button>
+            <button onClick={handleDismiss} className="text-xs font-bold text-red-400 hover:text-red-600 hover:underline transition-colors">Dismiss</button>
           )}
         </div>
       </div>
