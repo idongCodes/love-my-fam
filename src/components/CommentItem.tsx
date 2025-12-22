@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { addComment, toggleCommentLike, deleteComment, editComment } from '@/app/common-room/actions'
 import LikeButton from './LikeButton'
 import EmojiButton from './EmojiButton'
-import StatusBadge from './StatusBadge' // <--- Import the StatusBadge component
+import StatusBadge from './StatusBadge'
 
 export default function CommentItem({ comment, currentUserId, postId }: { comment: any, currentUserId: string, postId: string }) {
   const [isReplying, setIsReplying] = useState(false)
@@ -21,7 +21,6 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
   const firstLetter = displayName[0]?.toUpperCase() || '?'
   const profileImage = comment.author?.profileImage
 
-  // ... (Keep existing handlers: handleReplySubmit, handleEditSubmit, handleDelete) ...
   async function handleReplySubmit(e: React.FormEvent) {
     e.preventDefault(); if(!replyText.trim()) return; await addComment(postId, replyText, comment.id); setReplyText(''); setIsReplying(false);
   }
@@ -42,7 +41,6 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
           )}
         </div>
         
-        {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT (size="small") */}
         <StatusBadge status={comment.author?.status} size="small" />
       </div>
 
@@ -71,7 +69,12 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
         <div className="flex items-center gap-4 mt-1 pl-2">
           {/* Like Button */}
           <div className="scale-75 origin-left">
-            <LikeButton initialLikes={comment.likes} currentUserId={currentUserId} onToggle={async () => await toggleCommentLike(comment.id)} />
+            <LikeButton 
+              initialLikes={comment.likes} 
+              currentUserId={currentUserId} 
+              // ✅ FIXED: Wrapped in braces { } to ensure return type is void
+              onToggle={async () => { await toggleCommentLike(comment.id) }} 
+            />
           </div>
           
           <button onClick={() => setIsReplying(!isReplying)} className="text-xs font-bold text-slate-400 hover:text-brand-sky">Reply</button>
@@ -95,7 +98,7 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
           </form>
         )}
 
-        {/* Nested Comments (Recursion) */}
+        {/* Nested Comments */}
         {comment.children && comment.children.length > 0 && (
           <div className="mt-2 border-l-2 border-slate-100 pl-3">
             {comment.children.map((child: any) => (
