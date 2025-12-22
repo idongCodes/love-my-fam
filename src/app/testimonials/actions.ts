@@ -34,19 +34,18 @@ export async function getTestimonials() {
   const currentUserId = await getCurrentUserId()
   const isGuest = !currentUserId
 
-  // Fetch testimonials (limit to recent 6)
   const testimonials = await prisma.testimonial.findMany({
     take: 6,
     orderBy: { createdAt: 'desc' },
     include: {
       author: {
-        // ✅ ADDED: profileImage
-        select: { firstName: true, alias: true, email: true, profileImage: true } 
+        // ✅ ADDED: 'status' to selection
+        select: { firstName: true, alias: true, email: true, profileImage: true, status: true } 
       }
     }
   })
 
-  // A. HELPER: List of sensitive names to redact
+  // HELPER: List of sensitive names to redact
   let sensitiveWords = new Set<string>()
   if (isGuest) {
     const allUsers = await prisma.user.findMany({
@@ -69,16 +68,16 @@ export async function getTestimonials() {
     }).join(' ')
   }
 
-  // B. TRANSFORM DATA
   return testimonials.map(t => {
-    // If Guest, we hide email AND profile image
+    // If Guest, we hide email AND profile image AND status
     if (isGuest) {
       return {
         id: t.id,
         content: t.content,
         createdAt: t.createdAt,
         authorEmail: null, 
-        authorProfileImage: null, // <--- HIDE IMAGE
+        authorProfileImage: null, 
+        authorStatus: null, // <--- Hide status
         displayAuthor: "Family Member",
         displayAvatar: null,
         redactedContent: redactText(t.content)
@@ -91,7 +90,8 @@ export async function getTestimonials() {
       content: t.content,
       createdAt: t.createdAt,
       authorEmail: t.author.email,
-      authorProfileImage: t.author.profileImage, // <--- PASS IMAGE
+      authorProfileImage: t.author.profileImage,
+      authorStatus: t.author.status, // <--- Pass status
       displayAuthor: t.author.alias || t.author.firstName,
       displayAvatar: (t.author.alias || t.author.firstName)[0].toUpperCase(),
       redactedContent: t.content

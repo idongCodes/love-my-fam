@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import StatusBadge from './StatusBadge'
 
 export default function TestimonialSlider({ testimonials }: { testimonials: any[] }) {
   const [pageIndex, setPageIndex] = useState(0)
@@ -31,6 +32,9 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
       >
         {testimonials.map((t) => {
           const isAdmin = t.authorEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+          
+          // STATUS LOGIC
+          const statusEmoji = t.authorStatus ? Array.from(t.authorStatus)[0] : null
 
           return (
             <div 
@@ -45,29 +49,31 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
 
                 <div className="flex items-center gap-3 border-t border-white/20 pt-4 mt-auto">
                   
-                  {/* AVATAR LOGIC */}
-                  {t.authorProfileImage ? (
-                    // 1. SHOW PROFILE PHOTO (If exists & Logged In)
-                    <div className="w-10 h-10 rounded-full shrink-0 shadow-lg border-2 border-white/20 overflow-hidden">
-                      <img 
-                        src={t.authorProfileImage} 
-                        alt={t.displayAuthor} 
-                        className="w-full h-full object-cover" 
-                      />
-                    </div>
-                  ) : t.displayAvatar ? (
-                    // 2. SHOW INITIALS (If Logged In but no photo)
-                    <div className="w-10 h-10 bg-brand-pink text-slate-900 font-bold rounded-full flex items-center justify-center shrink-0 shadow-lg border-2 border-white/20">
-                      {t.displayAvatar}
-                    </div>
-                  ) : (
-                    // 3. SHOW GUEST ICON (If Not Logged In)
-                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shrink-0 text-white/50 border border-white/10">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                      </svg>
-                    </div>
-                  )}
+                  {/* AVATAR + BADGE */}
+                  <div className="relative">
+                    {t.authorProfileImage ? (
+                      <div className="w-10 h-10 rounded-full shrink-0 shadow-lg border-2 border-white/20 overflow-hidden">
+                        <img 
+                          src={t.authorProfileImage} 
+                          alt={t.displayAuthor} 
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                    ) : t.displayAvatar ? (
+                      <div className="w-10 h-10 bg-brand-pink text-slate-900 font-bold rounded-full flex items-center justify-center shrink-0 shadow-lg border-2 border-white/20">
+                        {t.displayAvatar}
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shrink-0 text-white/50 border border-white/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                        </svg>
+                      </div>
+                    )}
+                    
+                    {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT */}
+                    <StatusBadge status={t.authorStatus} size="normal" />
+                  </div>
                   
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">

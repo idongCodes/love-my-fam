@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { updateProfilePhoto, updateProfileDetails } from '@/app/my-room/actions'
 import { useRouter } from 'next/navigation'
-import EmojiButton from './EmojiButton' // <--- Fixed import path
+import EmojiButton from './EmojiButton'
+import StatusBadge from './StatusBadge'
 
 export default function MyRoomClient({ user }: { user: any }) {
   const router = useRouter()
@@ -20,7 +21,7 @@ export default function MyRoomClient({ user }: { user: any }) {
   const [isEditingDetails, setIsEditingDetails] = useState(false)
   const [isSavingDetails, setIsSavingDetails] = useState(false)
   
-  // Form Fields - Typed explicitly to avoid 'any' errors
+  // Form Fields
   const [firstName, setFirstName] = useState<string>(user.firstName || '')
   const [lastName, setLastName] = useState<string>(user.lastName || '')
   const [position, setPosition] = useState<string>(user.position || '')
@@ -95,7 +96,6 @@ export default function MyRoomClient({ user }: { user: any }) {
     }
   }
 
-  // ✅ FIXED: Explicitly typed 'prev' as string
   const handleEmojiSelect = (emoji: string) => {
     setStatus((prev: string) => prev + emoji)
   }
@@ -112,7 +112,7 @@ export default function MyRoomClient({ user }: { user: any }) {
         
         {/* AVATAR + BUTTONS */}
         <div className="relative group shrink-0">
-          <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-brand-sky/20 shadow-md bg-slate-50 flex items-center justify-center">
+          <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-brand-sky/20 shadow-md bg-slate-50 flex items-center justify-center relative">
             {previewUrl ? (
               <img src={previewUrl} alt="Profile" className="w-full h-full object-cover" />
             ) : (
@@ -121,7 +121,11 @@ export default function MyRoomClient({ user }: { user: any }) {
               </span>
             )}
           </div>
-          <div className="absolute -bottom-2 -right-2 flex gap-2">
+          
+          {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT (size="large") */}
+          <StatusBadge status={status} size="large" />
+
+          <div className="absolute -bottom-2 -right-2 flex gap-2 z-20">
             <button onClick={() => galleryInputRef.current?.click()} className="bg-white text-slate-600 p-2.5 rounded-full shadow-lg hover:scale-110 transition-transform border border-slate-200" title="Upload from Gallery">
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
             </button>
