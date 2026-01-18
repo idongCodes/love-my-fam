@@ -8,7 +8,7 @@ export default function Home() {
     <main className="min-h-screen flex flex-col font-sans text-slate-800">
       
       {/* --- HERO SECTION --- */}
-      <section className="relative bg-brand-sky text-white pt-24 pb-32 px-6 text-center overflow-hidden">
+      <section className="relative bg-brand-sky text-white pt-42 pb-32 px-6 text-center overflow-hidden">
         
         {/* BACKGROUND IMAGE LAYER */}
         <div className="absolute inset-0 z-0">
