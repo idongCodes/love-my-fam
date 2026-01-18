@@ -33,14 +33,14 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col pb-25`}>
         
         <Navbar />
 
         {/* Auto Logout Watchdog (Only active if logged in) */}
         {isLoggedIn && <AutoLogout />}
         
-        <main className="flex-1 pt-16"> 
+        <main className="flex-1 pt-12"> 
           {children}
         </main>
 
