@@ -2,9 +2,17 @@ import { getTestimonials } from '@/app/testimonials/actions'
 import TestimonialSlider from './TestimonialSlider'
 
 export default async function TestimonialSection() {
-  // Fetch up to 9 items so the carousel has content to scroll through
-  // (You can adjust the limit in your actions.ts if needed, e.g. take: 9)
-  const testimonials = await getTestimonials()
+  let testimonials = []
+  
+  try {
+    // Fetch up to 9 items so the carousel has content to scroll through
+    // (You can adjust the limit in your actions.ts if needed, e.g. take: 9)
+    testimonials = await getTestimonials()
+  } catch (error) {
+    // If database fails, don't show testimonials section
+    console.log('Testimonials section disabled due to database connection issue')
+    return null
+  }
 
   if (testimonials.length === 0) return null
 

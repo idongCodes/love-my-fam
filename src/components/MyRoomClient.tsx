@@ -407,11 +407,127 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
       )}
 
       {activeTab === 'mirror' && (
-        <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center animate-fade-in">
-          <p className="text-5xl mb-4">🪞</p>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">My Mirror</h2>
-          <p className="text-slate-500 mb-6">Reflect on your journey. Your profile details and personal stats will appear here.</p>
-          <div className="inline-block bg-brand-pink/20 text-brand-pink px-4 py-2 rounded-full text-xs font-bold uppercase">Coming Soon</div>
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 animate-fade-in">
+          {/* Mirror Frame Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-brand-pink/20 to-brand-sky/20 rounded-full flex items-center justify-center">
+                <span className="text-2xl">🪞</span>
+              </div>
+              <h2 className="text-2xl font-bold text-slate-800">My Mirror</h2>
+            </div>
+            <p className="text-slate-500 text-sm">How others see you in the family</p>
+          </div>
+
+          {/* Mirror Content - Visitor's Perspective */}
+          <div className="max-w-2xl mx-auto">
+            {/* Profile Card as seen by others */}
+            <div className="bg-gradient-to-br from-brand-sky/5 to-brand-pink/5 p-8 rounded-2xl border border-brand-sky/10 mb-6">
+              <div className="flex items-center gap-6 mb-6">
+                {/* Avatar */}
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg bg-slate-100 flex items-center justify-center">
+                    {previewUrl ? (
+                      <img src={previewUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl text-brand-sky font-bold">
+                        {(alias || firstName)?.[0]?.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <StatusBadge status={status} size="normal" />
+                </div>
+
+                {/* Basic Info */}
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-slate-800">
+                    {firstName} {lastName}
+                  </h3>
+                  {alias && (
+                    <p className="text-brand-sky font-medium">@{alias}</p>
+                  )}
+                  <div className="mt-2">
+                    <span className="inline-block bg-brand-sky text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                      {position}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Location */}
+              {location && (
+                <div className="flex items-center gap-2 text-slate-600 mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-brand-pink">
+                    <path fillRule="evenodd" d="m9.69 18.933.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 0 0 .281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 1 0 3 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 0 0 2.273 1.765 11.842 11.842 0 0 0 .976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm font-medium">{location}</span>
+                </div>
+              )}
+
+              {/* Status */}
+              {status && (
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-4">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <span className="text-lg">💭</span>
+                    <span className="font-medium italic">"{status}"</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Bio */}
+              {bio && (
+                <div className="bg-white p-6 rounded-xl border border-slate-100">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">About Me</h4>
+                  <p className="text-slate-700 leading-relaxed">{bio}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Family Connection Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-brand-sky/10 p-4 rounded-xl text-center border border-brand-sky/20">
+                <div className="text-2xl font-bold text-brand-sky">👨‍👩‍👧‍👦</div>
+                <div className="text-xs text-slate-600 mt-1">Family Member</div>
+              </div>
+              <div className="bg-brand-pink/10 p-4 rounded-xl text-center border border-brand-pink/20">
+                <div className="text-2xl font-bold text-brand-pink">📅</div>
+                <div className="text-xs text-slate-600 mt-1">
+                  Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                </div>
+              </div>
+              <div className="bg-brand-yellow/20 p-4 rounded-xl text-center border border-brand-yellow/30">
+                <div className="text-2xl font-bold text-brand-yellow/80">✨</div>
+                <div className="text-xs text-slate-600 mt-1">Active</div>
+              </div>
+              <div className="bg-brand-cream/30 p-4 rounded-xl text-center border border-brand-cream/50">
+                <div className="text-2xl font-bold text-brand-cream/70">🏠</div>
+                <div className="text-xs text-slate-600 mt-1">Common Room</div>
+              </div>
+            </div>
+
+            {/* Visitor's Perspective Message */}
+            <div className="bg-gradient-to-r from-brand-sky/10 to-brand-pink/10 p-6 rounded-2xl border border-brand-sky/20 text-center">
+              <div className="text-3xl mb-3">👁️</div>
+              <h4 className="text-lg font-bold text-slate-800 mb-2">Through Family Eyes</h4>
+              <p className="text-slate-600 text-sm leading-relaxed max-w-md mx-auto">
+                This is how your family sees you when they visit your profile. Your presence, your story, your connection to the family - all reflected back through the mirror of our shared space.
+              </p>
+              <div className="mt-4 flex justify-center gap-3">
+                <Link 
+                  href={`/${profileSlug}s-room`}
+                  className="bg-brand-sky text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-sky-500 transition-colors shadow-sm"
+                >
+                  View Public Profile
+                </Link>
+                <Link 
+                  href="/family"
+                  className="bg-white text-brand-sky px-4 py-2 rounded-full text-sm font-bold hover:bg-brand-sky/10 transition-colors border border-brand-sky/20"
+                >
+                  Meet Family
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
