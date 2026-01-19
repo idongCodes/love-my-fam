@@ -63,8 +63,10 @@ export default async function FamilyDirectory() {
                   </div>
                 </Link>
                 
-                {/* ✅ ADD STATUS BADGE */}
-                <StatusBadge status={user.status} size="normal" />
+                {/* STATUS BADGE - Top Left-Right */}
+                <div className="absolute top-0 left-3">
+                  <StatusBadge status={user.status} size="normal" />
+                </div>
               </div>
 
               {/* INFO */}

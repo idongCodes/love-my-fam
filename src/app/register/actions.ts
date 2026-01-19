@@ -42,11 +42,27 @@ export async function registerUser(formData: FormData) {
     }
   })
 
-
   // 5. SET SESSION COOKIE
   const cookieStore = await cookies()
   cookieStore.set('session_id', newUser.id, {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: '/',
+  })
+
+  // Also set a client-readable cookie for chat functionality
+  cookieStore.set('user_session', newUser.id, {
+    httpOnly: false, // Allow client-side access
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: '/',
+  })
+
+  // 6. STORE JOIN MESSAGE IN COOKIE FOR CHAT MODAL
+  const displayName = alias || firstName
+  cookieStore.set('new_user_join_message', `${displayName} has joined the app! 🎉`, {
+    httpOnly: false, // Allow client-side access
     secure: process.env.NODE_ENV === 'production',
     maxAge: 60 * 60 * 24 * 7, // 1 week
     path: '/',

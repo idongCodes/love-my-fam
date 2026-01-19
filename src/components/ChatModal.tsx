@@ -2,9 +2,155 @@
 
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState, useRef } from 'react'
+import { getChatMessages, sendChatMessage } from '@/app/chat/actions'
 
 export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const router = useRouter()
+  const [joinMessage, setJoinMessage] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Array<{
+    id: string
+    content: string
+    author: {
+      id: string
+      firstName: string
+      lastName: string
+      alias: string | null
+      profileImage: string | null
+    }
+    createdAt: Date
+  }>>([])
+  const [inputMessage, setInputMessage] = useState('')
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Fetch current user data
+  const fetchCurrentUser = async () => {
+    if (currentUserId) {
+      try {
+        // API should be in root, not in subfolder
+        const response = await fetch(`/api/user/${currentUserId}`)
+        if (response.ok) {
+          const userData = await response.json()
+          setCurrentUser(userData)
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      }
+    }
+  }
+
+  // Fetch messages from database
+  const fetchMessages = async () => {
+    const result = await getChatMessages()
+    if (result.success && result.messages) {
+      setMessages(result.messages)
+    }
+  }
+  
+  // Check for join message on mount and when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const message = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('new_user_join_message='))
+        ?.split('=')[1]
+      
+      if (message) {
+        setJoinMessage(decodeURIComponent(message))
+        // Clear the cookie after reading it
+        document.cookie = 'new_user_join_message=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      }
+      
+      // Hardcoded welcome message for Idong (since he joined before this feature)
+      if (!message) {
+        setJoinMessage("Idong has joined the app! 🎉")
+      }
+
+      // Fetch real chat messages
+      fetchMessages()
+      
+      // Get current user ID from session - improved cookie reading
+      const getSessionId = () => {
+        const cookies = document.cookie.split('; ')
+        console.log('All available cookies:', cookies)
+        
+        // Try different possible cookie names, prioritizing the new user_session
+        const possibleNames = ['user_session', 'session_id', 'sessionId', 'session', 'auth_token']
+        
+        for (const name of possibleNames) {
+          const cookie = cookies.find(row => row.startsWith(`${name}=`))
+          if (cookie) {
+            const value = cookie.split('=')[1]
+            console.log(`Found session cookie: ${name} = ${value}`)
+            return value
+          }
+        }
+        
+        console.log('No session cookie found')
+        return null
+      }
+      
+      const sessionId = getSessionId()
+      console.log('Session ID found:', sessionId) // Debug log
+      
+      // Fallback: If no session, try to use a test user ID for debugging
+      const userId = sessionId || 'test-user-id'
+      setCurrentUserId(userId)
+      
+      // Fetch current user data
+      fetchCurrentUser()
+    }
+  }, [isOpen, fetchCurrentUser])
+
+  // Poll for new messages every 5 seconds
+  useEffect(() => {
+    if (!isOpen) return
+    
+    const interval = setInterval(fetchMessages, 5000)
+    return () => clearInterval(interval)
+  }, [isOpen])
+
+  // Scroll to bottom when new messages are added
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const handleSendMessage = async () => {
+    console.log('Attempting to send message:', { inputMessage: inputMessage.trim(), currentUserId })
+    
+    if (inputMessage.trim() && currentUserId) {
+      try {
+        const result = await sendChatMessage(inputMessage.trim(), currentUserId)
+        if (result.success) {
+          setInputMessage('')
+          // Refresh messages to include the new one
+          fetchMessages()
+        } else {
+          console.error('Failed to send message:', result.message)
+          alert(`Failed to send message: ${result.message}`)
+        }
+      } catch (error) {
+        console.error('Error sending message:', error)
+        alert('Error sending message. Please try again.')
+      }
+    } else {
+      if (!currentUserId) {
+        console.error('No current user ID found. Available cookies:', document.cookie)
+        alert('Please log in to send messages. Session not found.')
+      } else if (!inputMessage.trim()) {
+        console.log('Empty message, not sending')
+      }
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage()
+    }
+  }
   
   if (!isOpen) return null
 
@@ -30,10 +176,10 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
   // Sample user data (in real app, this would come from user context/database)
   const users = {
     mom: {
-      name: 'Sarah Johnson',
+      name: 'Sarah Johnson', 
       firstName: 'Sarah',
-      alias: 'SuperMom', // User's alias if they have one
-      profileImage: null, // Would be actual image URL
+      alias: 'SuperMom', // User's alias
+      profileImage: null,
       initial: 'S',
       color: 'bg-brand-pink'
     },
@@ -45,6 +191,14 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
       initial: 'M',
       color: 'bg-brand-yellow'
     },
+    sister: {
+      name: 'Emma Johnson', 
+      firstName: 'Emma',
+      alias: 'Emmy', // User's alias
+      profileImage: null,
+      initial: 'E',
+      color: 'bg-purple-500'
+    },
     you: {
       name: 'You',
       firstName: 'You',
@@ -55,47 +209,62 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
     }
   }
 
-  const getDisplayName = (user: any) => {
-    return user.alias || user.name
+  const getDisplayName = (author: any) => {
+    return author.alias || `${author.firstName} ${author.lastName}`
   }
 
-  const handleUserClick = (user: any) => {
-    // Close modal first
-    onClose()
-    // Navigate to user's profile (using firstName for the route)
-    router.push(`/${user.firstName.toLowerCase()}s-room`)
-  }
-
-  const renderAvatar = (user: any, size: 'small' | 'medium' = 'small') => {
+  const renderAvatar = (author: any, size: 'small' | 'medium' = 'small', onClick?: () => void = () => {}) => {
     const sizeClasses = size === 'small' ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-base'
     
-    if (user.profileImage) {
+    if (author.profileImage) {
       return (
         <img 
-          src={user.profileImage} 
-          alt={user.name} 
-          className={`${sizeClasses} rounded-full object-cover`}
+          src={author.profileImage} 
+          alt={author.firstName} 
+          className={`${sizeClasses} rounded-full object-cover cursor-pointer`}
+          onClick={onClick}
         />
       )
     }
     
+    const initial = (author.alias || author.firstName)[0].toUpperCase()
     return (
-      <div className={`${sizeClasses} rounded-full ${user.color} flex items-center justify-center text-white font-bold shrink-0`}>
-        {user.initial}
+      <div className={`${sizeClasses} rounded-full bg-brand-sky text-white flex items-center justify-center font-bold cursor-pointer`} onClick={onClick}>
+        {initial}
+      </div>
+    )
+  }
+
+  const handleUserClick = (author: any) => {
+    // Close modal first
+    onClose()
+    // Navigate to user's profile (using simple user format)
+    const displayName = author.alias || author.firstName
+    const user = displayName.toLowerCase().replace(/\s+/g, '-').trim()
+    router.push(`/${user}s-room`)
+  }
+
+  const renderSystemMessage = (message: string, time: Date) => {
+    return (
+      <div className="flex justify-center my-4">
+        <div className="bg-slate-100 px-3 py-1 rounded-full">
+          <p className="text-xs text-slate-500 font-medium">{message}</p>
+          <p className="text-[10px] text-slate-400 text-center mt-1">{formatTime(time)}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex">
+    <div className="fixed inset-0 z-[100] flex">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-white/30 backdrop-blur-md border border-white/40"
         onClick={onClose}
       />
       
       {/* Modal Container - Anchored to bottom navigation */}
-      <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 w-[70vw] max-w-4xl h-[70vh] bg-white rounded-t-3xl shadow-2xl border border-slate-200 flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+      <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-6xl h-[80vh] bg-white rounded-t-3xl shadow-2xl border border-slate-200 flex flex-col animate-in slide-in-from-bottom-4 duration-300">
         
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-gradient-to-r from-brand-sky to-brand-pink text-white rounded-t-3xl">
@@ -130,91 +299,68 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
             <div className="flex-1 h-px bg-slate-300"></div>
           </div>
           
-          {/* Sample Messages */}
+          {/* Messages */}
           <div className="space-y-3">
-            <div className="flex gap-3">
-              {renderAvatar(users.mom)}
-              <div className="flex-1">
-                <div className="bg-white p-3 rounded-2xl shadow-sm">
-                  <p className="text-sm text-slate-700">Hey everyone! How&apos;s everyone doing today?</p>
-                </div>
-                <div className="flex items-center gap-2 mt-1 px-2">
-                  <button 
-                    onClick={() => handleUserClick(users.mom)}
-                    className="text-xs text-slate-400 font-medium hover:text-brand-pink transition-colors cursor-pointer"
-                  >
-                    {getDisplayName(users.mom)}
-                  </button>
-                  <span className="text-xs text-slate-300">•</span>
-                  <p className="text-xs text-slate-400">{formatTime(sampleDate1)}</p>
-                </div>
-              </div>
-            </div>
+            {/* Join Message - Appears when new user registers */}
+            {joinMessage && renderSystemMessage(joinMessage, new Date())}
             
-            <div className="flex gap-3 justify-end">
-              <div className="flex-1 max-w-xs">
-                <div className="bg-brand-sky p-3 rounded-2xl shadow-sm">
-                  <p className="text-sm text-white">Doing great! Just finished work.</p>
+            {/* Real Messages */}
+            {messages.map((message) => {
+              const isCurrentUser = message.author.id === currentUserId
+              return (
+                <div key={message.id} className={`flex gap-3 ${isCurrentUser ? 'justify-end' : ''}`}>
+                  {!isCurrentUser && renderAvatar(message.author, 'small', () => handleUserClick(message.author))}
+                  <div className={`flex-1 ${isCurrentUser ? 'max-w-xs' : ''}`}>
+                    <div className={`${isCurrentUser ? 'bg-brand-sky text-white' : 'bg-white text-slate-700'} p-3 rounded-2xl shadow-sm`}>
+                      <p className="text-sm">{message.content}</p>
+                    </div>
+                    <div className={`flex items-center gap-2 mt-1 px-2 ${isCurrentUser ? 'justify-end' : ''}`}>
+                      <button 
+                        onClick={() => handleUserClick(message.author)}
+                        className={`text-xs font-medium hover:text-brand-pink transition-colors cursor-pointer ${isCurrentUser ? 'text-brand-sky/80' : 'text-slate-400'}`}
+                      >
+                        {getDisplayName(message.author)}
+                      </button>
+                      <span className={`text-xs ${isCurrentUser ? 'text-brand-sky/60' : 'text-slate-300'}`}>•</span>
+                      <p className={`text-xs ${isCurrentUser ? 'text-brand-sky/80' : 'text-slate-400'}`}>{formatTime(message.createdAt)}</p>
+                    </div>
+                  </div>
+                  {isCurrentUser && renderAvatar(message.author, 'small', () => handleUserClick(message.author))}
                 </div>
-                <div className="flex items-center gap-2 mt-1 px-2 justify-end">
-                  <p className="text-xs text-brand-sky/80 font-medium">{getDisplayName(users.you)}</p>
-                  <span className="text-xs text-brand-sky/60">•</span>
-                  <p className="text-xs text-brand-sky/80">{formatTime(sampleDate2)}</p>
-                </div>
-              </div>
-              {renderAvatar(users.you)}
-            </div>
-
-            <div className="flex gap-3">
-              {renderAvatar(users.dad)}
-              <div className="flex-1">
-                <div className="bg-white p-3 rounded-2xl shadow-sm">
-                  <p className="text-sm text-slate-700">Great to hear! Anyone up for dinner this weekend?</p>
-                </div>
-                <div className="flex items-center gap-2 mt-1 px-2">
-                  <button 
-                    onClick={() => handleUserClick(users.dad)}
-                    className="text-xs text-slate-400 font-medium hover:text-brand-pink transition-colors cursor-pointer"
-                  >
-                    {getDisplayName(users.dad)}
-                  </button>
-                  <span className="text-xs text-slate-300">•</span>
-                  <p className="text-xs text-slate-400">{formatTime(sampleDate2)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <div className="flex-1 max-w-xs">
-                <div className="bg-brand-sky p-3 rounded-2xl shadow-sm">
-                  <p className="text-sm text-white">I&apos;m in! What time works for everyone?</p>
-                </div>
-                <div className="flex items-center gap-2 mt-1 px-2 justify-end">
-                  <p className="text-xs text-brand-sky/80 font-medium">{getDisplayName(users.you)}</p>
-                  <span className="text-xs text-brand-sky/60">•</span>
-                  <p className="text-xs text-brand-sky/80">{formatTime(sampleDate2)}</p>
-                </div>
-              </div>
-              {renderAvatar(users.you)}
-            </div>
+              )
+            })}
+            <div ref={messagesEndRef} />
           </div>
         </div>
         
         {/* Message Input */}
         <div className="p-4 border-t border-slate-200 bg-white">
-          <div className="flex gap-2">
-            {renderAvatar(users.you)}
+          <div className="flex gap-2 items-start">
+            <div className="transform -translate-y-0">
+              {currentUser ? renderAvatar(currentUser, 'medium', () => handleUserClick(currentUser)) : renderAvatar(users.you, 'medium')}
+            </div>
             <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                className="w-full px-4 py-3 bg-slate-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-sky"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyUp={handleKeyPress}
+                  className="w-full px-4 py-3 pr-12 bg-slate-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-sky"
+                />
+                <button 
+                  onClick={handleSendMessage}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!inputMessage.trim() || !currentUserId}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6 text-brand-sky">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.771 59.771 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                  </svg>
+                </button>
+              </div>
               <p className="text-xs text-slate-400 mt-2 text-center">{formatDate(now)} • {formatTime(now)}</p>
             </div>
-            <button className="px-6 py-3 bg-brand-sky text-white rounded-full font-medium hover:bg-brand-pink transition-colors self-end">
-              Send
-            </button>
           </div>
         </div>
       </div>
