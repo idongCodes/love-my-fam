@@ -22,7 +22,24 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
   }>>([])
   const [inputMessage, setInputMessage] = useState('')
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Fetch current user data
+  const fetchCurrentUser = async () => {
+    if (currentUserId) {
+      try {
+        // API should be in root, not in subfolder
+        const response = await fetch(`/api/user/${currentUserId}`)
+        if (response.ok) {
+          const userData = await response.json()
+          setCurrentUser(userData)
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      }
+    }
+  }
 
   // Fetch messages from database
   const fetchMessages = async () => {
@@ -81,8 +98,11 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
       // Fallback: If no session, try to use a test user ID for debugging
       const userId = sessionId || 'test-user-id'
       setCurrentUserId(userId)
+      
+      // Fetch current user data
+      fetchCurrentUser()
     }
-  }, [isOpen])
+  }, [isOpen, fetchCurrentUser])
 
   // Poll for new messages every 5 seconds
   useEffect(() => {
@@ -193,7 +213,7 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
     return author.alias || `${author.firstName} ${author.lastName}`
   }
 
-  const renderAvatar = (author: any, size: 'small' | 'medium' = 'small') => {
+  const renderAvatar = (author: any, size: 'small' | 'medium' = 'small', onClick?: () => void = () => {}) => {
     const sizeClasses = size === 'small' ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-base'
     
     if (author.profileImage) {
@@ -201,14 +221,15 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
         <img 
           src={author.profileImage} 
           alt={author.firstName} 
-          className={`${sizeClasses} rounded-full object-cover`}
+          className={`${sizeClasses} rounded-full object-cover cursor-pointer`}
+          onClick={onClick}
         />
       )
     }
     
     const initial = (author.alias || author.firstName)[0].toUpperCase()
     return (
-      <div className={`${sizeClasses} rounded-full bg-brand-sky text-white flex items-center justify-center font-bold`}>
+      <div className={`${sizeClasses} rounded-full bg-brand-sky text-white flex items-center justify-center font-bold cursor-pointer`} onClick={onClick}>
         {initial}
       </div>
     )
@@ -217,8 +238,10 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
   const handleUserClick = (author: any) => {
     // Close modal first
     onClose()
-    // Navigate to user's profile (using firstName for the route)
-    router.push(`/${author.firstName.toLowerCase()}s-room`)
+    // Navigate to user's profile (using simple user format)
+    const displayName = author.alias || author.firstName
+    const user = displayName.toLowerCase().replace(/\s+/g, '-').trim()
+    router.push(`/${user}s-room`)
   }
 
   const renderSystemMessage = (message: string, time: Date) => {
@@ -236,12 +259,12 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
     <div className="fixed inset-0 z-[100] flex">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-white/30 backdrop-blur-md border border-white/40"
         onClick={onClose}
       />
       
       {/* Modal Container - Anchored to bottom navigation */}
-      <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 w-[70vw] max-w-4xl h-[70vh] bg-white rounded-t-3xl shadow-2xl border border-slate-200 flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+      <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-6xl h-[80vh] bg-white rounded-t-3xl shadow-2xl border border-slate-200 flex flex-col animate-in slide-in-from-bottom-4 duration-300">
         
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-gradient-to-r from-brand-sky to-brand-pink text-white rounded-t-3xl">
@@ -286,7 +309,7 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
               const isCurrentUser = message.author.id === currentUserId
               return (
                 <div key={message.id} className={`flex gap-3 ${isCurrentUser ? 'justify-end' : ''}`}>
-                  {!isCurrentUser && renderAvatar(message.author)}
+                  {!isCurrentUser && renderAvatar(message.author, 'small', () => handleUserClick(message.author))}
                   <div className={`flex-1 ${isCurrentUser ? 'max-w-xs' : ''}`}>
                     <div className={`${isCurrentUser ? 'bg-brand-sky text-white' : 'bg-white text-slate-700'} p-3 rounded-2xl shadow-sm`}>
                       <p className="text-sm">{message.content}</p>
@@ -302,7 +325,7 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
                       <p className={`text-xs ${isCurrentUser ? 'text-brand-sky/80' : 'text-slate-400'}`}>{formatTime(message.createdAt)}</p>
                     </div>
                   </div>
-                  {isCurrentUser && renderAvatar(message.author)}
+                  {isCurrentUser && renderAvatar(message.author, 'small', () => handleUserClick(message.author))}
                 </div>
               )
             })}
@@ -312,25 +335,32 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
         
         {/* Message Input */}
         <div className="p-4 border-t border-slate-200 bg-white">
-          <div className="flex gap-2">
-            {renderAvatar(users.you)}
+          <div className="flex gap-2 items-start">
+            <div className="transform -translate-y-0">
+              {currentUser ? renderAvatar(currentUser, 'medium', () => handleUserClick(currentUser)) : renderAvatar(users.you, 'medium')}
+            </div>
             <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="w-full px-4 py-3 bg-slate-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-sky"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyUp={handleKeyPress}
+                  className="w-full px-4 py-3 pr-12 bg-slate-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-sky"
+                />
+                <button 
+                  onClick={handleSendMessage}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!inputMessage.trim() || !currentUserId}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6 text-brand-sky">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.771 59.771 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                  </svg>
+                </button>
+              </div>
               <p className="text-xs text-slate-400 mt-2 text-center">{formatDate(now)} • {formatTime(now)}</p>
             </div>
-            <button 
-              onClick={handleSendMessage}
-              className="px-6 py-3 bg-brand-sky text-white rounded-full font-medium hover:bg-brand-pink transition-colors self-end"
-            >
-              Send
-            </button>
           </div>
         </div>
       </div>
