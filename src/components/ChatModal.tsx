@@ -66,7 +66,7 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
     router.push(`/${user.firstName.toLowerCase()}s-room`)
   }
 
-  const renderAvatar = (user: typeof users.mom, size: 'small' | 'medium' = 'small') => {
+  const renderAvatar = (user: any, size: 'small' | 'medium' = 'small') => {
     const sizeClasses = size === 'small' ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-base'
     
     if (user.profileImage) {
