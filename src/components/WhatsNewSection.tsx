@@ -1,6 +1,47 @@
 'use client'
 
+import { getRecentUpdates } from '@/lib/whatsNew'
+import { updateTemplates } from '@/lib/updateLogger'
+
+// Demonstrate logging a new update
+updateTemplates.newFeature(
+  'Dynamic Update System',
+  'The What\'s New section now automatically updates whenever new features are added to the app.',
+  'v4.6'
+)
+
 export default function WhatsNewSection() {
+  const recentUpdates = getRecentUpdates(3)
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'just-released':
+        return {
+          text: 'Just Released',
+          color: 'text-brand-pink',
+          bgColor: 'bg-brand-pink'
+        }
+      case 'recently-updated':
+        return {
+          text: 'Recently Updated',
+          color: 'text-brand-yellow/80',
+          bgColor: 'bg-brand-yellow/80'
+        }
+      case 'coming-soon':
+        return {
+          text: 'Coming Soon',
+          color: 'text-brand-sky',
+          bgColor: 'bg-brand-sky'
+        }
+      default:
+        return {
+          text: 'New',
+          color: 'text-brand-pink',
+          bgColor: 'bg-brand-pink'
+        }
+    }
+  }
+
   return (
     <section className="py-12 px-6 bg-gradient-to-br from-brand-sky/5 to-brand-pink/5 border-t border-slate-200">
       <div className="max-w-4xl mx-auto">
@@ -16,53 +57,36 @@ export default function WhatsNewSection() {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-4">
-          {/* Feature 1: Modern Navigation */}
-          <div className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all hover:scale-105 border border-brand-sky/10">
-            <div className="text-2xl mb-3 text-center">
-              <span>🧭</span>
-            </div>
-            <h3 className="font-bold text-base mb-2 text-brand-sky">Modern Navigation</h3>
-            <p className="text-slate-600 text-xs leading-relaxed">
-              Our new floating pill navigation makes getting around easier than ever. Clean, intuitive, and always at your fingertips.
-            </p>
-            <div className="mt-3 flex items-center gap-2 text-xs text-brand-pink font-medium">
-              <span className="w-1.5 h-1.5 bg-brand-pink rounded-full animate-pulse"></span>
-              Just Released
-            </div>
+        {recentUpdates.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-4">
+            {recentUpdates.map((update) => {
+              const statusBadge = getStatusBadge(update.status)
+              return (
+                <div key={update.id} className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all hover:scale-105 border border-brand-sky/10">
+                  <div className="text-2xl mb-3 text-center">
+                    <span>{update.icon}</span>
+                  </div>
+                  <h3 className="font-bold text-base mb-2 text-brand-sky">{update.title}</h3>
+                  <p className="text-slate-600 text-xs leading-relaxed">
+                    {update.description}
+                  </p>
+                  <div className="mt-3 flex items-center gap-2 text-xs font-medium">
+                    <span className={`w-1.5 h-1.5 ${statusBadge.bgColor} rounded-full animate-pulse`}></span>
+                    <span className={statusBadge.color}>{statusBadge.text}</span>
+                    {update.version && (
+                      <span className="text-slate-400 ml-auto">{update.version}</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-
-          {/* Feature 2: My Mirror */}
-          <div className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all hover:scale-105 border border-brand-pink/10">
-            <div className="text-2xl mb-3 text-center">
-              <span>🪞</span>
-            </div>
-            <h3 className="font-bold text-base mb-2 text-brand-pink">My Mirror</h3>
-            <p className="text-slate-600 text-xs leading-relaxed">
-              See yourself through family&apos;s eyes. The new My Mirror tab shows exactly how others see your profile.
-            </p>
-            <div className="mt-3 flex items-center gap-2 text-xs text-brand-pink font-medium">
-              <span className="w-1.5 h-1.5 bg-brand-pink rounded-full animate-pulse"></span>
-              Just Released
-            </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-slate-500">No recent updates to show.</p>
           </div>
-
-          {/* Feature 3: Enhanced Profiles */}
-          <div className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all hover:scale-105 border border-brand-yellow/20">
-            <div className="text-2xl mb-3 text-center">
-              <span>👤</span>
-            </div>
-            <h3 className="font-bold text-base mb-2 text-brand-sky">Enhanced Profiles</h3>
-            <p className="text-slate-600 text-xs leading-relaxed">
-              Better position display with interactive tooltips. Cleaner, more intuitive family member information.
-            </p>
-            <div className="mt-3 flex items-center gap-2 text-xs text-brand-yellow/80 font-medium">
-              <span className="w-1.5 h-1.5 bg-brand-yellow/80 rounded-full animate-pulse"></span>
-              Recently Updated
-            </div>
-          </div>
-        </div>
-        </div>
-      </section>
+        )}
+      </div>
+    </section>
   )
 }
