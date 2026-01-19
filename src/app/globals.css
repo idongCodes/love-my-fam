@@ -8,13 +8,54 @@
   --color-brand-cream: #FDFBD4;  /* Cream */
 }
 
-/* You can keep your standard CSS below if you want */
+/* Force light theme regardless of device preferences */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
 }
 
+/* Override dark mode preferences */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff;
+    --foreground: #171717;
+    color-scheme: light;
+  }
+}
+
+/* Force light theme on body */
 body {
   background: var(--background);
   color: var(--foreground);
+  color-scheme: light;
+}
+
+/* Override any dark mode styles */
+html, body {
+  color-scheme: light !important;
+}
+
+/* Ensure inputs and form elements stay in light mode */
+input, textarea, select, button {
+  color-scheme: light;
+}
+
+/* Force light scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
