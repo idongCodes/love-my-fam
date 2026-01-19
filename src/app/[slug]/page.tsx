@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import StatusBadge from '@/components/StatusBadge'
+import FamilyPositionIcon from '@/components/FamilyPositionIcon'
 
 const prisma = new PrismaClient()
 
@@ -94,9 +95,7 @@ export default async function ProfileRoom({ params }: { params: Promise<{ slug: 
 
           {/* Position & Admin Tag */}
           <div className="mt-3 flex flex-wrap justify-center gap-2">
-            <span className="bg-brand-sky/10 text-brand-sky px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-brand-sky/20">
-              {user.position}
-            </span>
+            <FamilyPositionIcon position={user.position} size="medium" />
             {isAdmin && (
               <span className="bg-slate-800 text-brand-yellow px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-slate-600 flex items-center gap-1 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" /></svg>

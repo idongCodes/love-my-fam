@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import StatusBadge from '@/components/StatusBadge' // <--- Import
+import FamilyPositionIcon from '@/components/FamilyPositionIcon' // <--- Import FamilyPositionIcon
 
 const prisma = new PrismaClient()
 
@@ -79,9 +80,9 @@ export default async function FamilyDirectory() {
                   <span className="text-sm text-slate-400 font-medium truncate">@{user.alias}</span>
                 )}
                 
-                <span className="text-xs text-brand-sky font-bold uppercase tracking-wider mt-1 truncate">
-                  {user.position}
-                </span>
+                <div className="mt-1">
+                  <FamilyPositionIcon position={user.position} size="small" />
+                </div>
               </div>
 
             </div>

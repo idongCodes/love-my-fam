@@ -7,6 +7,7 @@ import LikeButton from './LikeButton'
 import EmojiButton from './EmojiButton'
 import { useRouter } from 'next/navigation'
 import StatusBadge from './StatusBadge'
+import FamilyPositionIcon from './FamilyPositionIcon'
 
 export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
   const router = useRouter()
@@ -75,7 +76,7 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="font-bold text-slate-800 leading-tight">{displayName}</span>
-              <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-0.5 rounded-full font-bold uppercase border border-brand-sky/20">{post.author.position}</span>
+              <FamilyPositionIcon position={post.author.position} size="small" />
             </div>
             {isAdmin && (
               <span className="bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded w-fit flex items-center gap-1 mt-1 shadow-sm">
