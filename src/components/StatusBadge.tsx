@@ -43,7 +43,7 @@ export default function StatusBadge({
 
   return (
     <div 
-      className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ease-out z-50 overflow-hidden origin-left
+      className={`absolute flex items-center justify-center cursor-pointer transition-all duration-300 ease-out z-40 overflow-hidden origin-left
         ${current.position}
         
         /* SHAPE & SIZE TRANSITION */

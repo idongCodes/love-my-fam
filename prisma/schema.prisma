@@ -34,6 +34,7 @@ model User {
   commentLikes  CommentLike[]
   Testimonial   Testimonial[]
   dismissals    PostDismissal[]
+  chatMessages  ChatMessage[]    @relation("UserChatMessages")
 }
 
 // 3. POST MODEL
@@ -128,6 +129,16 @@ model PostDismissal {
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+}
+
+// 8. CHAT MESSAGE MODEL
+model ChatMessage {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  authorId String
+  author   User   @relation("UserChatMessages", fields: [authorId], references: [id])
 }
 
 // NEW: SYSTEM SETTINGS (Singleton)
