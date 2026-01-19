@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import AutoLogout from "@/components/AutoLogout";
 import FeedbackSection from "@/components/FeedbackSection";
 import FeedbackWidget from "@/components/FeedbackWidget";
+import WhatsNewSection from "@/components/WhatsNewSection";
 import { cookies } from "next/headers";
 import "./globals.css";
 
@@ -45,10 +46,13 @@ export default async function RootLayout({
         </main>
 
         {/* 1. Global Feedback Section (Sits above footer) */}
-        {/* We removed the 'isLoggedIn' prop to fix the layout bug */}
+        {/* We removed 'isLoggedIn' prop to fix the layout bug */}
         <FeedbackSection />
 
-        {/* 2. Global Footer */}
+        {/* 2. What's New Section (Sits above footer) */}
+        <WhatsNewSection />
+
+        {/* 3. Global Footer */}
         <footer className="bg-slate-800 text-brand-sky py-8 text-center border-t border-slate-700">
           
           {/* Feedback Widget Trigger (Sits inside footer) */}

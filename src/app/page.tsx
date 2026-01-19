@@ -59,8 +59,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ... (Rest of your sections: The Mission, Features, Testimonials) ... */}
-      
       <section className="py-20 px-6 bg-white">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-8 text-brand-sky">The Mission</h2>
