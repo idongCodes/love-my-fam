@@ -53,7 +53,7 @@ export default async function ProfileRoom({ params }: { params: Promise<{ slug: 
     <main className="min-h-screen bg-slate-50 font-sans py-24 px-4 flex justify-center items-start">
       
       {/* CARD CONTAINER */}
-      <div className="bg-white w-full max-w-lg rounded-3xl shadow-xl border border-slate-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500 relative">
+      <div className="bg-white w-full max-w-lg rounded-3xl shadow-xl border border-slate-100 animate-in slide-in-from-bottom-4 duration-500 relative">
         
         {/* Navigation Back Link */}
         <div className="absolute top-6 left-6 z-20">
@@ -72,7 +72,7 @@ export default async function ProfileRoom({ params }: { params: Promise<{ slug: 
         <div className="pt-16 pb-8 px-8 flex flex-col items-center text-center relative">
           
           {/* Avatar + Badge */}
-          <div className="relative mb-5 group">
+          <div className="relative mb-5 group" style={{ paddingRight: '2rem' }}>
             <div className="w-32 h-32 rounded-full flex items-center justify-center text-5xl font-bold shrink-0 overflow-hidden border-4 border-brand-sky/20 shadow-md bg-white text-brand-sky">
               {user.profileImage ? (
                 <img src={user.profileImage} alt={user.firstName} className="w-full h-full object-cover" />
