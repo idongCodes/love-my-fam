@@ -213,7 +213,7 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
     return author.alias || `${author.firstName} ${author.lastName}`
   }
 
-  const renderAvatar = (author: any, size: 'small' | 'medium' = 'small', onClick?: () => void = () => {}) => {
+  const renderAvatar = (author: any, size: 'small' | 'medium' = 'small', onClick: () => void = () => {}) => {
     const sizeClasses = size === 'small' ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-base'
     
     if (author.profileImage) {
