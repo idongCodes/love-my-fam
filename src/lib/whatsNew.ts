@@ -1,0 +1,81 @@
+export interface UpdateItem {
+  id: string
+  title: string
+  description: string
+  icon: string
+  category: 'feature' | 'fix' | 'update'
+  status: 'just-released' | 'recently-updated' | 'coming-soon'
+  date: Date
+  version?: string
+}
+
+export const whatsNewData: UpdateItem[] = [
+  {
+    id: 'whats-new-dynamic',
+    title: 'Dynamic What\'s New',
+    description: 'The What\'s New section now automatically updates whenever new features, fixes, or improvements are added to the app.',
+    icon: '🔄',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2025-01-18'),
+    version: 'v4.6'
+  },
+  {
+    id: 'modern-navigation',
+    title: 'Modern Navigation',
+    description: 'Our new floating pill navigation makes getting around easier than ever. Clean, intuitive, and always at your fingertips.',
+    icon: '🧭',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2025-01-18'),
+    version: 'v4.5'
+  },
+  {
+    id: 'my-mirror',
+    title: 'My Mirror',
+    description: 'See yourself through family\'s eyes. The new My Mirror tab shows exactly how others see your profile.',
+    icon: '🪞',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2025-01-18'),
+    version: 'v4.5'
+  },
+  {
+    id: 'enhanced-profiles',
+    title: 'Enhanced Profiles',
+    description: 'Better position display with interactive tooltips. Cleaner, more intuitive family member information.',
+    icon: '👤',
+    category: 'update',
+    status: 'recently-updated',
+    date: new Date('2025-01-18'),
+    version: 'v4.5'
+  }
+]
+
+// Helper functions for managing updates
+export function addUpdate(update: Omit<UpdateItem, 'id'>): UpdateItem {
+  const newUpdate: UpdateItem = {
+    ...update,
+    id: update.title.toLowerCase().replace(/\s+/g, '-')
+  }
+  whatsNewData.unshift(newUpdate)
+  return newUpdate
+}
+
+export function getRecentUpdates(limit: number = 3): UpdateItem[] {
+  return whatsNewData
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, limit)
+}
+
+export function getUpdatesByCategory(category: UpdateItem['category']): UpdateItem[] {
+  return whatsNewData
+    .filter(update => update.category === category)
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+}
+
+export function getUpdatesByStatus(status: UpdateItem['status']): UpdateItem[] {
+  return whatsNewData
+    .filter(update => update.status === status)
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+}

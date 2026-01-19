@@ -7,6 +7,7 @@ import LikeButton from './LikeButton'
 import EmojiButton from './EmojiButton'
 import { useRouter } from 'next/navigation'
 import StatusBadge from './StatusBadge'
+import FamilyPositionIcon from './FamilyPositionIcon'
 
 export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
   const router = useRouter()
@@ -44,6 +45,9 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
   const profileImage = post.author.profileImage
   
   // --- NEW: STATUS ICON LOGIC ---
+  const handleAuthorClick = () => {
+    router.push(`/${post.author.firstName.toLowerCase()}s-room`)
+  }
   const statusEmoji = post.author.status ? Array.from(post.author.status)[0] : null
 
   // Styles
@@ -60,13 +64,16 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
           
           {/* AVATAR CONTAINER */}
           <div className="relative">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden bg-brand-pink text-slate-700 font-bold text-lg">
+            <button 
+              onClick={handleAuthorClick}
+              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden bg-brand-pink text-slate-700 font-bold text-lg hover:opacity-80 transition-opacity"
+            >
               {profileImage ? (
                  <img src={profileImage} alt={displayName} className="w-full h-full object-cover" />
               ) : (
                  <span>{firstLetter}</span>
               )}
-            </div>
+            </button>
             
             {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT */}
             <StatusBadge status={post.author.status} size="normal" />
@@ -74,8 +81,13 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
           
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-800 leading-tight">{displayName}</span>
-              <span className="text-[10px] bg-brand-sky/10 text-brand-sky px-2 py-0.5 rounded-full font-bold uppercase border border-brand-sky/20">{post.author.position}</span>
+              <button 
+                onClick={handleAuthorClick}
+                className="font-bold text-slate-800 leading-tight hover:text-brand-pink transition-colors"
+              >
+                {displayName}
+              </button>
+              <FamilyPositionIcon position={post.author.position} size="small" />
             </div>
             {isAdmin && (
               <span className="bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded w-fit flex items-center gap-1 mt-1 shadow-sm">

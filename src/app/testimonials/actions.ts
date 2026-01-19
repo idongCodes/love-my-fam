@@ -31,22 +31,23 @@ export async function submitTestimonial(content: string) {
 
 // 2. SECURE FETCH ACTION
 export async function getTestimonials() {
-  const currentUserId = await getCurrentUserId()
-  const isGuest = !currentUserId
+  try {
+    const currentUserId = await getCurrentUserId()
+    const isGuest = !currentUserId
 
-  const testimonials = await prisma.testimonial.findMany({
-    take: 6,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      author: {
-        // ✅ ADDED: 'status' to selection
-        select: { firstName: true, alias: true, email: true, profileImage: true, status: true } 
+    const testimonials = await prisma.testimonial.findMany({
+      take: 6,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        author: {
+          // ✅ ADDED: 'status' to selection
+          select: { firstName: true, alias: true, email: true, profileImage: true, status: true } 
+        }
       }
-    }
-  })
+    })
 
   // HELPER: List of sensitive names to redact
-  let sensitiveWords = new Set<string>()
+  const sensitiveWords = new Set<string>()
   if (isGuest) {
     const allUsers = await prisma.user.findMany({
       select: { firstName: true, alias: true }
@@ -97,4 +98,8 @@ export async function getTestimonials() {
       redactedContent: t.content
     }
   })
+  } catch (error) {
+    console.log('Failed to fetch testimonials:', error)
+    return []
+  }
 }

@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import StatusBadge from '@/components/StatusBadge' // <--- Import
+import FamilyPositionIcon from '@/components/FamilyPositionIcon' // <--- Import FamilyPositionIcon
 
 const prisma = new PrismaClient()
 
@@ -52,13 +53,15 @@ export default async function FamilyDirectory() {
               
               {/* AVATAR + STATUS */}
               <div className="relative">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 overflow-hidden ${!user.profileImage ? 'bg-brand-sky/20 text-brand-sky' : ''}`}>
-                  {user.profileImage ? (
-                    <img src={user.profileImage} alt={user.firstName} className="w-full h-full object-cover" />
-                  ) : (
-                    (user.alias || user.firstName)[0].toUpperCase()
-                  )}
-                </div>
+                <Link href={`/${user.firstName.toLowerCase()}s-room`} className="block">
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 overflow-hidden hover:opacity-80 transition-opacity ${!user.profileImage ? 'bg-brand-sky/20 text-brand-sky' : ''}`}>
+                    {user.profileImage ? (
+                      <img src={user.profileImage} alt={user.firstName} className="w-full h-full object-cover" />
+                    ) : (
+                      (user.alias || user.firstName)[0].toUpperCase()
+                    )}
+                  </div>
+                </Link>
                 
                 {/* ✅ ADD STATUS BADGE */}
                 <StatusBadge status={user.status} size="normal" />
@@ -67,21 +70,23 @@ export default async function FamilyDirectory() {
               {/* INFO */}
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-800 text-lg truncate">
+                  <Link href={`/${user.firstName.toLowerCase()}s-room`} className="font-bold text-slate-800 text-lg truncate hover:text-brand-pink transition-colors">
                     {user.firstName} {user.lastName}
-                  </span>
+                  </Link>
                   {user.id === sessionId && (
                     <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">YOU</span>
                   )}
                 </div>
                 
                 {user.alias && (
-                  <span className="text-sm text-slate-400 font-medium truncate">@{user.alias}</span>
+                  <Link href={`/${user.firstName.toLowerCase()}s-room`} className="text-sm text-slate-400 font-medium truncate hover:text-brand-pink transition-colors">
+                    @{user.alias}
+                  </Link>
                 )}
                 
-                <span className="text-xs text-brand-sky font-bold uppercase tracking-wider mt-1 truncate">
-                  {user.position}
-                </span>
+                <div className="mt-1">
+                  <FamilyPositionIcon position={user.position} size="small" />
+                </div>
               </div>
 
             </div>

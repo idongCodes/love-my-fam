@@ -3,9 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/app/actions'
+import { useState } from 'react'
+import ChatModal from './ChatModal'
 
 export default function BottomNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   const pathname = usePathname()
+  const [isChatOpen, setIsChatOpen] = useState(false)
 
   const navItems = [
     {
@@ -45,6 +48,17 @@ export default function BottomNav({ isLoggedIn }: { isLoggedIn: boolean }) {
           </svg>
         ),
       },
+      {
+        name: 'Chat',
+        href: '/chat',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+        ),
+        isButton: true,
+        onClick: () => setIsChatOpen(true),
+      },
     ] : []),
   ]
 
@@ -64,30 +78,59 @@ export default function BottomNav({ isLoggedIn }: { isLoggedIn: boolean }) {
         
         {/* Navigation content */}
         <div className="relative flex items-center justify-center px-6 py-2 gap-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`
-                flex flex-col items-center gap-1 px-4 py-2 rounded-full transition-all duration-300
-                ${isActive(item.href) 
-                  ? 'text-slate-800 bg-brand-yellow/90 scale-110' 
-                  : 'text-white/90 hover:text-white hover:bg-white/20 hover:scale-105'
-                }
-              `}
-            >
-              <div className="relative">
-                {item.icon}
-                {/* Active indicator */}
-                {isActive(item.href) && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-slate-800 rounded-full animate-pulse" />
-                )}
-              </div>
-              <span className="text-xs font-medium hidden lg:block">
-                {item.name}
-              </span>
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            if (item.isButton) {
+              return (
+                <button
+                  key={item.name}
+                  onClick={item.onClick}
+                  className={`
+                    flex flex-col items-center gap-1 px-4 py-2 rounded-full transition-all duration-300
+                    ${isActive(item.href) 
+                      ? 'text-slate-800 bg-brand-yellow/90 scale-110' 
+                      : 'text-white/90 hover:text-white hover:bg-white/20 hover:scale-105'
+                    }
+                  `}
+                >
+                  <div className="relative">
+                    {item.icon}
+                    {/* Active indicator */}
+                    {isActive(item.href) && (
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-slate-800 rounded-full animate-pulse" />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium hidden lg:block">
+                    {item.name}
+                  </span>
+                </button>
+              )
+            } else {
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`
+                    flex flex-col items-center gap-1 px-4 py-2 rounded-full transition-all duration-300
+                    ${isActive(item.href) 
+                      ? 'text-slate-800 bg-brand-yellow/90 scale-110' 
+                      : 'text-white/90 hover:text-white hover:bg-white/20 hover:scale-105'
+                    }
+                  `}
+                >
+                  <div className="relative">
+                    {item.icon}
+                    {/* Active indicator */}
+                    {isActive(item.href) && (
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-slate-800 rounded-full animate-pulse" />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium hidden lg:block">
+                    {item.name}
+                  </span>
+                </Link>
+              )
+            }
+          })}
           
           {/* Logout button (only when logged in) */}
           {isLoggedIn && (
@@ -107,6 +150,9 @@ export default function BottomNav({ isLoggedIn }: { isLoggedIn: boolean }) {
           )}
         </div>
       </div>
+      
+      {/* Chat Modal */}
+      <ChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </nav>
   )
 }
