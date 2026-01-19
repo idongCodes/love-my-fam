@@ -45,6 +45,9 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
   const profileImage = post.author.profileImage
   
   // --- NEW: STATUS ICON LOGIC ---
+  const handleAuthorClick = () => {
+    router.push(`/${post.author.firstName.toLowerCase()}s-room`)
+  }
   const statusEmoji = post.author.status ? Array.from(post.author.status)[0] : null
 
   // Styles
@@ -61,13 +64,16 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
           
           {/* AVATAR CONTAINER */}
           <div className="relative">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden bg-brand-pink text-slate-700 font-bold text-lg">
+            <button 
+              onClick={handleAuthorClick}
+              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden bg-brand-pink text-slate-700 font-bold text-lg hover:opacity-80 transition-opacity"
+            >
               {profileImage ? (
                  <img src={profileImage} alt={displayName} className="w-full h-full object-cover" />
               ) : (
                  <span>{firstLetter}</span>
               )}
-            </div>
+            </button>
             
             {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT */}
             <StatusBadge status={post.author.status} size="normal" />
@@ -75,7 +81,12 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
           
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-800 leading-tight">{displayName}</span>
+              <button 
+                onClick={handleAuthorClick}
+                className="font-bold text-slate-800 leading-tight hover:text-brand-pink transition-colors"
+              >
+                {displayName}
+              </button>
               <FamilyPositionIcon position={post.author.position} size="small" />
             </div>
             {isAdmin && (

@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { addComment, toggleCommentLike, deleteComment, editComment } from '@/app/common-room/actions'
 import LikeButton from './LikeButton'
 import EmojiButton from './EmojiButton'
 import StatusBadge from './StatusBadge'
 
 export default function CommentItem({ comment, currentUserId, postId }: { comment: any, currentUserId: string, postId: string }) {
+  const router = useRouter()
   const [isReplying, setIsReplying] = useState(false)
   const [replyText, setReplyText] = useState('')
   const [isEditing, setIsEditing] = useState(false)
@@ -21,6 +23,12 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
   const firstLetter = displayName[0]?.toUpperCase() || '?'
   const profileImage = comment.author?.profileImage
 
+  const handleAuthorClick = () => {
+    if (comment.author?.firstName) {
+      router.push(`/${comment.author.firstName.toLowerCase()}s-room`)
+    }
+  }
+
   async function handleReplySubmit(e: React.FormEvent) {
     e.preventDefault(); if(!replyText.trim()) return; await addComment(postId, replyText, comment.id); setReplyText(''); setIsReplying(false);
   }
@@ -33,13 +41,16 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
     <div className="flex gap-3 mt-4 w-full group">
       {/* AVATAR + STATUS BADGE */}
       <div className="relative shrink-0">
-        <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-brand-sky/20 text-brand-sky font-bold text-xs">
+        <button 
+          onClick={handleAuthorClick}
+          className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-brand-sky/20 text-brand-sky font-bold text-xs hover:opacity-80 transition-opacity"
+        >
           {profileImage ? (
              <img src={profileImage} alt={displayName} className="w-full h-full object-cover" />
           ) : (
              <span>{firstLetter}</span>
           )}
-        </div>
+        </button>
         
         <StatusBadge status={comment.author?.status} size="small" />
       </div>
@@ -48,7 +59,12 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
         {/* Content Bubble */}
         <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100 relative">
            <div className="flex justify-between items-start mb-1">
-             <span className="text-xs font-bold text-slate-700">{displayName}</span>
+             <button 
+               onClick={handleAuthorClick}
+               className="text-xs font-bold text-slate-700 hover:text-brand-pink transition-colors"
+             >
+               {displayName}
+             </button>
              <span className="text-[10px] text-slate-400">{new Date(comment.createdAt).toLocaleDateString()}</span>
            </div>
            
