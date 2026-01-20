@@ -11,6 +11,21 @@ async function getCurrentUserId() {
   return cookieStore.get('session_id')?.value
 }
 
+async function getCurrentUser() {
+  const userId = await getCurrentUserId()
+  if (!userId) return null
+  
+  return await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, position: true }
+  })
+}
+
+async function isAdmin() {
+  const user = await getCurrentUser()
+  return user?.email === 'idongesit_essien@ymail.com'
+}
+
 // 1. SUBMIT ACTION
 export async function submitTestimonial(content: string) {
   const userId = await getCurrentUserId()
@@ -27,6 +42,26 @@ export async function submitTestimonial(content: string) {
 
   revalidatePath('/') 
   return { success: true }
+}
+
+// 3. DELETE TESTIMONIAL ACTION (ADMIN ONLY)
+export async function deleteTestimonial(testimonialId: string) {
+  const userIsAdmin = await isAdmin()
+  if (!userIsAdmin) {
+    return { success: false, message: "Unauthorized - Admin access required" }
+  }
+
+  try {
+    await prisma.testimonial.delete({
+      where: { id: testimonialId }
+    })
+    
+    revalidatePath('/')
+    return { success: true, message: "Testimonial deleted successfully" }
+  } catch (error) {
+    console.error('Failed to delete testimonial:', error)
+    return { success: false, message: "Failed to delete testimonial" }
+  }
 }
 
 // 2. SECURE FETCH ACTION
