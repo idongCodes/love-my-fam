@@ -1,28 +1,6 @@
 'use client'
 
 import { getRecentUpdates } from '@/lib/whatsNew'
-import { updateTemplates } from '@/lib/updateLogger'
-
-// Demonstrate logging a new update
-updateTemplates.newFeature(
-  'Dynamic Update System',
-  'The What\'s New section now automatically updates whenever new features are added to the app.',
-  'v4.6'
-)
-
-// Log the new chat icon addition
-updateTemplates.newFeature(
-  'Chat Navigation',
-  'Added chat icon to bottom navigation for easy access to family conversations.',
-  'v4.7'
-)
-
-// Log the color theme enforcement
-updateTemplates.improvement(
-  'Persistent Light Theme',
-  'App now maintains its beautiful light theme and color scheme regardless of device dark mode settings.',
-  'v4.7'
-)
 
 export default function WhatsNewSection() {
   const recentUpdates = getRecentUpdates(3)
@@ -67,7 +45,7 @@ export default function WhatsNewSection() {
             </span>
           </h2>
           <p className="text-slate-600 max-w-2xl mx-auto text-sm">
-            Latest updates and features to keep your family connection stronger than ever.
+            Discover the latest features and improvements that make connecting with your family even better.
           </p>
         </div>
         
