@@ -67,3 +67,10 @@ export const updateTemplates = {
  *   'v4.6'
  * )
  */
+
+// Log a new update to demonstrate the system
+updateTemplates.newFeature(
+  'Enhanced Update Logger',
+  'Added comprehensive logging system that automatically tracks and displays new features, fixes, and improvements in the What\'s New section.',
+  'v4.7'
+)
