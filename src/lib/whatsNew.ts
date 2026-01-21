@@ -11,59 +11,79 @@ export interface UpdateItem {
 
 export const whatsNewData: UpdateItem[] = [
   {
-    id: 'auto-updating-whatsnew-section-based-on-commits',
-    title: 'Auto-updating WhatsNew section based on  commits',
-    description: 'Add auto-updating WhatsNew section based on  commits',
-    icon: '🚀',
+    id: 'admin-testimonial-management',
+    title: 'Easy Content Management',
+    description: 'Family admins can now easily manage testimonials to keep our family space positive and appropriate for everyone.',
+    icon: '🛡️',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-21T13:34:49.032Z'),
-    version: '0.1.0'
+    date: new Date('2025-01-20'),
+    version: 'v5.6'
   },
   {
-    id: 'login-button-to-navigation-for-logged-out-users',
-    title: 'Login button to navigation for logged out users',
-    description: 'Improvements to the login experience for better security and convenience.',
-    icon: '🚀',
+    id: 'vercel-prisma-postgres',
+    title: 'Faster & More Reliable',
+    description: 'Our family app is now faster and more reliable than ever, with better performance for sharing memories and staying connected.',
+    icon: '🗄️',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-21T13:33:42.856Z'),
-    version: '0.1.0'
+    date: new Date('2025-01-20'),
+    version: 'v5.6'
+  },
+  {
+    id: 'prisma-connection-fix',
+    title: 'Smoother Experience',
+    description: 'Fixed connection issues so you can enjoy a smoother, more stable experience when using our family features.',
+    icon: '🔧',
+    category: 'fix',
+    status: 'just-released',
+    date: new Date('2025-01-20'),
+    version: 'v5.6'
+  },
+  {
+    id: 'enhanced-security',
+    title: 'Enhanced Privacy & Safety',
+    description: 'Improved security measures to keep your family information safe and ensure only authorized family members can manage content.',
+    icon: '🔒',
+    category: 'update',
+    status: 'just-released',
+    date: new Date('2025-01-20'),
+    version: 'v5.6'
   },
   {
     id: 'whats-new-dynamic',
-    title: 'Dynamic What\'s New',
-    description: 'The What\'s New section now automatically updates whenever new features, fixes, or improvements are added to the app.',
+    title: 'Always Up-to-Date',
+    description: 'Our updates section now automatically shows the newest features and improvements, so you always know what\'s new.',
     icon: '🔄',
     category: 'feature',
-    status: 'just-released',
+    status: 'recently-updated',
     date: new Date('2025-01-18'),
     version: 'v4.6'
   },
   {
     id: 'modern-navigation',
-    title: 'Modern Navigation',
-    description: 'Our new floating pill navigation makes getting around easier than ever. Clean, intuitive, and always at your fingertips.',
+    title: 'Easy Navigation',
+    description: 'Getting around the app is now easier than ever with our new simple and intuitive navigation menu.',
     icon: '🧭',
     category: 'feature',
-    status: 'just-released',
+    status: 'recently-updated',
     date: new Date('2025-01-18'),
     version: 'v4.5'
   },
   {
     id: 'my-mirror',
-    title: 'My Mirror',
-    description: 'See yourself through family\'s eyes. The new My Mirror tab shows exactly how others see your profile.',
+    title: 'See How Others See You',
+    description: 'Curious how your family sees your profile? The new My Mirror feature shows you exactly how others view your information.',
     icon: '🪞',
     category: 'feature',
-    status: 'just-released',
+    status: 'recently-updated',
     date: new Date('2025-01-18'),
     version: 'v4.5'
   },
   {
     id: 'enhanced-profiles',
-    title: 'Enhanced Profiles',
-    description: 'Better position display with interactive tooltips. Cleaner, more intuitive family member information.',
+    title: 'Better Family Profiles',
+    description: 'Family member profiles now show information more clearly with helpful details and an improved layout.',
     icon: '👤',
     category: 'update',
     status: 'recently-updated',

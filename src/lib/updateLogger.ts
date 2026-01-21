@@ -1,4 +1,4 @@
-import { addUpdate, UpdateItem } from './whatsNew'
+import { addUpdate } from './whatsNew'
 
 /**
  * Utility function to log new updates during development
@@ -73,4 +73,29 @@ updateTemplates.newFeature(
   'Enhanced Update Logger',
   'Added comprehensive logging system that automatically tracks and displays new features, fixes, and improvements in the What\'s New section.',
   'v4.7'
+)
+
+// NEW UPDATES - v5.6
+updateTemplates.newFeature(
+  'Easy Content Management',
+  'Family admins can now easily manage testimonials to keep our family space positive and appropriate for everyone.',
+  'v5.6'
+)
+
+updateTemplates.bugFix(
+  'Smoother Experience',
+  'Fixed connection issues so you can enjoy a smoother, more stable experience when using our family features.',
+  'v5.6'
+)
+
+updateTemplates.newFeature(
+  'Faster & More Reliable',
+  'Our family app is now faster and more reliable than ever, with better performance for sharing memories and staying connected.',
+  'v5.6'
+)
+
+updateTemplates.improvement(
+  'Enhanced Privacy & Safety',
+  'Improved security measures to keep your family information safe and ensure only authorized family members can manage content.',
+  'v5.6'
 )
