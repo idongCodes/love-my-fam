@@ -10,16 +10,16 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-            {
-    id: 'remove-duplicate-closing-brace',
-    title: 'Remove Duplicate Closing Brace',
-    description: 'Remove Duplicate Closing Brace',
+              {
+    id: 'simplified-call-to-vercel/blob',
+    title: 'Simplified Call to Vercel/blob',
+    description: 'Simplified Call to Vercel/blob',
     icon: '✨',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-21T16:18:04.264Z'),
+    date: new Date('2026-01-21T16:20:41.766Z'),
     version: '0.1.0'
-  },},
+  },
   {
     id: 'auto-updating-whatsnew-section-based-on-commits',
     title: 'Auto-updating WhatsNew section based on  commits',
