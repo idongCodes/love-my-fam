@@ -11,6 +11,16 @@ export interface UpdateItem {
 
 export const whatsNewData: UpdateItem[] = [
   {
+    id: 'auto-updating-whatsnew-section-based-on-commits',
+    title: 'Auto-updating WhatsNew section based on  commits',
+    description: 'Add auto-updating WhatsNew section based on  commits',
+    icon: '🚀',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2026-01-21T13:34:49.032Z'),
+    version: '0.1.0'
+  },
+  {
     id: 'login-button-to-navigation-for-logged-out-users',
     title: 'Login button to navigation for logged out users',
     description: 'Improvements to the login experience for better security and convenience.',
