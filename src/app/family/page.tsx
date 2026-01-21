@@ -6,8 +6,11 @@ import FamilyPositionIcon from '@/components/FamilyPositionIcon' // <--- Import 
 
 const prisma = new PrismaClient()
 
-async function getUsers() {
+async function getUsers(positionFilter?: string) {
+  const whereClause = positionFilter ? { position: positionFilter } : {}
+  
   return await prisma.user.findMany({
+    where: whereClause,
     orderBy: { createdAt: 'asc' },
     // ✅ Make sure to select 'status'
     select: { 
@@ -23,8 +26,9 @@ async function getUsers() {
   })
 }
 
-export default async function FamilyDirectory() {
-  const users = await getUsers()
+export default async function FamilyDirectory({ searchParams }: { searchParams: { position?: string } }) {
+  const positionFilter = searchParams.position
+  const users = await getUsers(positionFilter)
   const cookieStore = await cookies()
   const currentUserEmail = 'idongesit_essien@ymail.com' // Admin check
   
@@ -39,8 +43,31 @@ export default async function FamilyDirectory() {
         
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-brand-sky">Family Directory</h1>
-            <p className="text-slate-500">Meet the fam.</p>
+            <h1 className="text-3xl font-bold text-brand-sky">
+              Family Directory
+              {positionFilter && (
+                <span className="text-lg font-normal text-slate-500 ml-2">
+                  - {positionFilter}
+                </span>
+              )}
+            </h1>
+            <p className="text-slate-500">
+              {positionFilter 
+                ? `Showing ${users.length} family member${users.length !== 1 ? 's' : ''} with position "${positionFilter}"`
+                : 'Meet the fam.'
+              }
+            </p>
+            {positionFilter && (
+              <Link 
+                href="/family" 
+                className="inline-flex items-center gap-1 text-sm text-brand-pink hover:text-brand-sky transition-colors mt-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear filter
+              </Link>
+            )}
           </div>
           <Link href="/common-room" className="text-sm font-bold text-slate-400 hover:text-brand-pink transition-colors">
             &larr; Back to Common Room

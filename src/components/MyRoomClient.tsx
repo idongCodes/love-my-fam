@@ -187,7 +187,7 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
           </h2>
           
           {alias && <p className="text-brand-sky font-medium">@{alias}</p>}
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2">
             <FamilyPositionIcon position={position} size="medium" />
           </div>
 
@@ -445,7 +445,7 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
                   {alias && (
                     <p className="text-brand-sky font-medium">@{alias}</p>
                   )}
-                  <div className="mt-2 flex items-center gap-2">
+                  <div className="mt-2">
                     <FamilyPositionIcon position={position} size="medium" />
                   </div>
                 </div>

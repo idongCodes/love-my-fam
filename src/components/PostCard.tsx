@@ -87,6 +87,8 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
               >
                 {displayName}
               </button>
+            </div>
+            <div className="mt-1">
               <FamilyPositionIcon position={post.author.position} size="small" />
             </div>
             {isAdmin && (
