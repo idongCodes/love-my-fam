@@ -1,28 +1,6 @@
 'use client'
 
 import { getRecentUpdates } from '@/lib/whatsNew'
-import { updateTemplates } from '@/lib/updateLogger'
-
-// Demonstrate logging a new update
-updateTemplates.newFeature(
-  'Dynamic Update System',
-  'The What\'s New section now automatically updates whenever new features are added to the app.',
-  'v4.6'
-)
-
-// Log the new chat icon addition
-updateTemplates.newFeature(
-  'Chat Navigation',
-  'Added chat icon to bottom navigation for easy access to family conversations.',
-  'v4.7'
-)
-
-// Log the color theme enforcement
-updateTemplates.improvement(
-  'Persistent Light Theme',
-  'App now maintains its beautiful light theme and color scheme regardless of device dark mode settings.',
-  'v4.7'
-)
 
 export default function WhatsNewSection() {
   const recentUpdates = getRecentUpdates(3)

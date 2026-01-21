@@ -11,6 +11,16 @@ export interface UpdateItem {
 
 export const whatsNewData: UpdateItem[] = [
   {
+    id: 'login-button-to-navigation-for-logged-out-users',
+    title: 'Login button to navigation for logged out users',
+    description: 'Improvements to the login experience for better security and convenience.',
+    icon: '🚀',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2026-01-21T13:33:42.856Z'),
+    version: '0.1.0'
+  },
+  {
     id: 'whats-new-dynamic',
     title: 'Dynamic What\'s New',
     description: 'The What\'s New section now automatically updates whenever new features, fixes, or improvements are added to the app.',
