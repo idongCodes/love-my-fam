@@ -11,6 +11,16 @@ export interface UpdateItem {
 
 export const whatsNewData: UpdateItem[] = [
   {
+    id: 'auto-whats-new',
+    title: 'Auto Whats New',
+    description: 'Auto Update Whats New',
+    icon: '🚀',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2026-01-21T13:36:54.514Z'),
+    version: '0.1.0',
+  },
+  {
     id: 'auto-updating-whatsnew-section-based-on-commits',
     title: 'Auto-updating WhatsNew section based on  commits',
     description: 'Add auto-updating WhatsNew section based on  commits',

@@ -150,16 +150,17 @@ function main() {
   
   // Find the whatsNewData array and insert new update at the beginning
   const arrayStart = content.indexOf('export const whatsNewData: UpdateItem[] = [');
-  const arrayEnd = content.indexOf(']', arrayStart);
+  const firstObjectStart = content.indexOf('{', arrayStart);
+  const firstObjectEnd = content.indexOf('},', firstObjectStart);
   
-  if (arrayStart === -1 || arrayEnd === -1) {
-    console.error('Could not find whatsNewData array');
+  if (arrayStart === -1 || firstObjectEnd === -1) {
+    console.error('Could not find whatsNewData array structure');
     process.exit(1);
   }
   
   // Insert new update as first item in array
-  const beforeArray = content.substring(0, arrayStart + 49); // after opening bracket
-  const afterArray = content.substring(arrayEnd);
+  const beforeFirstObject = content.substring(0, firstObjectStart);
+  const afterFirstObject = content.substring(firstObjectEnd);
   
   const newEntry = `  {
     id: '${newUpdate.id}',
@@ -172,7 +173,7 @@ function main() {
     version: '${newUpdate.version}'
   },`;
   
-  const updatedContent = beforeArray + '\n' + newEntry + afterArray;
+  const updatedContent = beforeFirstObject + newEntry + afterFirstObject;
   
   // Write back to file
   fs.writeFileSync(whatsNewPath, updatedContent);
