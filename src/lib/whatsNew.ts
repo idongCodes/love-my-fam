@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-    {
-    id: 'app-stability',
-    title: 'App Stability',
-    description: 'Update App Stability',
-    icon: '⚡',
-    category: 'update',
-    status: 'recently-updated',
-    date: new Date('2026-01-21T13:42:49.214Z'),
+      {
+    id: 'ensure-consistent-alignment-and-clickability',
+    title: 'Ensure consistent alignment and clickability',
+    description: 'ensure consistent alignment and clickability',
+    icon: '✨',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2026-01-21T14:20:55.157Z'),
     version: '0.1.0'
   },
   {
