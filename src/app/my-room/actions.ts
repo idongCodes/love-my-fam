@@ -21,7 +21,7 @@ export async function updateProfilePhoto(formData: FormData) {
   }
 
   try {
-    const blob = await put(imageFile.name, imageFile)
+    const blob = await put(imageFile.name, imageFile, { access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN,})
 
     await prisma.user.update({
       where: { id: userId },
