@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface FamilyPositionIconProps {
   position: string
@@ -10,6 +11,12 @@ interface FamilyPositionIconProps {
 
 export default function FamilyPositionIcon({ position, size = 'medium', className = '' }: FamilyPositionIconProps) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const router = useRouter()
+
+  const handleClick = () => {
+    // Navigate to a page that shows family positions or filter by position
+    router.push(`/family?position=${encodeURIComponent(position)}`)
+  }
 
   const textSizes = {
     small: 'text-[10px]',
@@ -22,9 +29,10 @@ export default function FamilyPositionIcon({ position, size = 'medium', classNam
   return (
     <div className={`relative inline-flex items-center justify-center ${className}`}>
       <div
-        className={`${textSizes[size]} text-brand-sky font-bold cursor-help transition-all duration-200 hover:text-brand-pink hover:underline`}
+        className={`${textSizes[size]} text-brand-sky font-bold cursor-pointer transition-all duration-200 hover:text-brand-pink hover:underline`}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
+        onClick={handleClick}
       >
         Family Position
       </div>
