@@ -14,19 +14,33 @@ export async function updateProfilePhoto(formData: FormData) {
 
   if (!userId) return { success: false, message: "Unauthorized" }
 
-  const imageFile = formData.get('file') as File | null
+  const imageFile = formData.get('file') as File
 
   if (!imageFile || imageFile.size === 0) {
     return { success: false, message: "No image provided" }
   }
 
   try {
-    const blob = await put(imageFile.name, imageFile)
+    console.log('Starting upload process...')
+    console.log('Image file:', imageFile)
+    console.log('Image file name:', imageFile?.name)
+    console.log('Image file size:', imageFile?.size)
+    console.log('Image file type:', imageFile?.type)
+    
+    // Create a new File object to ensure proper format
+    const fileToUpload = new File([imageFile], imageFile.name, {
+      type: imageFile.type || 'image/jpeg'
+    })
+    
+    const blob = await put(fileToUpload.name, fileToUpload)
+    console.log('Blob upload successful:', blob.url)
 
     await prisma.user.update({
       where: { id: userId },
       data: { profileImage: blob.url }
     })
+    
+    console.log('Database update successful')
 
     revalidatePath('/my-room')
     revalidatePath('/common-room')
@@ -36,7 +50,27 @@ export async function updateProfilePhoto(formData: FormData) {
     return { success: true, url: blob.url }
   } catch (error) {
     console.error("Upload failed:", error)
-    return { success: false, message: "Failed to upload image" }
+    console.error("Error type:", typeof error)
+    console.error("Error message:", error instanceof Error ? error.message : 'Unknown error')
+    console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace')
+    
+    // Return more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('ENOENT')) {
+        return { success: false, message: "File not found or path error" }
+      }
+      if (error.message.includes('EACCES')) {
+        return { success: false, message: "Permission denied accessing file" }
+      }
+      if (error.message.includes('blob') || error.message.includes('upload')) {
+        return { success: false, message: "Blob storage upload failed - check Vercel configuration" }
+      }
+      if (error.message.includes('prisma') || error.message.includes('database')) {
+        return { success: false, message: "Database update failed" }
+      }
+    }
+    
+    return { success: false, message: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}` }
   }
 }
 
