@@ -10,16 +10,16 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-      {
-    id: 'ensure-consistent-alignment-and-clickability',
-    title: 'Ensure consistent alignment and clickability',
-    description: 'ensure consistent alignment and clickability',
-    icon: '✨',
-    category: 'feature',
-    status: 'just-released',
-    date: new Date('2026-01-21T14:20:55.157Z'),
+        {
+    id: 'image-upload-system',
+    title: 'Image Upload System',
+    description: 'Update Image Upload System',
+    icon: '⚡',
+    category: 'update',
+    status: 'recently-updated',
+    date: new Date('2026-01-21T16:10:56.169Z'),
     version: '0.1.0'
-  },
+  },},
   {
     id: 'auto-updating-whatsnew-section-based-on-commits',
     title: 'Auto-updating WhatsNew section based on  commits',

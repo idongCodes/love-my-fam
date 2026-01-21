@@ -1,7 +1,7 @@
 import { put } from '@vercel/blob'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     console.log('Testing blob storage...')
     
@@ -10,9 +10,7 @@ export async function POST(request: NextRequest) {
     const testBlob = new Blob([testContent], { type: 'text/plain' })
     
     // Test upload to blob storage
-    const blob = await put('test-upload.txt', testBlob, {
-      access: 'public',
-    })
+    const blob = await put('test-upload.txt', testBlob)
     
     console.log('Upload successful:', blob.url)
     
@@ -37,9 +35,7 @@ export async function GET() {
     const testContent = 'Test file content'
     const testBlob = new Blob([testContent], { type: 'text/plain' })
     
-    const blob = await put('get-test.txt', testBlob, {
-      access: 'public',
-    })
+    const blob = await put('get-test.txt', testBlob)
     
     return NextResponse.json({ 
       success: true, 
