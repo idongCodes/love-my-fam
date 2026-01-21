@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-              {
-    id: 'simplified-call-to-vercel/blob',
-    title: 'Simplified Call to Vercel/blob',
-    description: 'Simplified Call to Vercel/blob',
+                {
+    id: 'removed-extra-braces',
+    title: 'Removed Extra Braces',
+    description: 'Removed Extra Braces',
     icon: '✨',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-21T16:20:41.766Z'),
+    date: new Date('2026-01-21T16:22:25.128Z'),
     version: '0.1.0'
   },
   {
