@@ -10,16 +10,16 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-          {
-    id: 'remove-invalid-props,-clean-up-imports',
-    title: 'Remove Invalid Props, clean Up imports',
-    description: 'Remove Invalid Props, clean Up imports',
+            {
+    id: 'remove-duplicate-closing-brace',
+    title: 'Remove Duplicate Closing Brace',
+    description: 'Remove Duplicate Closing Brace',
     icon: '✨',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-21T16:14:02.353Z'),
+    date: new Date('2026-01-21T16:18:04.264Z'),
     version: '0.1.0'
-  },
+  },},
   {
     id: 'admin-testimonial-management',
     title: 'Easy Content Management',
