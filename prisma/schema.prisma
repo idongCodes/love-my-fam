@@ -1,4 +1,3 @@
-// 1. CONFIGURATION
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,140 +8,109 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
-// 2. USER MODEL
 model User {
-  id           String   @id @default(cuid())
+  id           String          @id @default(cuid())
   firstName    String
   lastName     String
   alias        String?
   position     String
-  email        String   @unique
+  email        String          @unique
   phone        String?
   profileImage String?
-
-  // --- NEW FIELDS ---
-  bio       String?  // About Me
-  location  String?  // Current City/State
-  status    String?
-
-  createdAt    DateTime @default(now())
-
-  // Relations
-  posts         Post[]          @relation("UserPosts")
-  comments      Comment[]
-  likes         Like[]
-  commentLikes  CommentLike[]
-  Testimonial   Testimonial[]
-  dismissals    PostDismissal[]
-  chatMessages  ChatMessage[]    @relation("UserChatMessages")
+  bio          String?
+  location     String?
+  status       String?
+  createdAt    DateTime        @default(now())
+  chatMessages ChatMessage[]   @relation("UserChatMessages")
+  comments     Comment[]
+  commentLikes CommentLike[]
+  likes        Like[]
+  posts        Post[]          @relation("UserPosts")
+  dismissals   PostDismissal[]
+  Testimonial  Testimonial[]
 }
 
-// 3. POST MODEL
 model Post {
-  id        String   @id @default(cuid())
-  content   String
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isEdited  Boolean  @default(false)
-
-  // --- NEW FIELDS FOR ANNOUNCEMENTS ---
-  title          String? // Optional title
-  isAnnouncement Boolean @default(false)
-  isUrgent       Boolean @default(false)
-
-  // Relations
-  authorId      String
-  author        User            @relation("UserPosts", fields: [authorId], references: [id])
-  comments      Comment[]
-  likes         Like[]
-  dismissals PostDismissal[]
+  id             String          @id @default(cuid())
+  content        String
+  imageUrl       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  isEdited       Boolean         @default(false)
+  title          String?
+  isAnnouncement Boolean         @default(false)
+  isUrgent       Boolean         @default(false)
+  authorId       String
+  comments       Comment[]
+  likes          Like[]
+  author         User            @relation("UserPosts", fields: [authorId], references: [id])
+  dismissals     PostDismissal[]
 }
 
-// 4. POST LIKE MODEL
 model Like {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-
-  userId String
-  postId String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, postId]) // A user can only like a post once
-}
-
-// 5. COMMENT MODEL (Supports Recursion & Editing)
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt // Tracks when it was edited
-  isEdited  Boolean  @default(false) // Tracks if it was edited
-
-  postId String
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-
-  // Recursive Relations (Replies)
-  parentId String?
-  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  children Comment[] @relation("CommentReplies")
-
-  // Likes on Comments
-  likes CommentLike[]
-}
-
-// 6. COMMENT LIKE MODEL
-model CommentLike {
-  id String @id @default(cuid())
-
   userId    String
-  commentId String
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, commentId]) // A user can only like a comment once
-}
-
-// 7. TESTIMONIAL MODEL
-model Testimonial {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id])
-}
-
-// NEW: POST DISMISSAL MODEL
-model PostDismissal {
-  id     String @id @default(cuid())
-  userId String
-  postId String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
 }
 
-// 8. CHAT MESSAGE MODEL
+model Comment {
+  id        String        @id @default(cuid())
+  content   String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @default(now()) @updatedAt
+  isEdited  Boolean       @default(false)
+  postId    String
+  authorId  String
+  parentId  String?
+  author    User          @relation(fields: [authorId], references: [id])
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Comment[]     @relation("CommentReplies")
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes     CommentLike[]
+}
+
+model CommentLike {
+  id        String  @id @default(cuid())
+  userId    String
+  commentId String
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model PostDismissal {
+  id     String @id @default(cuid())
+  userId String
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
 model ChatMessage {
   id        String   @id @default(cuid())
   content   String
   createdAt DateTime @default(now())
-
-  authorId String
-  author   User   @relation("UserChatMessages", fields: [authorId], references: [id])
+  authorId  String
+  author    User     @relation("UserChatMessages", fields: [authorId], references: [id])
 }
 
-// NEW: SYSTEM SETTINGS (Singleton)
 model SystemSettings {
-  id           String @id @default("global") // We only need one row
+  id           String @id @default("global")
   familySecret String @default("familyfirst")
 }
