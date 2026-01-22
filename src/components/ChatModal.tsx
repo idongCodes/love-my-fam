@@ -1,8 +1,9 @@
 'use client'
 
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import EmojiButton from './EmojiButton'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { getChatMessages, sendChatMessage } from '@/app/chat/actions'
 
 export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -340,18 +341,26 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
               {currentUser ? renderAvatar(currentUser, 'medium', () => handleUserClick(currentUser)) : renderAvatar(users.you, 'medium')}
             </div>
             <div className="flex-1">
-              <div className="relative">
+              {/* Flex Container for Input and Buttons */}
+              <div className="relative flex items-center gap-2 bg-slate-100 rounded-3xl px-4 py-2 focus-within:ring-2 focus-within:ring-brand-sky transition-shadow">
                 <input
                   type="text"
                   placeholder="Type a message..."
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyUp={handleKeyPress}
-                  className="w-full px-4 py-3 pr-12 bg-slate-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-sky"
+                  className="flex-1 bg-transparent text-sm focus:outline-none min-h-[2.5rem]"
                 />
+                
+                {/* Emoji Picker */}
+                <div className="shrink-0">
+                  <EmojiButton onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)} />
+                </div>
+
+                {/* Send Button */}
                 <button 
                   onClick={handleSendMessage}
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="shrink-0 w-8 h-8 flex items-center justify-center hover:bg-white/50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!inputMessage.trim() || !currentUserId}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6 text-brand-sky">
