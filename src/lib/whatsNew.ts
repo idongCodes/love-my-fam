@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                    {
-    id: 'profile-photo-system',
-    title: 'Profile Photo System',
-    description: 'Updates to your personal space to make it more enjoyable and functional.',
-    icon: '⚡',
-    category: 'update',
-    status: 'recently-updated',
-    date: new Date('2026-01-22T20:18:24.038Z'),
+                      {
+    id: 'emoji-picker-to-chat-modal',
+    title: 'Emoji Picker to Chat Modal',
+    description: 'Better messaging features to keep your family conversations flowing smoothly.',
+    icon: '🚀',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2026-01-22T20:36:41.013Z'),
     version: '0.1.0'
   },
   {

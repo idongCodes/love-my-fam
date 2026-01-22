@@ -9,25 +9,26 @@ datasource db {
 }
 
 model User {
-  id           String          @id @default(cuid())
-  firstName    String
-  lastName     String
-  alias        String?
-  position     String
-  email        String          @unique
-  phone        String?
-  profileImage String?
-  bio          String?
-  location     String?
-  status       String?
-  createdAt    DateTime        @default(now())
-  chatMessages ChatMessage[]   @relation("UserChatMessages")
-  comments     Comment[]
-  commentLikes CommentLike[]
-  likes        Like[]
-  posts        Post[]          @relation("UserPosts")
-  dismissals   PostDismissal[]
-  Testimonial  Testimonial[]
+  id               String            @id @default(cuid())
+  firstName        String
+  lastName         String
+  alias            String?
+  position         String
+  email            String            @unique
+  phone            String?
+  profileImage     String?
+  bio              String?
+  location         String?
+  status           String?
+  createdAt        DateTime          @default(now())
+  chatMessages     ChatMessage[]     @relation("UserChatMessages")
+  messageReactions MessageReaction[]
+  comments         Comment[]
+  commentLikes     CommentLike[]
+  likes            Like[]
+  posts            Post[]            @relation("UserPosts")
+  dismissals       PostDismissal[]
+  Testimonial      Testimonial[]
 }
 
 model Post {
@@ -103,11 +104,24 @@ model PostDismissal {
 }
 
 model ChatMessage {
-  id        String   @id @default(cuid())
+  id        String            @id @default(cuid())
   content   String
-  createdAt DateTime @default(now())
+  createdAt DateTime          @default(now())
   authorId  String
-  author    User     @relation("UserChatMessages", fields: [authorId], references: [id])
+  author    User              @relation("UserChatMessages", fields: [authorId], references: [id])
+  reactions MessageReaction[]
+}
+
+model MessageReaction {
+  id        String      @id @default(cuid())
+  emoji     String
+  createdAt DateTime    @default(now())
+  userId    String
+  messageId String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, messageId, emoji])
 }
 
 model SystemSettings {
