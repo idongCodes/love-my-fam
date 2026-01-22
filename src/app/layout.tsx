@@ -5,6 +5,7 @@ import AutoLogout from "@/components/AutoLogout";
 import FeedbackSection from "@/components/FeedbackSection";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import WhatsNewSection from "@/components/WhatsNewSection";
+import NotificationPrompt from "@/components/NotificationPrompt";
 import { cookies } from "next/headers";
 import "./globals.css";
 
@@ -57,7 +58,10 @@ export default async function RootLayout({
         {/* 2. What's New Section (Sits above footer) */}
         <WhatsNewSection />
 
-        {/* 3. Global Footer */}
+        {/* 3. Notification Prompt (Only if logged in) */}
+        {isLoggedIn && <NotificationPrompt />}
+
+        {/* 4. Global Footer */}
         <footer className="bg-slate-800 text-brand-sky py-8 text-center border-t border-slate-700">
           
           {/* Feedback Widget Trigger (Sits inside footer) */}

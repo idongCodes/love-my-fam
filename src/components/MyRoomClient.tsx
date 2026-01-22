@@ -8,10 +8,12 @@ import EmojiButton from './EmojiButton'
 import StatusBadge from './StatusBadge'
 import FamilyPositionIcon from './FamilyPositionIcon'
 import { compressImage } from '@/lib/imageUtils'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 export default function MyRoomClient({ user, familySecret }: { user: any, familySecret: string }) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('dashboard')
+  const { subscribe, isSubscribed, permission } = usePushNotifications()
   
   // --- PHOTO STATE ---
   const [profileImage, setProfileImage] = useState<File | null>(null)
@@ -149,6 +151,22 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
       <h1 className="text-3xl font-bold text-brand-sky mb-8 text-center md:text-left">
         My Room
       </h1>
+
+      {/* Notification Banner (if not subscribed) */}
+      {!isSubscribed && permission !== 'denied' && (
+        <div className="bg-brand-sky/10 border-l-4 border-brand-sky p-4 mb-6 rounded-r-lg flex items-center justify-between">
+          <div>
+            <p className="font-bold text-brand-sky text-sm">Stay in the loop!</p>
+            <p className="text-xs text-slate-600">Enable notifications to know when family posts.</p>
+          </div>
+          <button 
+            onClick={subscribe}
+            className="bg-brand-sky text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-sky-500 transition-colors"
+          >
+            Enable Notifications
+          </button>
+        </div>
+      )}
 
       {/* 1. PROFILE PHOTO CARD */}
       <section className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-6 flex flex-col md:flex-row items-center gap-10 animate-in slide-in-from-top-4 relative">
@@ -341,9 +359,10 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
       </section>
 
       {/* --- TAB NAVIGATION --- */}
-      <div className="flex border-b border-slate-200 mb-8">
-        <button onClick={() => setActiveTab('dashboard')} className={`pb-4 px-6 font-bold text-sm transition-all ${activeTab === 'dashboard' ? 'border-b-4 border-brand-sky text-brand-sky' : 'text-slate-400 hover:text-slate-600'}`}>Dashboard</button>
-        <button onClick={() => setActiveTab('mirror')} className={`pb-4 px-6 font-bold text-sm transition-all ${activeTab === 'mirror' ? 'border-b-4 border-brand-pink text-brand-pink' : 'text-slate-400 hover:text-slate-600'}`}>My Mirror</button>
+      <div className="flex border-b border-slate-200 mb-8 overflow-x-auto">
+        <button onClick={() => setActiveTab('dashboard')} className={`pb-4 px-6 font-bold text-sm transition-all whitespace-nowrap ${activeTab === 'dashboard' ? 'border-b-4 border-brand-sky text-brand-sky' : 'text-slate-400 hover:text-slate-600'}`}>Dashboard</button>
+        <button onClick={() => setActiveTab('mirror')} className={`pb-4 px-6 font-bold text-sm transition-all whitespace-nowrap ${activeTab === 'mirror' ? 'border-b-4 border-brand-pink text-brand-pink' : 'text-slate-400 hover:text-slate-600'}`}>My Mirror</button>
+        <button onClick={() => setActiveTab('settings')} className={`pb-4 px-6 font-bold text-sm transition-all whitespace-nowrap ${activeTab === 'settings' ? 'border-b-4 border-brand-yellow text-brand-yellow' : 'text-slate-400 hover:text-slate-600'}`}>Settings</button>
       </div>
 
       {activeTab === 'dashboard' && (
@@ -591,6 +610,43 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 animate-fade-in">
+          <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <span>🔔</span> Notification Settings
+          </h3>
+          
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+              <h4 className="font-bold text-slate-800">App Notifications</h4>
+              <p className="text-sm text-slate-500 mt-1">
+                Receive alerts for new chats, posts, and important family updates even when you're away.
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${isSubscribed ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                <span className="text-xs font-medium text-slate-600">
+                  Status: {isSubscribed ? 'Active' : permission === 'denied' ? 'Blocked (Check Browser Settings)' : 'Inactive'}
+                </span>
+              </div>
+            </div>
+            
+            <button
+              onClick={subscribe}
+              disabled={isSubscribed || permission === 'denied'}
+              className={`px-6 py-3 rounded-full font-bold text-sm transition-all shadow-sm shrink-0 ${
+                isSubscribed 
+                  ? 'bg-green-100 text-green-700 cursor-default border border-green-200' 
+                  : permission === 'denied'
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    : 'bg-brand-sky text-white hover:bg-sky-500 hover:scale-105'
+              }`}
+            >
+              {isSubscribed ? 'Notifications Enabled ✅' : permission === 'denied' ? 'Permission Denied' : 'Enable Notifications'}
+            </button>
           </div>
         </div>
       )}

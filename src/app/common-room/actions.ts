@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { put } from '@vercel/blob'
+import { sendNotification } from '@/app/actions/push'
 
 const prisma = new PrismaClient()
 
@@ -43,13 +44,26 @@ export async function createPost(formData: FormData) {
     imageUrl = blob.url
   }
 
-  await prisma.post.create({
+  const post = await prisma.post.create({
     data: {
       content,
       imageUrl,
       authorId: userId
-    }
+    },
+    include: { author: true }
   })
+
+  // --- NOTIFY EVERYONE ---
+  const allUsers = await prisma.user.findMany({
+    where: { id: { not: userId } },
+    select: { id: true }
+  })
+  
+  if (allUsers.length > 0) {
+    const authorName = post.author.alias || post.author.firstName
+    const notificationText = `New post from ${authorName}: ${content.substring(0, 40)}${content.length > 40 ? '...' : ''}`
+    await sendNotification(allUsers.map(u => u.id), notificationText, '/common-room')
+  }
 
   revalidatePath('/common-room')
   return { success: true }
@@ -120,6 +134,14 @@ export async function toggleLike(postId: string) {
     await prisma.like.delete({ where: { id: existingLike.id } })
   } else {
     await prisma.like.create({ data: { userId, postId } })
+    
+    // --- NOTIFY POST AUTHOR ---
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { authorId: true } })
+    if (post && post.authorId !== userId) {
+      const liker = await prisma.user.findUnique({ where: { id: userId } })
+      const likerName = liker?.alias || liker?.firstName || 'Someone'
+      await sendNotification([post.authorId], `${likerName} liked your post ❤️`, '/common-room')
+    }
   }
 
   revalidatePath('/common-room')
@@ -136,7 +158,7 @@ export async function addComment(postId: string, content: string, parentId?: str
 
   if (!content || content.trim().length === 0) return { success: false }
 
-  await prisma.comment.create({
+  const comment = await prisma.comment.create({
     data: {
       content,
       postId,
@@ -144,6 +166,36 @@ export async function addComment(postId: string, content: string, parentId?: str
       parentId: parentId || null
     }
   })
+
+  // --- NOTIFY RELEVANT PEOPLE ---
+  const commenter = await prisma.user.findUnique({ where: { id: userId } })
+  const commenterName = commenter?.alias || commenter?.firstName || 'Someone'
+
+  const notifications = []
+
+  // 1. Notify Post Author (if not self)
+  const post = await prisma.post.findUnique({ where: { id: postId } })
+  if (post && post.authorId !== userId) {
+    notifications.push({
+      userId: post.authorId,
+      message: `${commenterName} commented on your post: "${content.substring(0, 30)}..."`
+    })
+  }
+
+  // 2. Notify Parent Comment Author (if reply and not self)
+  if (parentId) {
+    const parentComment = await prisma.comment.findUnique({ where: { id: parentId } })
+    if (parentComment && parentComment.authorId !== userId && parentComment.authorId !== post?.authorId) {
+       // Avoid double notification if parent author is also post author
+       notifications.push({
+         userId: parentComment.authorId,
+         message: `${commenterName} replied to your comment: "${content.substring(0, 30)}..."`
+       })
+    }
+  }
+
+  // Dispatch all notifications
+  await Promise.all(notifications.map(n => sendNotification([n.userId], n.message, '/common-room')))
 
   revalidatePath('/common-room')
   return { success: true }
@@ -166,6 +218,14 @@ export async function toggleCommentLike(commentId: string) {
     await prisma.commentLike.delete({ where: { id: existingLike.id } })
   } else {
     await prisma.commentLike.create({ data: { userId, commentId } })
+
+    // --- NOTIFY COMMENT AUTHOR ---
+    const comment = await prisma.comment.findUnique({ where: { id: commentId }, select: { authorId: true } })
+    if (comment && comment.authorId !== userId) {
+      const liker = await prisma.user.findUnique({ where: { id: userId } })
+      const likerName = liker?.alias || liker?.firstName || 'Someone'
+      await sendNotification([comment.authorId], `${likerName} liked your comment 👍`, '/common-room')
+    }
   }
 
   revalidatePath('/common-room')
@@ -232,6 +292,17 @@ export async function createAnnouncement(formData: FormData) {
       isUrgent: isUrgent
     }
   })
+
+  // --- NOTIFY EVERYONE ---
+  const allUsers = await prisma.user.findMany({
+    where: { id: { not: userId } },
+    select: { id: true }
+  })
+  
+  if (allUsers.length > 0) {
+    const notificationText = `📢 Announcement: ${title}`
+    await sendNotification(allUsers.map(u => u.id), notificationText, '/common-room')
+  }
 
   revalidatePath('/common-room')
   return { success: true }

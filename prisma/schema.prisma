@@ -23,12 +23,23 @@ model User {
   createdAt        DateTime          @default(now())
   chatMessages     ChatMessage[]     @relation("UserChatMessages")
   messageReactions MessageReaction[]
+  pushSubscriptions PushSubscription[]
   comments         Comment[]
   commentLikes     CommentLike[]
   likes            Like[]
   posts            Post[]            @relation("UserPosts")
   dismissals       PostDismissal[]
   Testimonial      Testimonial[]
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model Post {
