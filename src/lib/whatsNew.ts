@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                {
-    id: 'removed-extra-braces',
-    title: 'Removed Extra Braces',
-    description: 'Removed Extra Braces',
-    icon: '✨',
+                  {
+    id: 'create-new-file-obj-w-proper-metadata',
+    title: 'Create New File Obj w Proper Metadata',
+    description: 'Create New File Obj w Proper Metadata',
+    icon: '🚀',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-21T16:22:25.128Z'),
+    date: new Date('2026-01-21T16:33:26.121Z'),
     version: '0.1.0'
   },
   {

@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import { put } from '@vercel/blob'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 const prisma = new PrismaClient()
 
@@ -14,33 +15,37 @@ export async function updateProfilePhoto(formData: FormData) {
 
   if (!userId) return { success: false, message: "Unauthorized" }
 
-  const imageFile = formData.get('file') as File
+  const imageFile = formData.get('file') as File | null
 
   if (!imageFile || imageFile.size === 0) {
     return { success: false, message: "No image provided" }
   }
 
+  // --- PRODUCTION VALIDATION ---
+  const MAX_SIZE = 4.5 * 1024 * 1024 // 4.5MB (Vercel limit is 4.5MB for serverless bodies)
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
+  if (imageFile.size > MAX_SIZE) {
+    return { success: false, message: "File is too large. Max 4.5MB." }
+  }
+  
+  if (!ALLOWED_TYPES.includes(imageFile.type)) {
+    return { success: false, message: "Invalid file type. Only JPG, PNG, WEBP, and GIF are allowed." }
+  }
+
   try {
-    console.log('Starting upload process...')
-    console.log('Image file:', imageFile)
-    console.log('Image file name:', imageFile?.name)
-    console.log('Image file size:', imageFile?.size)
-    console.log('Image file type:', imageFile?.type)
-    
-    // Create a new File object to ensure proper format
-    const fileToUpload = new File([imageFile], imageFile.name, {
-      type: imageFile.type || 'image/jpeg'
+    // ✅ FIX: Convert File to Buffer to avoid "stream is not a function" error
+    const arrayBuffer = await imageFile.arrayBuffer()
+
+    const blob = await put(imageFile.name, arrayBuffer, {
+      access: 'public',
+      contentType: imageFile.type // Explicitly set content type since Buffer doesn't have it
     })
-    
-    const blob = await put(fileToUpload.name, fileToUpload)
-    console.log('Blob upload successful:', blob.url)
 
     await prisma.user.update({
       where: { id: userId },
       data: { profileImage: blob.url }
     })
-    
-    console.log('Database update successful')
 
     revalidatePath('/my-room')
     revalidatePath('/common-room')
@@ -48,29 +53,10 @@ export async function updateProfilePhoto(formData: FormData) {
     revalidatePath('/') 
 
     return { success: true, url: blob.url }
-  } catch (error) {
-    console.error("Upload failed:", error)
-    console.error("Error type:", typeof error)
-    console.error("Error message:", error instanceof Error ? error.message : 'Unknown error')
-    console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace')
-    
-    // Return more specific error messages
-    if (error instanceof Error) {
-      if (error.message.includes('ENOENT')) {
-        return { success: false, message: "File not found or path error" }
-      }
-      if (error.message.includes('EACCES')) {
-        return { success: false, message: "Permission denied accessing file" }
-      }
-      if (error.message.includes('blob') || error.message.includes('upload')) {
-        return { success: false, message: "Blob storage upload failed - check Vercel configuration" }
-      }
-      if (error.message.includes('prisma') || error.message.includes('database')) {
-        return { success: false, message: "Database update failed" }
-      }
-    }
-    
-    return { success: false, message: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}` }
+  } catch (error: any) {
+    console.log("Server Error Log:", error);
+    // console.error("Upload failed:", error)
+    return { success: false, message: `Server Error: ${error.message || JSON.stringify(error)}` }
   }
 }
 
