@@ -110,6 +110,11 @@ model ChatMessage {
   authorId  String
   author    User              @relation("UserChatMessages", fields: [authorId], references: [id])
   reactions MessageReaction[]
+  
+  // Reply Support
+  replyToId String?
+  replyTo   ChatMessage?  @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies   ChatMessage[] @relation("MessageReplies")
 }
 
 model MessageReaction {

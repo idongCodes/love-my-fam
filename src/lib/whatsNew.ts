@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                      {
-    id: 'emoji-picker-to-chat-modal',
-    title: 'Emoji Picker to Chat Modal',
+                        {
+    id: 'support-for-message-reactions',
+    title: 'Support for Message Reactions',
     description: 'Better messaging features to keep your family conversations flowing smoothly.',
     icon: '🚀',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-22T20:36:41.013Z'),
+    date: new Date('2026-01-22T21:01:33.702Z'),
     version: '0.1.0'
   },
   {
