@@ -17,6 +17,17 @@ export async function getChatMessages() {
             alias: true,
             profileImage: true,
           }
+        },
+        reactions: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                alias: true,
+              }
+            }
+          }
         }
       },
       orderBy: {
@@ -51,7 +62,8 @@ export async function sendChatMessage(content: string, authorId: string) {
             alias: true,
             profileImage: true,
           }
-        }
+        },
+        reactions: true
       }
     })
 
@@ -60,5 +72,42 @@ export async function sendChatMessage(content: string, authorId: string) {
   } catch (error) {
     console.error('Error sending chat message:', error)
     return { success: false, message: 'Failed to send message' }
+  }
+}
+
+export async function toggleReaction(messageId: string, userId: string, emoji: string) {
+  try {
+    // Check if reaction exists
+    const existingReaction = await prisma.messageReaction.findFirst({
+      where: {
+        messageId,
+        userId,
+        emoji
+      }
+    })
+
+    if (existingReaction) {
+      // Remove reaction
+      await prisma.messageReaction.delete({
+        where: {
+          id: existingReaction.id
+        }
+      })
+    } else {
+      // Add reaction
+      await prisma.messageReaction.create({
+        data: {
+          messageId,
+          userId,
+          emoji
+        }
+      })
+    }
+
+    revalidatePath('/chat')
+    return { success: true }
+  } catch (error) {
+    console.error('Error toggling reaction:', error)
+    return { success: false, message: 'Failed to toggle reaction' }
   }
 }
