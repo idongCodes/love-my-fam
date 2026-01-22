@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                  {
-    id: 'create-new-file-obj-w-proper-metadata',
-    title: 'Create New File Obj w Proper Metadata',
-    description: 'Create New File Obj w Proper Metadata',
-    icon: '🚀',
-    category: 'feature',
-    status: 'just-released',
-    date: new Date('2026-01-21T16:33:26.121Z'),
+                    {
+    id: 'profile-photo-system',
+    title: 'Profile Photo System',
+    description: 'Updates to your personal space to make it more enjoyable and functional.',
+    icon: '⚡',
+    category: 'update',
+    status: 'recently-updated',
+    date: new Date('2026-01-22T20:18:24.038Z'),
     version: '0.1.0'
   },
   {
