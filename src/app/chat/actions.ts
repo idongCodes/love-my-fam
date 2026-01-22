@@ -2,6 +2,7 @@
 
 import { PrismaClient } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
+import { sendNotification } from '@/app/actions/push'
 
 const prisma = new PrismaClient()
 
@@ -92,6 +93,23 @@ export async function sendChatMessage(content: string, authorId: string, replyTo
       }
     })
 
+    // --- SEND NOTIFICATION TO EVERYONE ELSE ---
+    const allUsers = await prisma.user.findMany({
+      where: {
+        id: { not: authorId } // Don't notify the sender
+      },
+      select: { id: true }
+    })
+    
+    const recipientIds = allUsers.map(u => u.id)
+    const authorName = message.author.alias || message.author.firstName
+    
+    await sendNotification(
+      recipientIds, 
+      `${authorName}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+      '/chat' // Assuming chat modal opens on root or specific chat page
+    )
+
     revalidatePath('/chat')
     return { success: true, message }
   } catch (error) {
@@ -127,6 +145,14 @@ export async function toggleReaction(messageId: string, userId: string, emoji: s
           emoji
         }
       })
+
+      // --- NOTIFY MESSAGE AUTHOR ---
+      const message = await prisma.chatMessage.findUnique({ where: { id: messageId }, select: { authorId: true } })
+      if (message && message.authorId !== userId) {
+        const reactor = await prisma.user.findUnique({ where: { id: userId } })
+        const reactorName = reactor?.alias || reactor?.firstName || 'Someone'
+        await sendNotification([message.authorId], `${reactorName} reacted ${emoji} to your message`, '/chat')
+      }
     }
 
     revalidatePath('/chat')

@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                        {
-    id: 'support-for-message-reactions',
-    title: 'Support for Message Reactions',
+                          {
+    id: 'support-for-direct-message-replies',
+    title: 'Support for Direct Message Replies',
     description: 'Better messaging features to keep your family conversations flowing smoothly.',
     icon: '🚀',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-22T21:01:33.702Z'),
+    date: new Date('2026-01-22T21:16:15.600Z'),
     version: '0.1.0'
   },
   {

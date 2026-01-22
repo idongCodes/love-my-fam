@@ -5,6 +5,7 @@ import { cookies } from 'next/headers'
 import { put } from '@vercel/blob'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { sendNotification } from '@/app/actions/push'
 
 const prisma = new PrismaClient()
 
@@ -128,6 +129,17 @@ export async function updateFamilySecret(newSecret: string) {
     update: { familySecret: newSecret },
     create: { id: 'global', familySecret: newSecret }
   })
+
+  // --- NOTIFY EVERYONE ---
+  const allUsers = await prisma.user.findMany({ select: { id: true } })
+  
+  if (allUsers.length > 0) {
+    await sendNotification(
+      allUsers.map(u => u.id),
+      `🔑 Family Secret updated to: ${newSecret}`,
+      '/my-room'
+    )
+  }
 
   revalidatePath('/my-room')
   return { success: true }

@@ -2,6 +2,7 @@
 
 import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
+import { sendNotification } from '@/app/actions/push'
 
 const prisma = new PrismaClient()
 
@@ -67,6 +68,20 @@ export async function registerUser(formData: FormData) {
     maxAge: 60 * 60 * 24 * 7, // 1 week
     path: '/',
   })
+
+  // --- 7. NOTIFY EVERYONE ABOUT NEW USER ---
+  const allOtherUsers = await prisma.user.findMany({
+    where: { id: { not: newUser.id } },
+    select: { id: true }
+  })
+  
+  if (allOtherUsers.length > 0) {
+    await sendNotification(
+      allOtherUsers.map(u => u.id),
+      `${displayName} has joined the family! 🎉`,
+      '/family'
+    )
+  }
 
   return { success: true }
 }
