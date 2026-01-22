@@ -7,6 +7,7 @@ import Link from 'next/link' // <--- 1. Import Link
 import EmojiButton from './EmojiButton'
 import StatusBadge from './StatusBadge'
 import FamilyPositionIcon from './FamilyPositionIcon'
+import { compressImage } from '@/lib/imageUtils'
 
 export default function MyRoomClient({ user, familySecret }: { user: any, familySecret: string }) {
   const router = useRouter()
@@ -16,6 +17,7 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(user?.profileImage || null)
   const [isSavingPhoto, setIsSavingPhoto] = useState(false)
+  const [isCompressing, setIsCompressing] = useState(false)
   const selfieInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
 
@@ -53,11 +55,27 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
   const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
 
   // --- HANDLERS ---
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setProfileImage(file)
-      setPreviewUrl(URL.createObjectURL(file))
+      try {
+        setIsCompressing(true)
+        // Show immediate preview of original while compressing
+        const tempPreview = URL.createObjectURL(file)
+        setPreviewUrl(tempPreview)
+        
+        // Compress
+        const compressed = await compressImage(file)
+        setProfileImage(compressed)
+        
+        // Update preview to compressed version (optional, but good for verifying quality)
+        setPreviewUrl(URL.createObjectURL(compressed))
+      } catch (err) {
+        console.error("Compression failed", err)
+        alert("Failed to process image. Please try another one.")
+      } finally {
+        setIsCompressing(false)
+      }
     }
   }
 
@@ -210,8 +228,8 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
 
           {profileImage && (
             <div className="mt-6 flex gap-3 justify-center md:justify-start animate-in fade-in slide-in-from-top-2">
-              <button onClick={handleSavePhoto} disabled={isSavingPhoto} className="bg-brand-sky text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-sky-500 transition-colors shadow-sm disabled:opacity-50">
-                {isSavingPhoto ? 'Saving...' : 'Save New Photo'}
+              <button onClick={handleSavePhoto} disabled={isSavingPhoto || isCompressing} className="bg-brand-sky text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-sky-500 transition-colors shadow-sm disabled:opacity-50">
+                {isSavingPhoto ? 'Saving...' : isCompressing ? 'Processing...' : 'Save New Photo'}
               </button>
               <button onClick={handleCancelPhoto} disabled={isSavingPhoto} className="text-slate-400 hover:text-red-500 text-sm font-medium px-4 py-2">Cancel</button>
             </div>

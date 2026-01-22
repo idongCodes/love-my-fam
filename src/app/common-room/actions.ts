@@ -34,7 +34,12 @@ export async function createPost(formData: FormData) {
   let imageUrl = null
 
   if (hasImage) {
-    const blob = await put(imageFile!.name, imageFile!)
+    const arrayBuffer = await imageFile!.arrayBuffer();
+
+    const blob = await put(imageFile!.name, arrayBuffer, {
+      access: 'public',
+      contentType: imageFile!.type
+    })
     imageUrl = blob.url
   }
 

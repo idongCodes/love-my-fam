@@ -10,7 +10,7 @@ export async function POST() {
     const testBlob = new Blob([testContent], { type: 'text/plain' })
     
     // Test upload to blob storage
-    const blob = await put('test-upload.txt', testBlob)
+    const blob = await put('test-upload.txt', testBlob, { access: 'public' })
     
     console.log('Upload successful:', blob.url)
     
@@ -35,9 +35,9 @@ export async function GET() {
     const testContent = 'Test file content'
     const testBlob = new Blob([testContent], { type: 'text/plain' })
     
-    const blob = await put('get-test.txt', testBlob)
+    const blob = await put('get-test.txt', testBlob, { access: 'public' })
     
-    return NextResponse.json({ 
+    return NextResponse.json({  
       success: true, 
       message: 'GET test successful',
       url: blob.url 
