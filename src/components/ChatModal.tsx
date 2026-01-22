@@ -3,7 +3,7 @@
 import EmojiButton from './EmojiButton'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, ArrowUturnLeftIcon } from '@heroicons/react/24/outline'
 import { getChatMessages, sendChatMessage, toggleReaction } from '@/app/chat/actions'
 
 export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -30,12 +30,22 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
         alias: string | null
       }
     }>
+    replyTo?: {
+      id: string
+      content: string
+      author: {
+        firstName: string
+        alias: string | null
+      }
+    } | null
   }>>([])
   const [inputMessage, setInputMessage] = useState('')
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
+  const [replyingTo, setReplyingTo] = useState<{ id: string, content: string, authorName: string } | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   
   // Available reactions
   const REACTION_EMOJIS = ['❤️', '👍', '😂', '😮', '😢']
@@ -126,9 +136,10 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
   const handleSendMessage = async () => {
     if (inputMessage.trim() && currentUserId) {
       try {
-        const result = await sendChatMessage(inputMessage.trim(), currentUserId)
+        const result = await sendChatMessage(inputMessage.trim(), currentUserId, replyingTo?.id)
         if (result.success) {
           setInputMessage('')
+          setReplyingTo(null)
           fetchMessages()
         } else {
           console.error('Failed to send message:', result.message)
@@ -168,6 +179,16 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
 
     await toggleReaction(messageId, currentUserId, emoji)
     fetchMessages() // Sync with server
+  }
+
+  const handleReply = (message: any) => {
+    setReplyingTo({
+      id: message.id,
+      content: message.content,
+      authorName: message.author.alias || message.author.firstName
+    })
+    setSelectedMessageId(null)
+    inputRef.current?.focus()
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -322,6 +343,13 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
                   
                   <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'} max-w-[75%]`}>
                     
+                    {/* Reply Context (Faded, behind) */}
+                    {message.replyTo && (
+                       <div className={`text-xs text-slate-400 mb-1 px-2 border-l-2 border-slate-300 bg-slate-50/50 p-1 rounded opacity-70 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                         <span className="font-bold">Replying to {message.replyTo.author.alias || message.replyTo.author.firstName}:</span> {message.replyTo.content.substring(0, 30)}{message.replyTo.content.length > 30 ? '...' : ''}
+                       </div>
+                    )}
+
                     {/* Message Bubble */}
                     <div 
                       className={`relative p-3 rounded-2xl shadow-sm cursor-pointer transition-all active:scale-95 ${isCurrentUser ? 'bg-brand-sky text-white' : 'bg-white text-slate-700'}`}
@@ -334,20 +362,35 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
                       
                       {/* Reaction Picker Popover */}
                       {showReactionPicker && (
-                        <div className={`absolute bottom-full mb-2 z-10 bg-white shadow-xl rounded-full p-1.5 flex gap-1 border border-slate-100 animate-in zoom-in-95 duration-200 ${isCurrentUser ? 'right-0' : 'left-0'}`}>
-                          {REACTION_EMOJIS.map(emoji => (
-                            <button
-                              key={emoji}
-                              onClick={(e) => {
+                        <div className={`absolute bottom-full mb-2 z-10 bg-white shadow-xl rounded-2xl p-2 flex flex-col gap-2 border border-slate-100 animate-in zoom-in-95 duration-200 ${isCurrentUser ? 'right-0' : 'left-0'}`}>
+                          {/* Reactions */}
+                          <div className="flex gap-1">
+                            {REACTION_EMOJIS.map(emoji => (
+                              <button
+                                key={emoji}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleReaction(message.id, emoji)
+                                  setSelectedMessageId(null)
+                                }}
+                                className="w-8 h-8 flex items-center justify-center text-xl hover:bg-slate-100 rounded-full transition-transform hover:scale-125"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                          
+                          {/* Reply Button */}
+                          <button
+                            onClick={(e) => {
                                 e.stopPropagation()
-                                handleReaction(message.id, emoji)
-                                setSelectedMessageId(null)
-                              }}
-                              className="w-8 h-8 flex items-center justify-center text-xl hover:bg-slate-100 rounded-full transition-transform hover:scale-125"
-                            >
-                              {emoji}
-                            </button>
-                          ))}
+                                handleReply(message)
+                            }}
+                            className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:bg-slate-50 p-2 rounded-lg w-full"
+                          >
+                             <ArrowUturnLeftIcon className="w-4 h-4" />
+                             Reply
+                          </button>
                         </div>
                       )}
                     </div>
@@ -401,6 +444,19 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
         
         {/* Message Input */}
         <div className="p-4 border-t border-slate-200 bg-white">
+          {/* Replying Indicator */}
+          {replyingTo && (
+             <div className="flex items-center justify-between bg-slate-50 p-2 rounded-lg mb-2 text-xs border-l-4 border-brand-sky">
+                <div className="flex flex-col">
+                   <span className="font-bold text-brand-sky">Replying to {replyingTo.authorName}</span>
+                   <span className="text-slate-500 truncate max-w-xs">{replyingTo.content}</span>
+                </div>
+                <button onClick={() => setReplyingTo(null)} className="p-1 hover:bg-slate-200 rounded-full">
+                   <XMarkIcon className="w-4 h-4 text-slate-500" />
+                </button>
+             </div>
+          )}
+        
           <div className="flex gap-2 items-start">
             <div className="transform -translate-y-0">
               {currentUser ? renderAvatar(currentUser, 'medium', () => handleUserClick(currentUser)) : renderAvatar(users.you, 'medium')}
@@ -408,6 +464,7 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
             <div className="flex-1">
               <div className="relative flex items-center gap-2 bg-slate-100 rounded-3xl px-4 py-2 focus-within:ring-2 focus-within:ring-brand-sky transition-shadow">
                 <input
+                  ref={inputRef}
                   type="text"
                   placeholder="Type a message..."
                   value={inputMessage}

@@ -28,6 +28,18 @@ export async function getChatMessages() {
               }
             }
           }
+        },
+        replyTo: {
+          select: {
+            id: true,
+            content: true,
+            author: {
+              select: {
+                firstName: true,
+                alias: true
+              }
+            }
+          }
         }
       },
       orderBy: {
@@ -42,7 +54,7 @@ export async function getChatMessages() {
   }
 }
 
-export async function sendChatMessage(content: string, authorId: string) {
+export async function sendChatMessage(content: string, authorId: string, replyToId?: string) {
   try {
     if (!content.trim()) {
       return { success: false, message: 'Message cannot be empty' }
@@ -51,7 +63,8 @@ export async function sendChatMessage(content: string, authorId: string) {
     const message = await prisma.chatMessage.create({
       data: {
         content: content.trim(),
-        authorId
+        authorId,
+        replyToId: replyToId || null
       },
       include: {
         author: {
@@ -63,7 +76,19 @@ export async function sendChatMessage(content: string, authorId: string) {
             profileImage: true,
           }
         },
-        reactions: true
+        reactions: true,
+        replyTo: {
+          select: {
+            id: true,
+            content: true,
+            author: {
+              select: {
+                firstName: true,
+                alias: true
+              }
+            }
+          }
+        }
       }
     })
 
