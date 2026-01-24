@@ -144,3 +144,59 @@ export async function updateFamilySecret(newSecret: string) {
   revalidatePath('/my-room')
   return { success: true }
 }
+
+// --- 4. GET USER ACTIVITY ---
+export async function getUserActivity() {
+  const cookieStore = await cookies()
+  const userId = cookieStore.get('session_id')?.value
+  if (!userId) return null
+
+  try {
+    const [posts, comments, likes] = await Promise.all([
+      // 1. My Posts
+      prisma.post.findMany({
+        where: { authorId: userId },
+        orderBy: { createdAt: 'desc' },
+        include: { 
+          author: true, 
+          likes: true, 
+          comments: true 
+        }
+      }),
+      // 2. My Comments (Replies)
+      prisma.comment.findMany({
+        where: { authorId: userId },
+        orderBy: { createdAt: 'desc' },
+        include: { 
+          post: { 
+            select: { 
+              id: true,
+              title: true, 
+              content: true,
+              author: { select: { firstName: true, alias: true } }
+            } 
+          } 
+        }
+      }),
+      // 3. My Likes
+      prisma.like.findMany({
+        where: { userId: userId },
+        orderBy: { createdAt: 'desc' },
+        include: { 
+          post: { 
+            include: { 
+              author: true,
+              comments: true,
+              likes: true
+            } 
+          } 
+        }
+      })
+    ])
+
+    return { success: true, data: { posts, comments, likes } }
+  } catch (error) {
+    console.error("Failed to fetch activity:", error)
+    return { success: false, message: "Failed to load activity" }
+  }
+}
