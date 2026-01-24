@@ -56,7 +56,7 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
   const cardStyle = displayUrgent ? "bg-red-500/5 border-red-200/50 backdrop-blur-sm shadow-md" : "bg-white border-slate-100 shadow-sm"
 
   return (
-    <div className={`p-6 rounded-xl border mb-6 transition-all hover:border-slate-300 ${cardStyle}`}>
+    <div id={`post-${post.id}`} className={`p-6 rounded-xl border mb-6 transition-all hover:border-slate-300 ${cardStyle}`}>
       
       {/* 1. HEADER */}
       <div className="flex justify-between items-start mb-4">

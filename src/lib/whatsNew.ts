@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                            {
-    id: 'support-for-mobile-notifications-and-opt-in/out',
-    title: 'Support for Mobile Notifications and Opt-in/out',
-    description: 'Add Support for Mobile Notifications and Opt-in/out',
-    icon: '🚀',
-    category: 'feature',
-    status: 'just-released',
-    date: new Date('2026-01-22T21:55:59.445Z'),
+                              {
+    id: 'support-for-video-uploads',
+    title: 'Support for Video Uploads',
+    description: 'Update Support for Video Uploads',
+    icon: '⚡',
+    category: 'update',
+    status: 'recently-updated',
+    date: new Date('2026-01-24T21:16:28.576Z'),
     version: '0.1.0'
   },
   {

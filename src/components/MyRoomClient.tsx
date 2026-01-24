@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { updateProfilePhoto, updateProfileDetails, updateFamilySecret } from '@/app/my-room/actions'
+import { updateProfilePhoto, updateProfileDetails, updateFamilySecret, getUserActivity } from '@/app/my-room/actions'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link' // <--- 1. Import Link
 import EmojiButton from './EmojiButton'
@@ -14,6 +14,20 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('dashboard')
   const { subscribe, isSubscribed, permission } = usePushNotifications()
+
+  // --- ACTIVITY STATE ---
+  const [activityData, setActivityData] = useState<any>(null)
+  const [isLoadingActivity, setIsLoadingActivity] = useState(false)
+
+  useEffect(() => {
+    if (activeTab === 'activity' && !activityData) {
+      setIsLoadingActivity(true)
+      getUserActivity().then(res => {
+        if (res?.success) setActivityData(res.data)
+        setIsLoadingActivity(false)
+      })
+    }
+  }, [activeTab])
   
   // --- PHOTO STATE ---
   const [profileImage, setProfileImage] = useState<File | null>(null)
@@ -362,6 +376,7 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
       <div className="flex border-b border-slate-200 mb-8 overflow-x-auto">
         <button onClick={() => setActiveTab('dashboard')} className={`pb-4 px-6 font-bold text-sm transition-all whitespace-nowrap ${activeTab === 'dashboard' ? 'border-b-4 border-brand-sky text-brand-sky' : 'text-slate-400 hover:text-slate-600'}`}>Dashboard</button>
         <button onClick={() => setActiveTab('mirror')} className={`pb-4 px-6 font-bold text-sm transition-all whitespace-nowrap ${activeTab === 'mirror' ? 'border-b-4 border-brand-pink text-brand-pink' : 'text-slate-400 hover:text-slate-600'}`}>My Mirror</button>
+        <button onClick={() => setActiveTab('activity')} className={`pb-4 px-6 font-bold text-sm transition-all whitespace-nowrap ${activeTab === 'activity' ? 'border-b-4 border-violet-500 text-violet-500' : 'text-slate-400 hover:text-slate-600'}`}>Activity</button>
         <button onClick={() => setActiveTab('settings')} className={`pb-4 px-6 font-bold text-sm transition-all whitespace-nowrap ${activeTab === 'settings' ? 'border-b-4 border-brand-yellow text-brand-yellow' : 'text-slate-400 hover:text-slate-600'}`}>Settings</button>
       </div>
 
@@ -611,6 +626,88 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'activity' && (
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 animate-fade-in space-y-8">
+           <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+             <span>📊</span> My Activity
+           </h3>
+
+           {isLoadingActivity ? (
+             <div className="text-center py-10 text-slate-400">Loading activity...</div>
+           ) : !activityData ? (
+             <div className="text-center py-10 text-slate-400">No activity found.</div>
+           ) : (
+             <>
+                {/* 1. MY POSTS */}
+                <div>
+                   <h4 className="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
+                     <span>My Posts</span>
+                     <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs">{activityData.posts.length}</span>
+                   </h4>
+                   <div className="space-y-3">
+                     {activityData.posts.length === 0 && <p className="text-sm text-slate-400 italic">You haven't posted yet.</p>}
+                     {activityData.posts.map((post: any) => (
+                       <Link href={`/common-room#post-${post.id}`} key={post.id} className="block bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-brand-sky/30 transition-colors">
+                         {post.title && <div className="font-bold text-slate-800 text-sm mb-1">{post.title}</div>}
+                         <p className="text-sm text-slate-600 line-clamp-2">{post.content}</p>
+                         <div className="flex gap-4 mt-2 text-xs text-slate-400">
+                            <span>❤️ {post.likes.length} Likes</span>
+                            <span>💬 {post.comments.length} Comments</span>
+                            <span>📅 {new Date(post.createdAt).toLocaleDateString()}</span>
+                         </div>
+                       </Link>
+                     ))}
+                   </div>
+                </div>
+
+                {/* 2. MY COMMENTS */}
+                <div>
+                   <h4 className="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
+                     <span>My Replies</span>
+                     <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs">{activityData.comments.length}</span>
+                   </h4>
+                   <div className="space-y-3">
+                     {activityData.comments.length === 0 && <p className="text-sm text-slate-400 italic">You haven't commented yet.</p>}
+                     {activityData.comments.map((comment: any) => (
+                       <Link href={`/common-room#post-${comment.postId}`} key={comment.id} className="block bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-brand-sky/30 transition-colors">
+                         <div className="text-xs text-slate-400 mb-1">
+                           On post by <span className="font-bold">{comment.post?.author?.alias || comment.post?.author?.firstName}</span>
+                         </div>
+                         <p className="text-sm text-slate-600 italic">"{comment.content}"</p>
+                         <div className="mt-2 text-xs text-slate-400">
+                            <span>📅 {new Date(comment.createdAt).toLocaleDateString()}</span>
+                         </div>
+                       </Link>
+                     ))}
+                   </div>
+                </div>
+
+                {/* 3. MY LIKES */}
+                <div>
+                   <h4 className="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
+                     <span>Liked Posts</span>
+                     <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs">{activityData.likes.length}</span>
+                   </h4>
+                   <div className="space-y-3">
+                     {activityData.likes.length === 0 && <p className="text-sm text-slate-400 italic">You haven't liked any posts yet.</p>}
+                     {activityData.likes.map((like: any) => (
+                       <Link href={`/common-room#post-${like.postId}`} key={like.id} className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-brand-sky/30 transition-colors">
+                         <div>
+                            <div className="text-xs text-slate-400 mb-1">
+                              Post by <span className="font-bold">{like.post?.author?.alias || like.post?.author?.firstName}</span>
+                            </div>
+                            <p className="text-sm text-slate-600 line-clamp-1">{like.post?.content}</p>
+                         </div>
+                         <span className="text-xs text-slate-400">{new Date(like.createdAt).toLocaleDateString()}</span>
+                       </Link>
+                     ))}
+                   </div>
+                </div>
+             </>
+           )}
         </div>
       )}
 
