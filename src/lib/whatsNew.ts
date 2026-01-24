@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                          {
-    id: 'support-for-direct-message-replies',
-    title: 'Support for Direct Message Replies',
-    description: 'Better messaging features to keep your family conversations flowing smoothly.',
+                            {
+    id: 'support-for-mobile-notifications-and-opt-in/out',
+    title: 'Support for Mobile Notifications and Opt-in/out',
+    description: 'Add Support for Mobile Notifications and Opt-in/out',
     icon: '🚀',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-22T21:16:15.600Z'),
+    date: new Date('2026-01-22T21:55:59.445Z'),
     version: '0.1.0'
   },
   {

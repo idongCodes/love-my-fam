@@ -24,12 +24,23 @@ model User {
   chatMessages     ChatMessage[]     @relation("UserChatMessages")
   messageReactions MessageReaction[]
   pushSubscriptions PushSubscription[]
+  notifications    Notification[]
   comments         Comment[]
   commentLikes     CommentLike[]
   likes            Like[]
   posts            Post[]            @relation("UserPosts")
   dismissals       PostDismissal[]
   Testimonial      Testimonial[]
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  content   String
+  link      String   @default("/")
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PushSubscription {
@@ -46,6 +57,7 @@ model Post {
   id             String          @id @default(cuid())
   content        String
   imageUrl       String?
+  videoUrl       String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   isEdited       Boolean         @default(false)
