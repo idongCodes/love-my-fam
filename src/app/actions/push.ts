@@ -48,34 +48,47 @@ export async function sendNotification(userIds: string[], message: string, url: 
   if (!Array.isArray(userIds) || userIds.length === 0) return
 
   try {
+    // 1. Create In-App Notifications for ALL recipients
+    // We do this regardless of whether they have a push subscription
+    await prisma.notification.createMany({
+      data: userIds.map(userId => ({
+        userId,
+        content: message,
+        link: url,
+        isRead: false
+      }))
+    })
+
+    // 2. Send Push Notifications (only to those with subscriptions)
     const subscriptions = await prisma.pushSubscription.findMany({
       where: { userId: { in: userIds } }
     })
 
-    if (subscriptions.length === 0) return
-
-    const notifications = subscriptions.map(sub => {
-      const pushConfig = {
-        endpoint: sub.endpoint,
-        keys: { auth: sub.auth, p256dh: sub.p256dh }
-      }
-      
-      const payload = JSON.stringify({
-        title: 'Love My Fam',
-        body: message,
-        url: url
-      })
-
-      return webpush.sendNotification(pushConfig, payload).catch(error => {
-        // console.error('Error sending notification to', sub.userId, error)
-        if (error.statusCode === 410 || error.statusCode === 404) {
-          // Subscription is gone, delete it
-          prisma.pushSubscription.delete({ where: { id: sub.id } })
+    if (subscriptions.length > 0) {
+      const notifications = subscriptions.map(sub => {
+        const pushConfig = {
+          endpoint: sub.endpoint,
+          keys: { auth: sub.auth, p256dh: sub.p256dh }
         }
-      })
-    })
+        
+        const payload = JSON.stringify({
+          title: 'Love My Fam',
+          body: message,
+          url: url
+        })
 
-    await Promise.all(notifications)
+        return webpush.sendNotification(pushConfig, payload).catch(error => {
+          // console.error('Error sending notification to', sub.userId, error)
+          if (error.statusCode === 410 || error.statusCode === 404) {
+            // Subscription is gone, delete it
+            prisma.pushSubscription.delete({ where: { id: sub.id } })
+          }
+        })
+      })
+
+      await Promise.all(notifications)
+    }
+    
     return { success: true }
   } catch (error) {
     console.error('Notification dispatch error:', error)

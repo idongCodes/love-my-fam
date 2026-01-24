@@ -5,6 +5,7 @@ import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { put } from '@vercel/blob'
 import { sendNotification } from '@/app/actions/push'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 
 const prisma = new PrismaClient()
 
@@ -23,31 +24,52 @@ export async function createPost(formData: FormData) {
   if (!userId) return { success: false, message: 'Unauthorized' }
 
   const content = formData.get('content') as string || ""
-  const imageFile = formData.get('file') as File | null 
+  const file = formData.get('file') as File | null 
 
   const hasText = content.trim().length > 0
-  const hasImage = imageFile && imageFile.size > 0
+  const hasFile = file && file.size > 0
 
-  if (!hasText && !hasImage) {
+  if (!hasText && !hasFile) {
     return { success: false, message: "Post cannot be empty" }
   }
 
   let imageUrl = null
+  let videoUrl = null
 
-  if (hasImage) {
-    const arrayBuffer = await imageFile!.arrayBuffer();
+  if (hasFile) {
+    const isVideo = file.type.startsWith('video/') || /\.(mov|mp4|webm|3gp)$/i.test(file.name)
+    const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
+    
+    if (!isVideo && !isImage) {
+        return { success: false, message: "Invalid file type." }
+    }
 
-    const blob = await put(imageFile!.name, arrayBuffer, {
-      access: 'public',
-      contentType: imageFile!.type
-    })
-    imageUrl = blob.url
+    if (isVideo) {
+        // --- VIDEO: Upload to Cloudinary (Auto-Transcode to MP4/H.264) ---
+        try {
+            const result = await uploadToCloudinary(file);
+            videoUrl = result.url;
+        } catch (error) {
+            console.error("Video upload failed:", error);
+            return { success: false, message: "Video upload failed. Check server logs." }
+        }
+    } else {
+        // --- IMAGE: Upload to Vercel Blob (Simple Storage) ---
+        const arrayBuffer = await file.arrayBuffer();
+        const blob = await put(file.name, arrayBuffer, {
+          access: 'public',
+          contentType: file.type || 'image/jpeg',
+          addRandomSuffix: true
+        })
+        imageUrl = blob.url
+    }
   }
 
   const post = await prisma.post.create({
     data: {
       content,
       imageUrl,
+      videoUrl,
       authorId: userId
     },
     include: { author: true }

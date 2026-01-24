@@ -154,6 +154,17 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
               <img src={post.imageUrl} alt="Post attachment" className="w-full max-h-96 object-cover bg-slate-50" loading="lazy"/>
             </div>
           )}
+          {post.videoUrl && (
+            <div className="mt-3 rounded-lg overflow-hidden border border-slate-100 bg-black">
+              <video 
+                src={post.videoUrl} 
+                controls 
+                playsInline 
+                preload="metadata"
+                className="w-full max-h-[600px] object-contain" 
+              />
+            </div>
+          )}
         </div>
       )}
 
