@@ -1,16 +1,48 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import StatusBadge from './StatusBadge'
 import { deleteTestimonial } from '@/app/testimonials/actions'
 
 export default function TestimonialSlider({ testimonials }: { testimonials: any[] }) {
   const [pageIndex, setPageIndex] = useState(0)
+  const [itemsPerPage, setItemsPerPage] = useState(1) // Default to 1 for safety, updates on mount
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  
+  // Swipe state
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  
   const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+  const minSwipeDistance = 50
 
-  const itemsPerPage = 3 
+  // 1. Determine itemsPerPage based on screen width
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setItemsPerPage(3) // lg
+      } else if (window.innerWidth >= 768) {
+        setItemsPerPage(2) // md
+      } else {
+        setItemsPerPage(1) // mobile
+      }
+    }
+
+    // Set initial value
+    handleResize()
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const totalPages = Math.ceil(testimonials.length / itemsPerPage)
+
+  // 2. Ensure pageIndex doesn't go out of bounds if window resizes
+  useEffect(() => {
+    if (pageIndex >= totalPages && totalPages > 0) {
+      setPageIndex(totalPages - 1)
+    }
+  }, [itemsPerPage, totalPages, pageIndex])
 
   const handleDelete = async (testimonialId: string) => {
     setDeletingId(testimonialId)
@@ -29,32 +61,92 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
     }
   }
 
+  // Navigation handlers
+  const nextPage = useCallback(() => {
+    setPageIndex((prev) => (prev + 1) % totalPages)
+  }, [totalPages])
+
+  const prevPage = useCallback(() => {
+    setPageIndex((prev) => (prev - 1 + totalPages) % totalPages)
+  }, [totalPages])
+
+  // Auto-scroll
   useEffect(() => {
     if (totalPages <= 1) return
 
     const interval = setInterval(() => {
-      setPageIndex((prev) => (prev + 1) % totalPages)
+      nextPage()
     }, 5000)
 
     return () => clearInterval(interval)
-  }, [totalPages])
+  }, [totalPages, nextPage])
+
+  // Swipe handlers
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe) {
+      nextPage()
+    }
+    if (isRightSwipe) {
+      prevPage()
+    }
+  }
 
   if (!testimonials.length) return null
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden group">
       
+      {/* Left Arrow */}
+      {totalPages > 1 && (
+        <button 
+          onClick={prevPage}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-black/20 hover:bg-black/40 text-white p-2 sm:p-3 rounded-r-lg backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+          aria-label="Previous"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+      )}
+
+      {/* Right Arrow */}
+      {totalPages > 1 && (
+        <button 
+          onClick={nextPage}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-black/20 hover:bg-black/40 text-white p-2 sm:p-3 rounded-l-lg backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+          aria-label="Next"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      )}
+
       {/* SLIDER TRACK */}
       <div 
-        className="flex transition-transform duration-700 ease-in-out"
+        className="flex transition-transform duration-700 ease-in-out touch-pan-y"
         style={{ transform: `translateX(-${pageIndex * 100}%)` }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
         {testimonials.map((t) => {
           const isAdmin = t.authorEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
           
-          // STATUS LOGIC
-          const statusEmoji = t.authorStatus ? Array.from(t.authorStatus)[0] : null
-
           return (
             <div 
               key={t.id} 
@@ -67,7 +159,7 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
                   <button
                     onClick={() => handleDelete(t.id)}
                     disabled={deletingId === t.id}
-                    className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-600/80 text-white p-1.5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-600/80 text-white p-1.5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10"
                     title="Delete testimonial"
                   >
                     {deletingId === t.id ? (
@@ -84,7 +176,7 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
                 )}
 
                 <p className="text-white/95 text-lg mb-6 leading-relaxed italic font-medium drop-shadow-sm line-clamp-4">
-                  "{t.redactedContent}"
+                  &quot;{t.redactedContent}&quot;
                 </p>
 
                 <div className="flex items-center gap-3 border-t border-white/20 pt-4 mt-auto">
@@ -111,7 +203,6 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
                       </div>
                     )}
                     
-                    {/* ✅ REPLACED MANUAL BADGE WITH COMPONENT */}
                     <StatusBadge status={t.authorStatus} size="normal" />
                   </div>
                   
@@ -141,17 +232,19 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
       </div>
 
       {/* Dots */}
-      <div className="flex justify-center gap-2 mt-8">
-        {Array.from({ length: totalPages }).map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => setPageIndex(idx)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              idx === pageIndex ? 'bg-white w-4' : 'bg-white/30 hover:bg-white/50'
-            }`}
-          />
-        ))}
-      </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-8">
+          {Array.from({ length: totalPages }).map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setPageIndex(idx)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                idx === pageIndex ? 'bg-white w-4' : 'bg-white/30 hover:bg-white/50'
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
