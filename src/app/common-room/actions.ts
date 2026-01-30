@@ -1,13 +1,11 @@
 'use server'
 
-import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { put } from '@vercel/blob'
 import { sendNotification } from '@/app/actions/push'
 import { uploadToCloudinary } from '@/lib/cloudinary'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 // --- HELPER: GET CURRENT USER ID ---
 async function getCurrentUserId() {

@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import StatusBadge from '@/components/StatusBadge'
 import FamilyPositionIcon from '@/components/FamilyPositionIcon'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 export default async function ProfileRoom({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params

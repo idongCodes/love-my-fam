@@ -1,17 +1,24 @@
 'use server'
 
-import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import { sendNotification } from '@/app/actions/push'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 // --- HELPER: VERIFY SECRET ---
 export async function checkSecret(candidate: string) {
   if (!candidate) return false
   
-  const settings = await prisma.systemSettings.findUnique({ where: { id: 'global' } })
-  const validSecret = settings?.familySecret || 'familyfirst'
+  let validSecret = 'familyfirst'
+  
+  try {
+    const settings = await prisma.systemSettings.findUnique({ where: { id: 'global' } })
+    if (settings?.familySecret) {
+      validSecret = settings.familySecret
+    }
+  } catch (error) {
+    console.error("Failed to fetch system settings, using default secret:", error)
+    // Continue with default 'familyfirst'
+  }
   
   const normalizedCandidate = candidate.trim().toLowerCase()
   

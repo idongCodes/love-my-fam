@@ -1,13 +1,11 @@
 'use server'
 
-import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import { put } from '@vercel/blob'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { sendNotification } from '@/app/actions/push'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 // --- 1. UPDATE PROFILE PHOTO ---
 export async function updateProfilePhoto(formData: FormData) {

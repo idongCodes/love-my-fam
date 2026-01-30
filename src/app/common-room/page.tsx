@@ -1,11 +1,9 @@
-import { PrismaClient } from "@prisma/client";
 import { cookies } from "next/headers";
 import PostInput from "@/components/PostInput";
 import PostCard from "@/components/PostCard";
 import AnnouncementCarousel from "@/components/AnnouncementCarousel";
 import { getFeedData, getAnnouncements } from "./actions";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 async function getUser() {
   const cookieStore = await cookies()

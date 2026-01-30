@@ -1,12 +1,10 @@
-import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import StatusBadge from '@/components/StatusBadge' 
 import FamilyPositionIcon from '@/components/FamilyPositionIcon'
 import DeleteUserButton from '@/components/DeleteUserButton'
 import { deleteUser } from './actions'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 async function getUsers(positionFilter?: string) {
   const whereClause = positionFilter ? { position: positionFilter } : {}

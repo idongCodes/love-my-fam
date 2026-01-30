@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                              {
-    id: 'support-for-video-uploads',
-    title: 'Support for Video Uploads',
-    description: 'Update Support for Video Uploads',
+                                {
+    id: 'registration-flow:-form-validation-and-hints-fo...',
+    title: 'Registration Flow: Form Validation and Hints fo...',
+    description: 'Update Registration Flow: Form Validation and Hints for Clarity',
     icon: '⚡',
     category: 'update',
     status: 'recently-updated',
-    date: new Date('2026-01-24T21:16:28.576Z'),
+    date: new Date('2026-01-30T20:31:04.180Z'),
     version: '0.1.0'
   },
   {

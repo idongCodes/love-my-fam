@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import MyRoomClient from '@/components/MyRoomClient'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 async function getUser() {
   const cookieStore = await cookies()
