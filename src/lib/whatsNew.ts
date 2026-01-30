@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                  {
-    id: 'impliment-optimistic-ui-s',
-    title: 'Impliment Optimistic UI s',
-    description: 'Impliment Optimistic UI Updates',
-    icon: '⚡',
-    category: 'update',
-    status: 'recently-updated',
-    date: new Date('2026-01-30T22:35:59.335Z'),
+                                    {
+    id: 'whats-new',
+    title: 'Whats New',
+    description: 'Update Whats New',
+    icon: '🚀',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2026-01-30T22:36:39.598Z'),
     version: '0.1.0'
   },
   {

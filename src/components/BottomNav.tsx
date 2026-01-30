@@ -6,8 +6,10 @@ import { logout } from '@/app/actions'
 import { useState, useEffect } from 'react'
 import ChatModal from './ChatModal'
 import { getUnreadCount } from '@/app/notifications/actions'
+import { useAuth } from '@/context/AuthProvider'
 
-export default function BottomNav({ isLoggedIn }: { isLoggedIn: boolean }) {
+export default function BottomNav() {
+  const { isLoggedIn } = useAuth()
   const pathname = usePathname()
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)

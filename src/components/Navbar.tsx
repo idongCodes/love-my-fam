@@ -1,11 +1,7 @@
 import Link from 'next/link'
-import { cookies } from 'next/headers'
 import BottomNav from './BottomNav'
 
-export default async function Navbar() {
-  const cookieStore = await cookies()
-  const isLoggedIn = cookieStore.has('session_id')
-
+export default function Navbar() {
   return (
     <>
       {/* Simple top logo */}
@@ -18,7 +14,7 @@ export default async function Navbar() {
       </nav>
 
       {/* Bottom navigation */}
-      <BottomNav isLoggedIn={isLoggedIn} />
+      <BottomNav />
     </>
   )
 }

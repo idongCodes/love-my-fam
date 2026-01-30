@@ -7,6 +7,7 @@ import FeedbackWidget from "@/components/FeedbackWidget";
 import WhatsNewSection from "@/components/WhatsNewSection";
 import NotificationPrompt from "@/components/NotificationPrompt";
 import { cookies } from "next/headers";
+import { AuthProvider } from "@/context/AuthProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,47 +43,49 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col pb-25`}>
         
-        <Navbar />
+        <AuthProvider initialSession={isLoggedIn}>
+          <Navbar />
 
-        {/* Auto Logout Watchdog (Only active if logged in) */}
-        {isLoggedIn && <AutoLogout />}
-        
-        <main className="flex-1 pt-12"> 
-          {children}
-        </main>
-
-        {/* 1. Global Feedback Section (Sits above footer) */}
-        {/* We removed 'isLoggedIn' prop to fix the layout bug */}
-        <FeedbackSection />
-
-        {/* 2. What's New Section (Sits above footer) */}
-        <WhatsNewSection />
-
-        {/* 3. Notification Prompt (Only if logged in) */}
-        {isLoggedIn && <NotificationPrompt />}
-
-        {/* 4. Global Footer */}
-        <footer className="bg-slate-800 text-brand-sky py-8 text-center border-t border-slate-700">
+          {/* Auto Logout Watchdog (Only active if logged in) */}
+          {isLoggedIn && <AutoLogout />}
           
-          {/* Feedback Widget Trigger (Sits inside footer) */}
-          <div className="container mx-auto px-4 mb-6 border-b border-slate-700/50 pb-6">
-             {/* We removed the 'isLoggedIn' prop here too */}
-            <FeedbackWidget />
-          </div>
+          <main className="flex-1 pt-12"> 
+            {children}
+          </main>
 
-          <p className="font-medium">© {new Date().getFullYear()} LoveMyFam.</p>
-          <p className="text-sm text-slate-500 mt-2">
-            Built with ❤️ by{' '}
-            <a 
-              href="https://instagram.com/idongcodes" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="underline hover:text-brand-pink transition-colors"
-            >
-              idongCodes
-            </a>
-          </p>
-        </footer>
+          {/* 1. Global Feedback Section (Sits above footer) */}
+          {/* We removed 'isLoggedIn' prop to fix the layout bug */}
+          <FeedbackSection />
+
+          {/* 2. What's New Section (Sits above footer) */}
+          <WhatsNewSection />
+
+          {/* 3. Notification Prompt (Only if logged in) */}
+          {isLoggedIn && <NotificationPrompt />}
+
+          {/* 4. Global Footer */}
+          <footer className="bg-slate-800 text-brand-sky py-8 text-center border-t border-slate-700">
+            
+            {/* Feedback Widget Trigger (Sits inside footer) */}
+            <div className="container mx-auto px-4 mb-6 border-b border-slate-700/50 pb-6">
+               {/* We removed the 'isLoggedIn' prop here too */}
+              <FeedbackWidget />
+            </div>
+
+            <p className="font-medium">© {new Date().getFullYear()} LoveMyFam.</p>
+            <p className="text-sm text-slate-500 mt-2">
+              Built with ❤️ by{' '}
+              <a 
+                href="https://instagram.com/idongcodes" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:text-brand-pink transition-colors"
+              >
+                idongCodes
+              </a>
+            </p>
+          </footer>
+        </AuthProvider>
 
       </body>
     </html>
