@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                {
-    id: 'registration-flow:-form-validation-and-hints-fo...',
-    title: 'Registration Flow: Form Validation and Hints fo...',
-    description: 'Update Registration Flow: Form Validation and Hints for Clarity',
+                                  {
+    id: 'impliment-optimistic-ui-s',
+    title: 'Impliment Optimistic UI s',
+    description: 'Impliment Optimistic UI Updates',
     icon: '⚡',
     category: 'update',
     status: 'recently-updated',
-    date: new Date('2026-01-30T20:31:04.180Z'),
+    date: new Date('2026-01-30T22:35:59.335Z'),
     version: '0.1.0'
   },
   {
