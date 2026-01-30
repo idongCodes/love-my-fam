@@ -1,10 +1,8 @@
 'use server'
 
-import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 async function getCurrentUserId() {
   const cookieStore = await cookies()

@@ -135,17 +135,59 @@ export default function ChatModal({ isOpen, onClose }: { isOpen: boolean; onClos
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() && currentUserId) {
+      const tempId = 'temp-' + Date.now()
+      const messageContent = inputMessage.trim()
+      const replyContext = replyingTo ? {
+        id: replyingTo.id,
+        content: replyingTo.content,
+        author: {
+          firstName: replyingTo.authorName.split(' ')[0], // Approximate
+          alias: replyingTo.authorName
+        }
+      } : null
+
+      // 1. Optimistic Update
+      const tempMessage = {
+        id: tempId,
+        content: messageContent,
+        author: {
+          id: currentUserId,
+          firstName: currentUser?.firstName || 'Me',
+          lastName: currentUser?.lastName || '',
+          alias: currentUser?.alias,
+          profileImage: currentUser?.profileImage
+        },
+        createdAt: new Date(),
+        reactions: [],
+        replyTo: replyContext
+      }
+
+      setMessages(prev => [...prev, tempMessage as any])
+      setInputMessage('')
+      setReplyingTo(null)
+      
+      // Scroll to bottom
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 10)
+
       try {
-        const result = await sendChatMessage(inputMessage.trim(), currentUserId, replyingTo?.id)
-        if (result.success) {
-          setInputMessage('')
-          setReplyingTo(null)
+        // 2. Server Request
+        const result = await sendChatMessage(messageContent, currentUserId, replyingTo?.id)
+        
+        if (result.success && result.message) {
+          // 3. Success: Replace temp message with real one (or just fetch fresh)
+          // We'll fetch fresh to be safe and get consistent server timestamps/IDs
           fetchMessages()
         } else {
           console.error('Failed to send message:', result.message)
+          // Revert on failure
+          setMessages(prev => prev.filter(m => m.id !== tempId))
+          setInputMessage(messageContent) // Restore input
+          alert("Failed to send message. Please try again.")
         }
       } catch (error) {
         console.error('Error sending message:', error)
+        setMessages(prev => prev.filter(m => m.id !== tempId))
+        setInputMessage(messageContent)
       }
     }
   }

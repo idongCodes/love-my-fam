@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 // ... (keep your existing logout function) ...
 export async function logout() {
@@ -21,7 +21,6 @@ export async function submitGeneralFeedback(content: string) {
   }
 
   try {
-    const prisma = new PrismaClient()
     const user = await prisma.user.findUnique({
       where: { id: userId }
     })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useOptimistic } from 'react'
 import { deletePost, editPost, toggleLike, addComment, dismissAnnouncement } from '@/app/common-room/actions'
 import CommentItem from './CommentItem'
 import LikeButton from './LikeButton'
@@ -20,6 +20,12 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState('')
 
+  // OPTIMISTIC COMMENTS
+  const [optimisticComments, addOptimisticComment] = useOptimistic(
+    post.topLevelComments || [],
+    (state: any[], newComment: any) => [...state, newComment]
+  )
+
   // ... (Keep permissions logic)
   const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
   const isAdmin = post.author.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
@@ -35,9 +41,36 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
     if (result.success) { setIsEditing(false); router.refresh(); } else { alert(result.message); }
   }
   async function handleToggleLike() { await toggleLike(post.id) }
+  
   async function handleMainCommentSubmit(e: React.FormEvent) {
-    e.preventDefault(); if(!commentText.trim()) return; await addComment(post.id, commentText); setCommentText('');
+    e.preventDefault(); 
+    if(!commentText.trim()) return; 
+    
+    // 1. Add Optimistic Comment
+    const tempComment = {
+      id: 'temp-' + Date.now(),
+      content: commentText,
+      createdAt: new Date(),
+      authorId: currentUserId,
+      author: {
+        id: currentUserId,
+        firstName: 'Me', // We don't have full user details here, relying on "Me" or fetching context if needed. 
+                         // For better UX, we could pass current user details to PostCard.
+        alias: null,
+        profileImage: null // Placeholder
+      },
+      likes: [],
+      isOptimistic: true // Flag for styling
+    }
+    addOptimisticComment(tempComment)
+    
+    const textToSend = commentText
+    setCommentText(''); // Clear input immediately
+
+    // 2. Server Action
+    await addComment(post.id, textToSend);
   }
+
   async function handleDismiss() { await dismissAnnouncement(post.id); router.refresh(); }
 
   const displayName = post.author.alias || post.author.firstName
@@ -173,7 +206,7 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
         <LikeButton initialLikes={post.likes} currentUserId={currentUserId} onToggle={handleToggleLike} />
         <div className="flex items-center gap-4">
           <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2 text-slate-400 hover:text-brand-sky transition-colors font-medium text-sm group">
-            <span>{post.topLevelComments?.length || 0} Replies</span>
+            <span>{optimisticComments?.length || 0} Replies</span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
           </button>
           {post.isUrgent && (
@@ -193,10 +226,12 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
             <button type="submit" disabled={!commentText.trim()} className="bg-brand-sky text-white font-bold px-4 py-2 rounded-lg hover:bg-sky-500 disabled:opacity-50 transition-colors">Post</button>
           </form>
           <div className="space-y-4">
-            {post.topLevelComments?.map((comment: any) => (
-              <CommentItem key={comment.id} comment={comment} currentUserId={currentUserId} postId={post.id}/>
+            {optimisticComments?.map((comment: any) => (
+              <div key={comment.id} className={comment.isOptimistic ? "opacity-50" : ""}>
+                 <CommentItem comment={comment} currentUserId={currentUserId} postId={post.id}/>
+              </div>
             ))}
-            {(!post.topLevelComments || post.topLevelComments.length === 0) && <p className="text-center text-slate-400 text-xs italic">No comments yet.</p>}
+            {(!optimisticComments || optimisticComments.length === 0) && <p className="text-center text-slate-400 text-xs italic">No comments yet.</p>}
           </div>
         </div>
       )}
