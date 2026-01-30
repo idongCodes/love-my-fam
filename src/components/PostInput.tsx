@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { createPost } from '@/app/common-room/actions'
 import EmojiButton from './EmojiButton'
+import { useToast } from '@/context/ToastContext'
 
 export default function PostInput() {
   const [content, setContent] = useState('')
@@ -12,6 +13,7 @@ export default function PostInput() {
   const [isPosting, setIsPosting] = useState(false)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const toast = useToast()
 
   const checkVideoDuration = (file: File): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -43,7 +45,7 @@ export default function PostInput() {
       } else if (isVideo) {
         const isValidDuration = await checkVideoDuration(file)
         if (!isValidDuration) {
-          alert("Video must be 59 seconds or less.")
+          toast.warning("Video must be 59 seconds or less.")
           if (fileInputRef.current) fileInputRef.current.value = ''
           return
         }
@@ -51,7 +53,7 @@ export default function PostInput() {
         setMediaFile(file)
         setPreviewUrl(URL.createObjectURL(file))
       } else {
-        alert("Unsupported file type.")
+        toast.error("Unsupported file type.")
       }
     }
   }
@@ -70,13 +72,14 @@ export default function PostInput() {
     setIsPosting(false)
 
     if (result.success) {
+      toast.success("Post created successfully!")
       setContent('')
       setMediaFile(null)
       setMediaType(null)
       setPreviewUrl(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
     } else {
-      alert(result.message)
+      toast.error(result.message || "Failed to create post.")
     }
   }
 
