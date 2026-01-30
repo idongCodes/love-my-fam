@@ -6,6 +6,19 @@ import { sendNotification } from '@/app/actions/push'
 
 const prisma = new PrismaClient()
 
+// --- HELPER: VERIFY SECRET ---
+export async function checkSecret(candidate: string) {
+  if (!candidate) return false
+  
+  const settings = await prisma.systemSettings.findUnique({ where: { id: 'global' } })
+  const validSecret = settings?.familySecret || 'familyfirst'
+  
+  const normalizedCandidate = candidate.trim().toLowerCase()
+  
+  // Allow either the DB secret OR the legacy 'mercy' code
+  return normalizedCandidate === validSecret.toLowerCase() || normalizedCandidate === 'mercy'
+}
+
 export async function registerUser(formData: FormData) {
   const firstName = formData.get('firstName') as string
   const lastName = formData.get('lastName') as string
@@ -18,7 +31,8 @@ export async function registerUser(formData: FormData) {
   const position = formData.get('position') as string 
 
   // 2. THE SECURITY CHECK
-  if (securityAnswer.trim().toLowerCase() !== 'mercy') {
+  const isValid = await checkSecret(securityAnswer)
+  if (!isValid) {
     return { success: false, message: "Incorrect security answer." }
   }
 

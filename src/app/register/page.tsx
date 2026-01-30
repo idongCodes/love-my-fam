@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { registerUser } from './actions'
+import { registerUser, checkSecret } from './actions'
+import { Suspense } from 'react'
 
-export default function RegisterPage() {
+function RegisterContent() {
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const secretParam = searchParams.get('familySecret')
 
   // Form State
   const [formData, setFormData] = useState({
@@ -17,7 +20,7 @@ export default function RegisterPage() {
     alias: '',
     phone: '',
     email: '',
-    securityAnswer: '',
+    securityAnswer: secretParam || '',
     position: ''
   })
 
@@ -27,9 +30,36 @@ export default function RegisterPage() {
     lastName: null,
     phone: null,
     email: null,
-    securityAnswer: null,
+    securityAnswer: null, // Async validated
     position: null
   })
+
+  const [isCheckingSecret, setIsCheckingSecret] = useState(false)
+
+  // --- ASYNC SECRET VALIDATION ---
+  useEffect(() => {
+    const answer = formData.securityAnswer
+    if (!answer) {
+      setValidation(prev => ({ ...prev, securityAnswer: null }))
+      return
+    }
+
+    setIsCheckingSecret(true)
+    // Debounce slightly to avoid spamming while typing
+    const timer = setTimeout(async () => {
+      try {
+        const isValid = await checkSecret(answer)
+        setValidation(prev => ({ ...prev, securityAnswer: isValid }))
+      } catch (err) {
+        console.error("Secret check failed", err)
+      } finally {
+        setIsCheckingSecret(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [formData.securityAnswer])
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -38,15 +68,6 @@ export default function RegisterPage() {
     // Reset validation state on change to remove immediate red error while typing
     if (validation[name] === false) {
       setValidation(prev => ({ ...prev, [name]: null }))
-    }
-
-    // Real-time security check (special case)
-    if (name === 'securityAnswer') {
-       if (value.trim().toLowerCase() === 'mercy') {
-          setValidation(prev => ({ ...prev, securityAnswer: true }))
-       } else {
-          setValidation(prev => ({ ...prev, securityAnswer: null })) // Don't show error yet, just remove success
-       }
     }
   }
 
@@ -66,19 +87,23 @@ export default function RegisterPage() {
         isValid = /^\+?[\d\s-]{10,}$/.test(value) // At least 10 digits/chars
         break
       case 'securityAnswer':
-        isValid = value.trim().toLowerCase() === 'mercy'
+        // Handled by useEffect, but we can check empty here
+        isValid = value.trim().length > 0 && validation.securityAnswer === true
         break
       default:
         break
     }
 
-    setValidation(prev => ({ ...prev, [name]: isValid }))
+    if (name !== 'securityAnswer') {
+        setValidation(prev => ({ ...prev, [name]: isValid }))
+    }
     return isValid
   }
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     if (name === 'alias') return // Optional
+    if (name === 'securityAnswer') return // Handled by effect
     validateField(name, value)
   }
 
@@ -89,7 +114,7 @@ export default function RegisterPage() {
     setError('')
 
     // Final Validation Check
-    const fieldsToValidate = ['firstName', 'lastName', 'phone', 'email', 'securityAnswer']
+    const fieldsToValidate = ['firstName', 'lastName', 'phone', 'email']
     if (isSecurityCorrect) fieldsToValidate.push('position')
 
     let allValid = true
@@ -97,6 +122,11 @@ export default function RegisterPage() {
        const isValid = validateField(field, (formData as any)[field])
        if (!isValid) allValid = false
     })
+
+    if (!isSecurityCorrect) {
+        setValidation(prev => ({ ...prev, securityAnswer: false }))
+        allValid = false
+    }
 
     if (!allValid) {
       setError("Please fix the errors in the form.")
@@ -132,8 +162,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-brand-cream/30 px-4 py-10 font-sans">
-      <div className="bg-white p-8 rounded-2xl shadow-lg max-w-lg w-full border border-slate-100">
+    <div className="bg-white p-8 rounded-2xl shadow-lg max-w-lg w-full border border-slate-100">
         
         <h1 className="text-3xl font-bold text-center text-brand-sky mb-2 tracking-tight">Join the Family</h1>
         <p className="text-center text-slate-400 mb-8">Create your profile to enter the Common Room.</p>
@@ -212,7 +241,8 @@ export default function RegisterPage() {
           <div className={`p-4 rounded-xl border transition-all duration-500 relative ${isSecurityCorrect ? 'bg-green-50 border-green-200' : 'bg-brand-yellow/20 border-brand-yellow'}`}>
             <label className="block text-sm font-bold text-slate-700 mb-2 flex justify-between">
               <span>🔒 Security Question</span>
-              {isSecurityCorrect && <span className="text-green-600 text-xs bg-green-100 px-2 py-0.5 rounded-full">Verified</span>}
+              {isCheckingSecret && <span className="text-brand-sky text-xs bg-sky-100 px-2 py-0.5 rounded-full animate-pulse">Checking...</span>}
+              {isSecurityCorrect && !isCheckingSecret && <span className="text-green-600 text-xs bg-green-100 px-2 py-0.5 rounded-full">Verified</span>}
             </label>
             <p className="text-sm text-slate-600 mb-3 italic">
               "What is Charlie's Grandma's name on her Father's side?"
@@ -222,7 +252,6 @@ export default function RegisterPage() {
                 name="securityAnswer" 
                 value={formData.securityAnswer}
                 onChange={handleChange}
-                onBlur={handleBlur}
                 placeholder="Type the answer..."
                 className={`w-full p-3 rounded-lg border outline-none pr-10 ${
                    validation.securityAnswer === false 
@@ -232,7 +261,7 @@ export default function RegisterPage() {
               />
                {validation.securityAnswer === false && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 font-bold">!</span>}
             </div>
-            {validation.securityAnswer === false && (
+            {validation.securityAnswer === false && !isCheckingSecret && (
               <p className="text-red-500 text-xs mt-2 font-medium">Incorrect answer. Please try again.</p>
             )}
           </div>
@@ -292,6 +321,15 @@ export default function RegisterPage() {
           </Link>
         </div>
       </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-brand-cream/30 px-4 py-10 font-sans">
+      <Suspense fallback={<div className="text-brand-sky font-bold">Loading...</div>}>
+        <RegisterContent />
+      </Suspense>
     </main>
   )
 }

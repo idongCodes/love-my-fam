@@ -1,8 +1,10 @@
 import { PrismaClient } from '@prisma/client'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import StatusBadge from '@/components/StatusBadge' // <--- Import
-import FamilyPositionIcon from '@/components/FamilyPositionIcon' // <--- Import FamilyPositionIcon
+import StatusBadge from '@/components/StatusBadge' 
+import FamilyPositionIcon from '@/components/FamilyPositionIcon'
+import DeleteUserButton from '@/components/DeleteUserButton'
+import { deleteUser } from './actions'
 
 const prisma = new PrismaClient()
 
@@ -21,7 +23,7 @@ async function getUsers(positionFilter?: string) {
       position: true, 
       profileImage: true, 
       email: true,
-      status: true // <--- FETCHING STATUS
+      status: true 
     }
   })
 }
@@ -78,6 +80,17 @@ export default async function FamilyDirectory({ searchParams }: { searchParams: 
           {users.map((user) => (
             <div key={user.id} className={`bg-white p-6 rounded-2xl shadow-sm border flex items-center gap-4 hover:shadow-md transition-shadow relative group ${isAdmin && user.email === currentUserEmail ? 'border-brand-sky/30 bg-brand-sky/5' : 'border-slate-100'}`}>
               
+              {/* ADMIN ACTION */}
+              {isAdmin && user.email !== currentUserEmail && (
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DeleteUserButton 
+                    userId={user.id} 
+                    userName={user.firstName} 
+                    onDelete={deleteUser} 
+                  />
+                </div>
+              )}
+
               {/* AVATAR + STATUS */}
               <div className="relative">
                 <Link href={`/${user.firstName.toLowerCase()}s-room`} className="block">

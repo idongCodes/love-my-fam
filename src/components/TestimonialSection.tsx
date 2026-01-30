@@ -1,13 +1,17 @@
-import { getTestimonials } from '@/app/testimonials/actions'
+import { getTestimonials, isAdmin } from '@/app/testimonials/actions'
 import TestimonialSlider from './TestimonialSlider'
 
 export default async function TestimonialSection() {
   let testimonials = []
+  let isUserAdmin = false
   
   try {
     // Fetch up to 9 items so the carousel has content to scroll through
     // (You can adjust the limit in your actions.ts if needed, e.g. take: 9)
-    testimonials = await getTestimonials()
+    [testimonials, isUserAdmin] = await Promise.all([
+      getTestimonials(),
+      isAdmin()
+    ])
   } catch (error) {
     // If database fails, don't show testimonials section
     console.log('Testimonials section disabled due to database connection issue')
@@ -31,7 +35,7 @@ export default async function TestimonialSection() {
         </h2>
 
         {/* Client Side Slider */}
-        <TestimonialSlider testimonials={testimonials} />
+        <TestimonialSlider testimonials={testimonials} isUserAdmin={isUserAdmin} />
         
       </div>
     </section>
