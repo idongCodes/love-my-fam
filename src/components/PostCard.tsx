@@ -8,9 +8,13 @@ import EmojiButton from './EmojiButton'
 import { useRouter } from 'next/navigation'
 import StatusBadge from './StatusBadge'
 import FamilyPositionIcon from './FamilyPositionIcon'
+import { useToast } from '@/context/ToastContext'
+import { useConfirm } from '@/context/ConfirmContext'
 
 export default function PostCard({ post, currentUserId }: { post: any, currentUserId: string }) {
   const router = useRouter()
+  const toast = useToast()
+  const { confirm } = useConfirm()
   
   // ... (Keep existing state: isEditing, editContent, etc.)
   const [isEditing, setIsEditing] = useState(false)
@@ -35,11 +39,29 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
   const canEdit = isAuthor && (post.isAnnouncement || (!post.isEdited && timeDiff < 10 * 60 * 1000))
 
   // ... (Keep handlers: handleDelete, handleSave, etc.)
-  async function handleDelete() { if (confirm('Delete?')) await deletePost(post.id) }
+  async function handleDelete() { 
+    if (await confirm({ 
+      title: 'Delete Post', 
+      message: 'Are you sure you want to delete this post?', 
+      confirmText: 'Delete', 
+      type: 'danger' 
+    })) {
+      await deletePost(post.id)
+      toast.success('Post deleted')
+    }
+  }
+
   async function handleSave() {
     const result = await editPost(post.id, editContent, post.isAnnouncement ? editTitle : undefined, post.isAnnouncement ? editIsUrgent : undefined)
-    if (result.success) { setIsEditing(false); router.refresh(); } else { alert(result.message); }
+    if (result.success) { 
+      setIsEditing(false); 
+      router.refresh(); 
+      toast.success('Post updated')
+    } else { 
+      toast.error(result.message || 'Failed to update post'); 
+    }
   }
+  
   async function handleToggleLike() { await toggleLike(post.id) }
   
   async function handleMainCommentSubmit(e: React.FormEvent) {
@@ -71,7 +93,11 @@ export default function PostCard({ post, currentUserId }: { post: any, currentUs
     await addComment(post.id, textToSend);
   }
 
-  async function handleDismiss() { await dismissAnnouncement(post.id); router.refresh(); }
+  async function handleDismiss() { 
+    await dismissAnnouncement(post.id); 
+    router.refresh(); 
+    toast.info('Announcement dismissed')
+  }
 
   const displayName = post.author.alias || post.author.firstName
   const firstLetter = displayName[0].toUpperCase()

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useConfirm } from '@/context/ConfirmContext'
+import { useToast } from '@/context/ToastContext'
 
 interface DeleteUserButtonProps {
   userId: string
@@ -10,15 +12,23 @@ interface DeleteUserButtonProps {
 
 export default function DeleteUserButton({ userId, userName, onDelete }: DeleteUserButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const { confirm } = useConfirm()
+  const toast = useToast()
 
   const handleClick = async () => {
-    if (confirm(`Are you sure you want to completely remove ${userName} and all their data? This cannot be undone.`)) {
+    if (await confirm({ 
+      title: 'Delete User', 
+      message: `Are you sure you want to completely remove ${userName} and all their data? This cannot be undone.`,
+      confirmText: 'Delete Forever',
+      type: 'danger' 
+    })) {
       setIsDeleting(true)
       try {
         await onDelete(userId)
+        toast.success(`User ${userName} deleted`)
       } catch (error) {
         console.error("Failed to delete user", error)
-        alert("Failed to delete user. Check console for details.")
+        toast.error("Failed to delete user. Check console for details.")
       } finally {
         setIsDeleting(false)
       }

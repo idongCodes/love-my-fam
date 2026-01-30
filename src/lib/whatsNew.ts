@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                    {
-    id: 'whats-new',
-    title: 'Whats New',
-    description: 'Update Whats New',
-    icon: '🚀',
-    category: 'feature',
+                                      {
+    id: 'authprovider-to-auth-state-flash-issue',
+    title: 'AuthProvider to Auth State Flash Issue',
+    description: 'Implement AuthProvider to Fix Auth State Flash Issue',
+    icon: '🔧',
+    category: 'fix',
     status: 'just-released',
-    date: new Date('2026-01-30T22:36:39.598Z'),
+    date: new Date('2026-01-30T22:46:40.997Z'),
     version: '0.1.0'
   },
   {

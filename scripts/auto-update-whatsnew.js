@@ -65,6 +65,11 @@ function makeUserFriendlyTitle(message) {
   // Capitalize first letter
   title = title.charAt(0).toUpperCase() + title.slice(1);
   
+  // Make title simpler/cuter
+  if (title.toLowerCase().includes('bug')) return 'Squashed a Bug!';
+  if (title.toLowerCase().includes('fix')) return 'Fixed a Boo-boo';
+  if (title.toLowerCase().includes('add')) return 'Something New!';
+  
   // Limit length
   if (title.length > 50) {
     title = title.substring(0, 47) + '...';
@@ -81,25 +86,29 @@ function makeUserFriendlyDescription(message) {
     .replace(/\b(git|github|commit|push|pull|merge|branch|repo|repository)\b/gi, '')
     .trim();
   
-  // Make it more user-focused
+  // Make it more user-focused (Child Friendly Mode 🧸)
   if (description.toLowerCase().includes('login')) {
-    return 'Improvements to the login experience for better security and convenience.';
+    return 'We made opening the magic door easier for everyone!';
   }
   
   if (description.toLowerCase().includes('nav') || description.toLowerCase().includes('menu')) {
-    return 'Enhanced navigation to make moving around the app easier and more intuitive.';
+    return 'Moving around the house is now super simple and fun!';
   }
   
   if (description.toLowerCase().includes('chat') || description.toLowerCase().includes('message')) {
-    return 'Better messaging features to keep your family conversations flowing smoothly.';
+    return 'Talking to your family is now faster than a whisper!';
   }
   
   if (description.toLowerCase().includes('profile') || description.toLowerCase().includes('room')) {
-    return 'Updates to your personal space to make it more enjoyable and functional.';
+    return 'Your special room got a shiny new coat of paint!';
+  }
+
+  if (description.toLowerCase().includes('fix') || description.toLowerCase().includes('bug')) {
+    return 'We found a little bug and sent it away. Bye bye bug!';
   }
   
   // Default description
-  return description || 'New features and improvements to enhance your family experience.';
+  return 'We added some sparkle and magic to make things better!';
 }
 
 // Get version from git or package.json
