@@ -712,38 +712,71 @@ export default function MyRoomClient({ user, familySecret }: { user: any, family
       )}
 
       {activeTab === 'settings' && (
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 animate-fade-in">
-          <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <span>🔔</span> Notification Settings
-          </h3>
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 animate-fade-in space-y-8">
           
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-              <h4 className="font-bold text-slate-800">App Notifications</h4>
-              <p className="text-sm text-slate-500 mt-1">
-                Receive alerts for new chats, posts, and important family updates even when you're away.
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${isSubscribed ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                <span className="text-xs font-medium text-slate-600">
-                  Status: {isSubscribed ? 'Active' : permission === 'denied' ? 'Blocked (Check Browser Settings)' : 'Inactive'}
-                </span>
-              </div>
-            </div>
+          {/* 1. INVITE LINK */}
+          <div className="bg-brand-sky/5 p-6 rounded-2xl border border-brand-sky/20">
+            <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+              <span>💌</span> Invite Family
+            </h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Share this link with family members. It will automatically fill in the secret code for them.
+            </p>
             
-            <button
-              onClick={subscribe}
-              disabled={isSubscribed || permission === 'denied'}
-              className={`px-6 py-3 rounded-full font-bold text-sm transition-all shadow-sm shrink-0 ${
-                isSubscribed 
-                  ? 'bg-green-100 text-green-700 cursor-default border border-green-200' 
-                  : permission === 'denied'
-                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                    : 'bg-brand-sky text-white hover:bg-sky-500 hover:scale-105'
-              }`}
-            >
-              {isSubscribed ? 'Notifications Enabled ✅' : permission === 'denied' ? 'Permission Denied' : 'Enable Notifications'}
-            </button>
+            <div className="flex gap-2">
+              <div className="flex-1 bg-white p-3 rounded-xl border border-brand-sky/20 text-slate-500 text-sm font-mono truncate select-all">
+                {typeof window !== 'undefined' ? `${window.location.origin}/register?familySecret=${familySecret}` : 'Loading link...'}
+              </div>
+              <button 
+                onClick={() => {
+                  const link = `${window.location.origin}/register?familySecret=${familySecret}`
+                  navigator.clipboard.writeText(link)
+                  alert("Link copied to clipboard!")
+                }}
+                className="bg-brand-sky text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-sky-500 transition-colors shrink-0 flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5" />
+                </svg>
+                Copy
+              </button>
+            </div>
+          </div>
+
+          {/* 2. NOTIFICATIONS */}
+          <div>
+            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <span>🔔</span> Notification Settings
+            </h3>
+            
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <h4 className="font-bold text-slate-800">App Notifications</h4>
+                <p className="text-sm text-slate-500 mt-1">
+                  Receive alerts for new chats, posts, and important family updates even when you're away.
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${isSubscribed ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                  <span className="text-xs font-medium text-slate-600">
+                    Status: {isSubscribed ? 'Active' : permission === 'denied' ? 'Blocked (Check Browser Settings)' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+              
+              <button
+                onClick={subscribe}
+                disabled={isSubscribed || permission === 'denied'}
+                className={`px-6 py-3 rounded-full font-bold text-sm transition-all shadow-sm shrink-0 ${
+                  isSubscribed 
+                    ? 'bg-green-100 text-green-700 cursor-default border border-green-200' 
+                    : permission === 'denied'
+                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      : 'bg-brand-sky text-white hover:bg-sky-500 hover:scale-105'
+                }`}
+              >
+                {isSubscribed ? 'Notifications Enabled ✅' : permission === 'denied' ? 'Permission Denied' : 'Enable Notifications'}
+              </button>
+            </div>
           </div>
         </div>
       )}

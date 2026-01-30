@@ -21,7 +21,7 @@ async function getCurrentUser() {
   })
 }
 
-async function isAdmin() {
+export async function isAdmin() {
   const user = await getCurrentUser()
   return user?.email === 'idongesit_essien@ymail.com'
 }

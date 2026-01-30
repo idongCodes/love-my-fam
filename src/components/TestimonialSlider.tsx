@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import StatusBadge from './StatusBadge'
 import { deleteTestimonial } from '@/app/testimonials/actions'
 
-export default function TestimonialSlider({ testimonials }: { testimonials: any[] }) {
+export default function TestimonialSlider({ testimonials, isUserAdmin }: { testimonials: any[], isUserAdmin: boolean }) {
   const [pageIndex, setPageIndex] = useState(0)
   const [itemsPerPage, setItemsPerPage] = useState(1) // Default to 1 for safety, updates on mount
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -45,6 +45,8 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
   }, [itemsPerPage, totalPages, pageIndex])
 
   const handleDelete = async (testimonialId: string) => {
+    if (!confirm('Are you sure you want to delete this testimonial?')) return
+
     setDeletingId(testimonialId)
     try {
       const result = await deleteTestimonial(testimonialId)
@@ -145,7 +147,7 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
         onTouchEnd={onTouchEnd}
       >
         {testimonials.map((t) => {
-          const isAdmin = t.authorEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+          const authorIsAdmin = t.authorEmail?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
           
           return (
             <div 
@@ -154,8 +156,8 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
             >
               <div className="h-full min-h-[250px] p-6 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md shadow-xl flex flex-col justify-between relative">
                 
-                {/* Admin Delete Button */}
-                {isAdmin && (
+                {/* Admin Delete Button (Visible if Viewer is Admin) */}
+                {isUserAdmin && (
                   <button
                     onClick={() => handleDelete(t.id)}
                     disabled={deletingId === t.id}
@@ -211,7 +213,7 @@ export default function TestimonialSlider({ testimonials }: { testimonials: any[
                       <span className="font-bold text-white tracking-wide text-sm whitespace-nowrap">
                         {t.displayAuthor}
                       </span>
-                      {isAdmin && (
+                      {authorIsAdmin && (
                         <span className="bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-500 flex items-center gap-0.5 shadow-sm">
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5">
                             <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" />
