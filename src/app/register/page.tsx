@@ -157,7 +157,7 @@ function RegisterContent() {
 
   const ValidationIcon = ({ fieldName }: { fieldName: string }) => {
     if (validation[fieldName] === true) return <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">✓</span>
-    if (validation[fieldName] === false) return <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">!</span>
+    if (validation[fieldName] === false) return <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 font-bold">!</span>
     return null
   }
 
@@ -182,6 +182,7 @@ function RegisterContent() {
                 placeholder="Jane"
               />
               <ValidationIcon fieldName="firstName" />
+              {validation.firstName === false && <p className="text-red-500 text-[10px] mt-1">First name is required</p>}
             </div>
             <div className="relative">
               <label className="block text-xs font-bold text-slate-500 mb-1">LAST NAME</label>
@@ -194,6 +195,7 @@ function RegisterContent() {
                 placeholder="Doe"
               />
               <ValidationIcon fieldName="lastName" />
+              {validation.lastName === false && <p className="text-red-500 text-[10px] mt-1">Last name is required</p>}
             </div>
           </div>
 
@@ -221,6 +223,7 @@ function RegisterContent() {
                 placeholder="555-0123"
               />
               <ValidationIcon fieldName="phone" />
+              {validation.phone === false && <p className="text-red-500 text-[10px] mt-1">Enter a valid phone number (min 10 digits)</p>}
             </div>
             <div className="relative">
               <label className="block text-xs font-bold text-slate-500 mb-1">EMAIL</label>
@@ -234,6 +237,7 @@ function RegisterContent() {
                 placeholder="jane@example.com"
               />
               <ValidationIcon fieldName="email" />
+              {validation.email === false && <p className="text-red-500 text-[10px] mt-1">Enter a valid email address</p>}
             </div>
           </div>
 
@@ -274,16 +278,17 @@ function RegisterContent() {
                   ✅ Correct! One last thing...
                 </label>
                 <div className="relative">
-                  <p className="text-xs text-slate-500 mb-2 font-medium uppercase">How are you related to the family?</p>
+                  <p className="text-xs text-slate-500 mb-2 font-medium uppercase">What is your relation to Mercy?</p>
                   <input 
                     name="position" 
                     value={formData.position}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    placeholder="e.g. Cousin, Aunt, Friend"
+                    placeholder="e.g. Mercy's 3rd born son"
                     className={getInputClass('position')} 
                   />
                   <ValidationIcon fieldName="position" />
+                  {validation.position === false && <p className="text-red-500 text-[10px] mt-1">This field is required</p>}
                 </div>
               </div>
               
