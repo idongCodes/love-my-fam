@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                            {
-    id: 'favicon-and-logo;-logo-image-to-top-bar',
-    title: 'Favicon and Logo; Logo Image to Top Bar',
-    description: 'We added some sparkle and magic to make things better!',
+                                              {
+    id: 'support-for-family-album;-admin-powers;-decreas...',
+    title: 'Support for Family Album; Admin Powers; Decreas...',
+    description: 'Moving around the house is now super simple and fun!',
     icon: '🚀',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-01-31T20:43:44.530Z'),
+    date: new Date('2026-01-31T22:22:19.746Z'),
     version: '0.1.0'
   },
   {
