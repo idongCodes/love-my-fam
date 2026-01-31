@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                          {
-    id: 'pointer-hover-state',
-    title: 'Pointer Hover State',
+                                            {
+    id: 'favicon-and-logo;-logo-image-to-top-bar',
+    title: 'Favicon and Logo; Logo Image to Top Bar',
     description: 'We added some sparkle and magic to make things better!',
-    icon: '⚡',
-    category: 'update',
-    status: 'recently-updated',
-    date: new Date('2026-01-31T10:26:50.748Z'),
+    icon: '🚀',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2026-01-31T20:43:44.530Z'),
     version: '0.1.0'
   },
   {

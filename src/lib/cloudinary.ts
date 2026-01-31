@@ -45,3 +45,26 @@ export async function uploadToCloudinary(file: File, folder: string = 'common-ro
     uploadStream.end(buffer);
   });
 }
+
+export function generateSignature(folder: string = 'family-album', transformation?: string) {
+  const timestamp = Math.round(new Date().getTime() / 1000);
+  const params: any = {
+    timestamp,
+    folder,
+  };
+  
+  if (transformation) {
+    params.transformation = transformation;
+  }
+  
+  const signature = cloudinary.utils.api_sign_request(params, process.env.CLOUDINARY_API_SECRET!);
+  
+  return {
+    timestamp,
+    signature,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    folder,
+    transformation
+  };
+}
