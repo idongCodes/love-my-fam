@@ -30,6 +30,12 @@ export default function FamilyAlbumPage() {
   const [hasMore, setHasMore] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  
+  // Filters
+  const [filterYear, setFilterYear] = useState('')
+  const [filterMonth, setFilterMonth] = useState('')
+  const [filterHoliday, setFilterHoliday] = useState('')
   
   // Edit State
   const [isEditing, setIsEditing] = useState(false)
@@ -46,14 +52,23 @@ export default function FamilyAlbumPage() {
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
-  // Initial Load
+  // Search Debounce Effect
   useEffect(() => {
-    loadData(1)
-  }, [])
+    const timer = setTimeout(() => {
+      // Reset and load
+      setPage(1)
+      setHasMore(true)
+      loadData(1, searchQuery, filterYear, filterMonth, filterHoliday)
+    }, 500)
 
-  const loadData = async (pageNum: number) => {
+    return () => clearTimeout(timer)
+  }, [searchQuery, filterYear, filterMonth, filterHoliday])
+
+  const loadData = async (pageNum: number, search: string, year: string, month: string, holiday: string) => {
     try {
-      const result = await getAlbumMedia(pageNum)
+      if (pageNum === 1) setLoading(true) // Show loader for new search
+      
+      const result = await getAlbumMedia(pageNum, 50, search, year, month, holiday)
       if (result.success) {
         if (result.currentUserId) {
           setCurrentUserId(result.currentUserId)
@@ -74,6 +89,8 @@ export default function FamilyAlbumPage() {
       }
     } catch (error) {
       console.error("Failed to load media", error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -84,10 +101,10 @@ export default function FamilyAlbumPage() {
     const nextPage = page + 1
     setPage(nextPage)
     
-    loadData(nextPage).finally(() => {
+    loadData(nextPage, searchQuery, filterYear, filterMonth, filterHoliday).finally(() => {
       setLoading(false)
     })
-  }, [loading, hasMore, page])
+  }, [loading, hasMore, page, searchQuery, filterYear, filterMonth, filterHoliday])
 
   // Setup Intersection Observer
   useEffect(() => {
@@ -206,7 +223,9 @@ export default function FamilyAlbumPage() {
       // Refresh list
       setPage(1)
       setHasMore(true)
-      await loadData(1)
+      setSearchQuery('') // Clear search on upload
+      // loadData will be triggered by setSearchQuery or we can call it directly if we want instant refresh
+      // Since clearing search triggers effect, it will reload
       
       setIsUploadModalOpen(false)
       setUploadQueue([])
@@ -291,14 +310,123 @@ export default function FamilyAlbumPage() {
 
   const allAltTextsFilled = uploadQueue.length > 0 && uploadQueue.every(item => item.altText.trim().length > 0)
 
+  // Generate Year Options (Current back to 2000)
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: currentYear - 2000 + 1 }, (_, i) => currentYear - i)
+  
+  const months = [
+    { value: '1', label: 'January' },
+    { value: '2', label: 'February' },
+    { value: '3', label: 'March' },
+    { value: '4', label: 'April' },
+    { value: '5', label: 'May' },
+    { value: '6', label: 'June' },
+    { value: '7', label: 'July' },
+    { value: '8', label: 'August' },
+    { value: '9', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' },
+  ]
+
+  const holidays = [
+    { value: 'christmas', label: 'Christmas' },
+    { value: 'thanksgiving', label: 'Thanksgiving' },
+    { value: 'easter', label: 'Easter' },
+  ]
+
   return (
-    <div className="min-h-screen bg-black pb-24">
+    <div className="min-h-screen bg-slate-50 pb-24 pt-32 md:pt-36">
+      {/* Search & Filter Bar */}
+      <div className="fixed top-12 left-0 right-0 z-30 px-6 py-4 bg-gradient-to-b from-slate-50/95 via-slate-50/90 to-transparent pointer-events-none">
+        <div className="max-w-4xl mx-auto pointer-events-auto space-y-3">
+          {/* Search Input */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-slate-400 group-focus-within:text-brand-sky transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-full leading-5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-sky focus:border-brand-sky sm:text-sm shadow-sm transition-all"
+              placeholder="Search memories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {/* Filters Row */}
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {/* Year Select */}
+            <select
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+              className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-sky shadow-sm cursor-pointer"
+            >
+              <option value="">Year</option>
+              {years.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+
+            {/* Month Select */}
+            <select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+              className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-sky shadow-sm cursor-pointer"
+            >
+              <option value="">Month</option>
+              {months.map(m => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+
+            {/* Holiday Select */}
+            <select
+              value={filterHoliday}
+              onChange={(e) => setFilterHoliday(e.target.value)}
+              className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-sky shadow-sm cursor-pointer"
+            >
+              <option value="">Holiday</option>
+              {holidays.map(h => (
+                <option key={h.value} value={h.value}>{h.label}</option>
+              ))}
+            </select>
+
+            {/* Clear Filters */}
+            {(filterYear || filterMonth || filterHoliday) && (
+              <button
+                onClick={() => {
+                  setFilterYear('')
+                  setFilterMonth('')
+                  setFilterHoliday('')
+                }}
+                className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-full text-sm hover:bg-slate-200 transition-colors whitespace-nowrap"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Full Width Grid - No Gaps */}
       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-0">
         {mediaItems.map((item) => (
           <div 
             key={item.id} 
-            className="relative aspect-square overflow-hidden cursor-pointer group"
+            className="relative aspect-square overflow-hidden cursor-pointer group bg-slate-200"
             onClick={() => {
               setSelectedMedia(item)
               setIsEditing(false)
@@ -316,7 +444,7 @@ export default function FamilyAlbumPage() {
                   onMouseOut={e => e.currentTarget.pause()}
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                   <div className="bg-black/50 p-2 rounded-full">
+                   <div className="bg-black/30 p-2 rounded-full backdrop-blur-sm">
                     <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                    </div>
                 </div>
@@ -335,7 +463,7 @@ export default function FamilyAlbumPage() {
 
       {/* Load More Trigger */}
       <div ref={loadMoreRef} className="h-20 flex items-center justify-center p-4">
-        {loading && <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>}
+        {loading && <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-sky"></div>}
       </div>
 
       {/* Hidden File Input */}

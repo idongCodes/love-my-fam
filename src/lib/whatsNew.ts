@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                              {
-    id: 'support-for-family-album;-admin-powers;-decreas...',
-    title: 'Support for Family Album; Admin Powers; Decreas...',
-    description: 'Moving around the house is now super simple and fun!',
-    icon: '🚀',
-    category: 'feature',
-    status: 'just-released',
-    date: new Date('2026-01-31T22:22:19.746Z'),
+                                                {
+    id: 'support-for-large-vid-uploads',
+    title: 'Support for Large Vid Uploads',
+    description: 'We added some sparkle and magic to make things better!',
+    icon: '⚡',
+    category: 'update',
+    status: 'recently-updated',
+    date: new Date('2026-01-31T22:56:03.936Z'),
     version: '0.1.0'
   },
   {
