@@ -109,7 +109,8 @@ export default function BottomNav() {
     if (href === '/') {
       return pathname === '/'
     }
-    return pathname.startsWith(href)
+    // Ensure strict matching for sub-routes (e.g. /family vs /family-album)
+    return pathname === href || pathname.startsWith(`${href}/`)
   }
 
   return (
