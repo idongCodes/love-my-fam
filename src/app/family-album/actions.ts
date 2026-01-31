@@ -135,14 +135,79 @@ export async function deleteAlbumMedia(mediaId: string) {
   }
 }
 
-export async function getAlbumMedia(page: number = 1, limit: number = 50) {
+export async function getAlbumMedia(
+  page: number = 1, 
+  limit: number = 50, 
+  search: string = '',
+  year?: string,
+  month?: string,
+  holiday?: string
+) {
   try {
     const currentUserId = await getCurrentUserId()
     const isAdmin = currentUserId ? await checkIsAdmin(currentUserId) : false
     
     const skip = (page - 1) * limit
     
+    const where: any = { AND: [] }
+
+    // Text Search (combines search and holiday)
+    if (search || holiday) {
+      const searchTerms = []
+      if (search) searchTerms.push(search)
+      if (holiday) searchTerms.push(holiday)
+      
+      // If both exist, we can require both or just one. 
+      // Usually filters are reductive (AND), so let's use AND.
+      // But holiday is essentially a preset search term.
+      
+      searchTerms.forEach(term => {
+        where.AND.push({
+          altText: {
+            contains: term,
+            mode: 'insensitive'
+          }
+        })
+      })
+    }
+
+    // Date Filtering
+    if (year) {
+      const yearInt = parseInt(year)
+      let startDate, endDate
+
+      if (month) {
+        const monthInt = parseInt(month) - 1 // JS months are 0-indexed
+        startDate = new Date(yearInt, monthInt, 1)
+        endDate = new Date(yearInt, monthInt + 1, 1)
+      } else {
+        startDate = new Date(yearInt, 0, 1)
+        endDate = new Date(yearInt + 1, 0, 1)
+      }
+
+      where.AND.push({
+        createdAt: {
+          gte: startDate,
+          lt: endDate
+        }
+      })
+    } else if (month) {
+        // If month is selected but no year, default to current year
+        const currentYear = new Date().getFullYear()
+        const monthInt = parseInt(month) - 1
+        const startDate = new Date(currentYear, monthInt, 1)
+        const endDate = new Date(currentYear, monthInt + 1, 1)
+
+        where.AND.push({
+            createdAt: {
+            gte: startDate,
+            lt: endDate
+            }
+        })
+    }
+    
     const media = await prisma.albumMedia.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
