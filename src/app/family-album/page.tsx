@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 
-import { getAlbumMedia, uploadAlbumMedia } from './actions'
+import { getAlbumMedia, getUploadSignature, saveAlbumMedia, updateMediaAltText, deleteAlbumMedia } from './actions'
 
 interface MediaItem {
   id: string
@@ -10,6 +10,8 @@ interface MediaItem {
   src: string
   thumbnail: string
   altText?: string
+  uploaderId: string
+  createdAt: string
 }
 
 interface UploadItem {
@@ -26,11 +28,19 @@ export default function FamilyAlbumPage() {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  
+  // Edit State
+  const [isEditing, setIsEditing] = useState(false)
+  const [editAltText, setEditAltText] = useState('')
+  const [isSavingEdit, setIsSavingEdit] = useState(false)
   
   // Upload State
   const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([])
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   // Infinite Scroll Refs
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -45,6 +55,12 @@ export default function FamilyAlbumPage() {
     try {
       const result = await getAlbumMedia(pageNum)
       if (result.success) {
+        if (result.currentUserId) {
+          setCurrentUserId(result.currentUserId)
+        }
+        if (result.isAdmin !== undefined) {
+          setIsAdmin(result.isAdmin)
+        }
         const newItems = result.data as MediaItem[]
         if (pageNum === 1) {
           setMediaItems(newItems)
@@ -125,21 +141,65 @@ export default function FamilyAlbumPage() {
   }
 
   const handleSubmitUploads = async () => {
-    // Validate
     const allValid = uploadQueue.every(item => item.altText.trim().length > 0)
     if (!allValid) return
 
     setIsUploading(true)
+    setUploadProgress(0)
 
-    // Upload Items Sequentially
     try {
+      const totalItems = uploadQueue.length
+      let completedItems = 0
+
       for (const item of uploadQueue) {
+        // 1. Determine Transformation
+        let transformation = ''
+        if (item.type === 'video') {
+           transformation = 'vc_h264,ac_aac'
+        }
+
+        // 2. Get Signature (with transformation if applicable)
+        const { signature, timestamp, cloudName, apiKey, folder } = await getUploadSignature(
+          transformation || undefined
+        )
+        
+        // 3. Prepare Form Data
         const formData = new FormData()
         formData.append('file', item.file)
-        formData.append('altText', item.altText)
-        formData.append('type', item.type)
+        formData.append('api_key', apiKey!)
+        formData.append('timestamp', timestamp.toString())
+        formData.append('signature', signature)
+        formData.append('folder', folder)
         
-        await uploadAlbumMedia(formData)
+        if (transformation) {
+          formData.append('transformation', transformation)
+        }
+
+        // 4. Direct Upload to Cloudinary
+        const resourceType = item.type === 'video' ? 'video' : 'image'
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`
+
+        const response = await fetch(uploadUrl, {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error?.message || 'Upload failed')
+        }
+
+        const data = await response.json()
+        
+        // 4. Save to DB
+        await saveAlbumMedia({
+          url: data.secure_url,
+          type: item.type,
+          altText: item.altText
+        })
+
+        completedItems++
+        setUploadProgress((completedItems / totalItems) * 100)
       }
       
       // Refresh list
@@ -151,9 +211,10 @@ export default function FamilyAlbumPage() {
       setUploadQueue([])
     } catch (error) {
       console.error("Upload failed", error)
-      alert("Some uploads failed. Please try again.")
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsUploading(false)
+      setUploadProgress(0)
     }
   }
   
@@ -161,6 +222,70 @@ export default function FamilyAlbumPage() {
       if (isUploading) return
       setIsUploadModalOpen(false)
       setUploadQueue([])
+  }
+
+  const handleEditClick = (media: MediaItem) => {
+    setEditAltText(media.altText || '')
+    setIsEditing(true)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!selectedMedia || !editAltText.trim()) return
+    
+    setIsSavingEdit(true)
+    try {
+      const result = await updateMediaAltText(selectedMedia.id, editAltText)
+      if (result.success) {
+        // Update local state
+        setMediaItems(prev => prev.map(item => 
+          item.id === selectedMedia.id ? { ...item, altText: editAltText } : item
+        ))
+        setSelectedMedia(prev => prev ? { ...prev, altText: editAltText } : null)
+        setIsEditing(false)
+      } else {
+        alert(result.message)
+      }
+    } catch (error) {
+      console.error('Failed to update media', error)
+      alert('Failed to update description')
+    } finally {
+      setIsSavingEdit(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selectedMedia || !confirm('Are you sure you want to delete this memory? This action cannot be undone.')) return
+    
+    try {
+      const result = await deleteAlbumMedia(selectedMedia.id)
+      if (result.success) {
+        // Remove from local state
+        setMediaItems(prev => prev.filter(item => item.id !== selectedMedia.id))
+        setSelectedMedia(null)
+      } else {
+        alert(result.message)
+      }
+    } catch (error) {
+      console.error('Failed to delete media', error)
+      alert('Failed to delete media')
+    }
+  }
+
+  const canEdit = (media: MediaItem) => {
+    if (!currentUserId) return false
+    
+    // Admin can always edit/delete
+    if (isAdmin) return true
+    
+    // Check ownership
+    if (media.uploaderId !== currentUserId) return false
+    
+    // Check time limit
+    const createdAt = new Date(media.createdAt).getTime()
+    const now = Date.now()
+    const fifteenMinutes = 15 * 60 * 1000
+    
+    return (now - createdAt) < fifteenMinutes
   }
 
   const allAltTextsFilled = uploadQueue.length > 0 && uploadQueue.every(item => item.altText.trim().length > 0)
@@ -173,7 +298,10 @@ export default function FamilyAlbumPage() {
           <div 
             key={item.id} 
             className="relative aspect-square overflow-hidden cursor-pointer group"
-            onClick={() => setSelectedMedia(item)}
+            onClick={() => {
+              setSelectedMedia(item)
+              setIsEditing(false)
+            }}
           >
             {item.type === 'video' ? (
               <div className="w-full h-full relative grayscale group-hover:grayscale-0 transition-all duration-300">
@@ -270,19 +398,32 @@ export default function FamilyAlbumPage() {
                 ))}
               </div>
 
+              {isUploading && (
+                <div className="px-6 pb-2">
+                  <div className="w-full bg-slate-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-brand-sky h-2.5 rounded-full transition-all duration-300" 
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-center text-xs text-slate-500 mt-2">Uploading... {Math.round(uploadProgress)}%</p>
+                </div>
+              )}
+
               <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
                  <button 
                     onClick={handleCancelUpload}
-                    className="px-6 py-2.5 rounded-xl font-medium text-slate-600 hover:bg-slate-200 transition-colors"
+                    disabled={isUploading}
+                    className="px-6 py-2.5 rounded-xl font-medium text-slate-600 hover:bg-slate-200 transition-colors disabled:opacity-50"
                  >
                     Cancel
                  </button>
                  <button 
                     onClick={handleSubmitUploads}
-                    disabled={!allAltTextsFilled}
+                    disabled={!allAltTextsFilled || isUploading}
                     className="px-6 py-2.5 rounded-xl font-bold text-white bg-brand-sky hover:bg-sky-500 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                  >
-                    Upload {uploadQueue.length > 0 && `(${uploadQueue.length})`}
+                    {isUploading ? 'Uploading...' : `Upload ${uploadQueue.length > 0 && `(${uploadQueue.length})`}`}
                  </button>
               </div>
            </div>
@@ -309,23 +450,103 @@ export default function FamilyAlbumPage() {
           </button>
 
           <div 
-            className="relative max-w-full max-h-full overflow-hidden rounded-lg shadow-2xl"
+            className="relative w-full h-full flex flex-col items-center justify-center p-4 md:p-8"
             onClick={(e) => e.stopPropagation()} // Prevent close when clicking content
           >
-             {selectedMedia.type === 'video' ? (
-                <video 
-                  src={selectedMedia.src}
-                  className="max-w-[90vw] max-h-[90vh] object-contain"
-                  controls
-                  autoPlay
-                />
-             ) : (
-                <img 
-                  src={selectedMedia.src} 
-                  alt="Full screen view"
-                  className="max-w-[90vw] max-h-[90vh] object-contain"
-                />
-             )}
+             <div className="relative max-w-full max-h-[85vh] overflow-hidden rounded-lg shadow-2xl">
+               {selectedMedia.type === 'video' ? (
+                  <video 
+                    src={selectedMedia.src}
+                    className="max-w-full max-h-[80vh] object-contain"
+                    controls
+                    autoPlay
+                  />
+               ) : (
+                  <img 
+                    src={selectedMedia.src} 
+                    alt="Full screen view"
+                    className="max-w-full max-h-[80vh] object-contain"
+                  />
+               )}
+               
+               {/* Description Overlay */}
+               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 text-white">
+                  {isEditing ? (
+                    <div className="flex gap-2 items-center">
+                      <input 
+                        type="text"
+                        value={editAltText}
+                        onChange={(e) => setEditAltText(e.target.value)}
+                        className="flex-1 bg-white/20 border border-white/30 rounded px-3 py-1.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-brand-sky backdrop-blur-sm"
+                        placeholder="Enter description..."
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          e.stopPropagation()
+                          if (e.key === 'Enter') handleSaveEdit()
+                          if (e.key === 'Escape') setIsEditing(false)
+                        }}
+                      />
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleSaveEdit()
+                        }}
+                        disabled={isSavingEdit}
+                        className="p-2 bg-brand-sky rounded hover:bg-sky-500 disabled:opacity-50"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setIsEditing(false)
+                        }}
+                        disabled={isSavingEdit}
+                        className="p-2 bg-white/20 rounded hover:bg-white/30 disabled:opacity-50"
+                      >
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 items-center justify-between w-full">
+                      <p className="text-lg font-medium drop-shadow-md">
+                        {selectedMedia.altText}
+                      </p>
+                      
+                      {canEdit(selectedMedia) && (
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleEditClick(selectedMedia)
+                            }}
+                            className="p-1 hover:bg-white/20 rounded text-white/80 hover:text-white"
+                            title="Edit description"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+                          
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDelete()
+                            }}
+                            className="p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-500"
+                            title="Delete memory"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+               </div>
+             </div>
           </div>
         </div>
       )}
