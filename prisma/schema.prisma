@@ -31,6 +31,7 @@ model User {
   posts            Post[]            @relation("UserPosts")
   dismissals       PostDismissal[]
   Testimonial      Testimonial[]
+  albumMedia       AlbumMedia[]
 }
 
 model Notification {
@@ -155,4 +156,15 @@ model MessageReaction {
 model SystemSettings {
   id           String @id @default("global")
   familySecret String @default("familyfirst")
+}
+
+model AlbumMedia {
+  id           String   @id @default(cuid())
+  url          String
+  thumbnailUrl String?
+  type         String
+  altText      String
+  createdAt    DateTime @default(now())
+  uploaderId   String
+  uploader     User     @relation(fields: [uploaderId], references: [id])
 }

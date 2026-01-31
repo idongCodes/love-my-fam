@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LoveMyFam",
+  title: "LoveMyFam | Welcome Home!",
   description: "A safe space for family.",
   colorScheme: "light",
   themeColor: [

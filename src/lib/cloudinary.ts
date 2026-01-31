@@ -8,7 +8,7 @@ cloudinary.config({
   secure: true,
 });
 
-export async function uploadToCloudinary(file: File): Promise<{ url: string, duration?: number }> {
+export async function uploadToCloudinary(file: File, folder: string = 'common-room'): Promise<{ url: string, duration?: number }> {
   // Convert File to Buffer
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -19,7 +19,7 @@ export async function uploadToCloudinary(file: File): Promise<{ url: string, dur
 
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: 'common-room',
+        folder: folder,
         resource_type: resourceType,
         // For videos: Auto-convert to mp4/h264 for max compatibility
         format: resourceType === 'video' ? 'mp4' : undefined,
