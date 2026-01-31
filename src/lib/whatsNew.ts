@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                      {
-    id: 'authprovider-to-auth-state-flash-issue',
-    title: 'AuthProvider to Auth State Flash Issue',
-    description: 'Implement AuthProvider to Fix Auth State Flash Issue',
-    icon: '🔧',
-    category: 'fix',
-    status: 'just-released',
-    date: new Date('2026-01-30T22:46:40.997Z'),
+                                        {
+    id: 'ux-default-cursor-and-hover-state',
+    title: 'UX Default Cursor and Hover State',
+    description: 'We added some sparkle and magic to make things better!',
+    icon: '⚡',
+    category: 'update',
+    status: 'recently-updated',
+    date: new Date('2026-01-30T23:10:30.619Z'),
     version: '0.1.0'
   },
   {
