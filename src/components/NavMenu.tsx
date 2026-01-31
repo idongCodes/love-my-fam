@@ -20,6 +20,7 @@ export default function NavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
           <>
             <Link href="/common-room" className="hover:text-brand-yellow transition-colors">Common Room</Link>
             <Link href="/family" className="hover:text-brand-yellow transition-colors">Directory</Link>
+            <Link href="/family-album" className="hover:text-brand-yellow transition-colors">Album</Link>
             <Link href="/my-room" className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-all border border-white/20">
               My Room
             </Link>
@@ -58,6 +59,9 @@ export default function NavMenu({ isLoggedIn }: { isLoggedIn: boolean }) {
               </Link>
               <Link href="/family" onClick={close} className="hover:text-brand-yellow py-2 border-b border-white/10">
                 Directory
+              </Link>
+              <Link href="/family-album" onClick={close} className="hover:text-brand-yellow py-2 border-b border-white/10">
+                Album
               </Link>
               <Link href="/my-room" onClick={close} className="hover:text-brand-yellow py-2 border-b border-white/10">
                 My Room
