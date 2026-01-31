@@ -159,7 +159,7 @@ export default function FamilyAlbumPage() {
         }
 
         // 2. Get Signature (with transformation if applicable)
-        const { signature, timestamp, cloudName, apiKey, folder } = await getUploadSignature(
+        const { signature, timestamp, cloudName, apiKey, folder, eager, eager_async } = await getUploadSignature(
           transformation || undefined
         )
         
@@ -171,8 +171,9 @@ export default function FamilyAlbumPage() {
         formData.append('signature', signature)
         formData.append('folder', folder)
         
-        if (transformation) {
-          formData.append('transformation', transformation)
+        if (eager) {
+          formData.append('eager', eager)
+          formData.append('eager_async', 'true')
         }
 
         // 4. Direct Upload to Cloudinary

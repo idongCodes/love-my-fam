@@ -53,8 +53,10 @@ export function generateSignature(folder: string = 'family-album', transformatio
     folder,
   };
   
+  // Use eager transformation for async processing of large videos
   if (transformation) {
-    params.transformation = transformation;
+    params.eager = transformation;
+    params.eager_async = true;
   }
   
   const signature = cloudinary.utils.api_sign_request(params, process.env.CLOUDINARY_API_SECRET!);
@@ -65,6 +67,7 @@ export function generateSignature(folder: string = 'family-album', transformatio
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
     apiKey: process.env.CLOUDINARY_API_KEY,
     folder,
-    transformation
+    eager: transformation ? transformation : undefined,
+    eager_async: transformation ? true : undefined
   };
 }
