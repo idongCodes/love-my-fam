@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                                    {
-    id: 'squashed-a-bug!',
-    title: 'Squashed a Bug!',
-    description: 'We found a little bug and sent it away. Bye bye bug!',
-    icon: '🔧',
-    category: 'fix',
-    status: 'just-released',
-    date: new Date('2026-02-01T00:50:35.639Z'),
+                                                      {
+    id: 'ui/ux:-media-nav-arrows',
+    title: 'UI/UX: Media Nav Arrows',
+    description: 'Moving around the house is now super simple and fun!',
+    icon: '⚡',
+    category: 'update',
+    status: 'recently-updated',
+    date: new Date('2026-02-01T10:29:20.131Z'),
     version: '0.1.0'
   },
   {

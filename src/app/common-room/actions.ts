@@ -391,6 +391,18 @@ export async function getFeedData() {
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (user?.email === ADMIN_EMAIL) isAdmin = true
   }
+
+  // Include structure for comments (support 1 level of nesting for now as per schema)
+  const commentInclude = {
+    author: true,
+    likes: true,
+    children: {
+      include: {
+        author: true,
+        likes: true
+      }
+    }
+  }
   
   // 1. Get Urgent Announcements (Not dismissed by me)
   const urgentPosts = await prisma.post.findMany({
@@ -404,7 +416,7 @@ export async function getFeedData() {
     include: {
       author: true,
       likes: { include: { user: true } },
-      comments: { include: { author: true, likes: true, children: true } }
+      comments: { include: commentInclude }
     },
     orderBy: { createdAt: 'desc' }
   })
@@ -417,23 +429,39 @@ export async function getFeedData() {
     include: {
       author: true,
       likes: { include: { user: true } },
-      comments: { include: { author: true, likes: true, children: true } }
+      comments: { include: commentInclude }
     },
     orderBy: { createdAt: 'desc' }
+  })
+
+  // Recursive helper to process comments
+  const processComment = (c: any): any => ({
+    ...c,
+    author: {
+      ...c.author,
+      isAdmin: c.author.email === ADMIN_EMAIL
+    },
+    children: c.children ? c.children.map(processComment) : []
   })
 
   // Helper to map data structure for frontend
   const mapPost = (p: any) => ({
     ...p,
+    author: {
+      ...p.author,
+      isAdmin: p.author.email === ADMIN_EMAIL
+    },
     likeCount: p.likes.length,
     isLikedByMe: userId ? p.likes.some((l: any) => l.userId === userId) : false,
-    topLevelComments: p.comments.filter((c: any) => !c.parentId)
+    topLevelComments: p.comments
+      .filter((c: any) => !c.parentId)
+      .map(processComment)
   })
 
   return {
     urgentPosts: urgentPosts.map(mapPost),
     regularPosts: regularPosts.map(mapPost),
     currentUserId: userId,
-    isAdmin // Return admin status
+    isAdmin // Return admin status for current user
   }
 }
