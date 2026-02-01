@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                                  {
-    id: 'search-and-filter-functionality',
-    title: 'Search and Filter Functionality',
-    description: 'We added some sparkle and magic to make things better!',
-    icon: '🚀',
-    category: 'feature',
+                                                    {
+    id: 'squashed-a-bug!',
+    title: 'Squashed a Bug!',
+    description: 'We found a little bug and sent it away. Bye bye bug!',
+    icon: '🔧',
+    category: 'fix',
     status: 'just-released',
-    date: new Date('2026-01-31T23:57:34.493Z'),
+    date: new Date('2026-02-01T00:50:35.639Z'),
     version: '0.1.0'
   },
   {
