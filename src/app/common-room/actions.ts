@@ -91,9 +91,17 @@ export async function createPost(formData: FormData) {
 
 export async function deletePost(postId: string) {
   const userId = await getCurrentUserId()
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
   
+  if (!userId) return { success: false, message: 'Unauthorized' }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
   const post = await prisma.post.findUnique({ where: { id: postId } })
-  if (!post || post.authorId !== userId) {
+  
+  if (!post) return { success: false, message: 'Post not found' }
+
+  // Allow if author OR admin
+  if (post.authorId !== userId && user?.email !== ADMIN_EMAIL) {
     return { success: false, message: 'Unauthorized' }
   }
 
@@ -110,14 +118,25 @@ export async function editPost(
   newIsUrgent?: boolean
 ) {
   const userId = await getCurrentUserId()
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
   const post = await prisma.post.findUnique({ where: { id: postId } })
   
-  if (!post || post.authorId !== userId) return { success: false, message: 'Unauthorized' }
+  if (!post || !userId) return { success: false, message: 'Unauthorized' }
+
+  const isAdmin = user?.email === ADMIN_EMAIL
+  
+  // Allow if author OR admin
+  if (post.authorId !== userId && !isAdmin) {
+    return { success: false, message: 'Unauthorized' }
+  }
   
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
   
   // Rule: Regular posts have a 10-minute edit limit. Announcements (Admin) do not.
-  if (!post.isAnnouncement && post.createdAt < tenMinutesAgo) {
+  // Admin can edit any post at any time.
+  if (!post.isAnnouncement && !isAdmin && post.createdAt < tenMinutesAgo) {
       return { success: false, message: 'Edit time limit expired.' }
   }
 
@@ -254,9 +273,17 @@ export async function toggleCommentLike(commentId: string) {
 
 export async function deleteComment(commentId: string) {
   const userId = await getCurrentUserId()
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
   
+  if (!userId) return { success: false, message: 'Unauthorized' }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
   const comment = await prisma.comment.findUnique({ where: { id: commentId } })
-  if (!comment || comment.authorId !== userId) {
+  
+  if (!comment) return { success: false, message: 'Comment not found' }
+
+  // Allow if author OR admin
+  if (comment.authorId !== userId && user?.email !== ADMIN_EMAIL) {
     return { success: false, message: 'Unauthorized' }
   }
 
@@ -357,6 +384,13 @@ export async function getAnnouncements() {
 
 export async function getFeedData() {
   const userId = await getCurrentUserId()
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+  
+  let isAdmin = false
+  if (userId) {
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (user?.email === ADMIN_EMAIL) isAdmin = true
+  }
   
   // 1. Get Urgent Announcements (Not dismissed by me)
   const urgentPosts = await prisma.post.findMany({
@@ -399,6 +433,7 @@ export async function getFeedData() {
   return {
     urgentPosts: urgentPosts.map(mapPost),
     regularPosts: regularPosts.map(mapPost),
-    currentUserId: userId
+    currentUserId: userId,
+    isAdmin // Return admin status
   }
 }

@@ -18,7 +18,7 @@ async function getUser() {
 export default async function CommonRoom() {
   const user = await getUser()
   const announcements = await getAnnouncements()
-  const { urgentPosts, regularPosts } = await getFeedData()
+  const { urgentPosts, regularPosts, isAdmin } = await getFeedData()
 
   const welcomeName = user?.alias || user?.firstName || "Family Member";
 
@@ -54,6 +54,7 @@ export default async function CommonRoom() {
               key={post.id} 
               post={post} 
               currentUserId={user?.id || ''}
+              isAdmin={isAdmin}
             />
           ))}
 
@@ -63,6 +64,7 @@ export default async function CommonRoom() {
               key={post.id} 
               post={post} 
               currentUserId={user?.id || ''}
+              isAdmin={isAdmin}
             />
           ))}
 
