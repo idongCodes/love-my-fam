@@ -291,6 +291,42 @@ export default function FamilyAlbumPage() {
     }
   }
 
+  const handleNext = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    if (!selectedMedia) return
+    const currentIndex = mediaItems.findIndex(item => item.id === selectedMedia.id)
+    if (currentIndex === -1) return
+    
+    const nextIndex = (currentIndex + 1) % mediaItems.length
+    setSelectedMedia(mediaItems[nextIndex])
+    setIsEditing(false)
+  }, [selectedMedia, mediaItems])
+
+  const handlePrevious = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    if (!selectedMedia) return
+    const currentIndex = mediaItems.findIndex(item => item.id === selectedMedia.id)
+    if (currentIndex === -1) return
+    
+    const prevIndex = (currentIndex - 1 + mediaItems.length) % mediaItems.length
+    setSelectedMedia(mediaItems[prevIndex])
+    setIsEditing(false)
+  }, [selectedMedia, mediaItems])
+
+  // Keyboard Navigation
+  useEffect(() => {
+    if (!selectedMedia) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') handleNext()
+      if (e.key === 'ArrowLeft') handlePrevious()
+      if (e.key === 'Escape') setSelectedMedia(null)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedMedia, handleNext, handlePrevious])
+
   const canEdit = (media: MediaItem) => {
     if (!currentUserId) return false
     
@@ -582,6 +618,26 @@ export default function FamilyAlbumPage() {
             className="relative w-full h-full flex flex-col items-center justify-center p-4 md:p-8"
             onClick={(e) => e.stopPropagation()} // Prevent close when clicking content
           >
+             {/* Previous Button */}
+             <button
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors p-2 z-50 bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm"
+              onClick={handlePrevious}
+             >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+             </button>
+
+             {/* Next Button */}
+             <button
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors p-2 z-50 bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm"
+              onClick={handleNext}
+             >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+             </button>
+
              <div className="relative max-w-full max-h-[85vh] overflow-hidden rounded-lg shadow-2xl">
                {selectedMedia.type === 'video' ? (
                   <video 
