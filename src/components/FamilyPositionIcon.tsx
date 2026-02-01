@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 interface FamilyPositionIconProps {
   position: string
@@ -11,11 +10,10 @@ interface FamilyPositionIconProps {
 
 export default function FamilyPositionIcon({ position, size = 'medium', className = '' }: FamilyPositionIconProps) {
   const [showTooltip, setShowTooltip] = useState(false)
-  const router = useRouter()
 
-  const handleClick = () => {
-    // Navigate to a page that shows family positions or filter by position
-    router.push(`/family?position=${encodeURIComponent(position)}`)
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowTooltip(prev => !prev)
   }
 
   const textSizes = {
