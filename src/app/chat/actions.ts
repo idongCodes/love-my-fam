@@ -15,6 +15,7 @@ export async function getChatMessages() {
             lastName: true,
             alias: true,
             profileImage: true,
+            email: true,
           }
         },
         reactions: {
@@ -73,6 +74,7 @@ export async function sendChatMessage(content: string, authorId: string, replyTo
             lastName: true,
             alias: true,
             profileImage: true,
+            email: true,
           }
         },
         reactions: true,

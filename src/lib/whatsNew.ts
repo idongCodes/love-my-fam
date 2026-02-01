@@ -10,14 +10,14 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                                {
-    id: 'support-for-large-vid-uploads',
-    title: 'Support for Large Vid Uploads',
+                                                  {
+    id: 'search-and-filter-functionality',
+    title: 'Search and Filter Functionality',
     description: 'We added some sparkle and magic to make things better!',
-    icon: '⚡',
-    category: 'update',
-    status: 'recently-updated',
-    date: new Date('2026-01-31T22:56:03.936Z'),
+    icon: '🚀',
+    category: 'feature',
+    status: 'just-released',
+    date: new Date('2026-01-31T23:57:34.493Z'),
     version: '0.1.0'
   },
   {

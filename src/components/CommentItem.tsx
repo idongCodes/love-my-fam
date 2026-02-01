@@ -7,7 +7,7 @@ import LikeButton from './LikeButton'
 import EmojiButton from './EmojiButton'
 import StatusBadge from './StatusBadge'
 
-export default function CommentItem({ comment, currentUserId, postId }: { comment: any, currentUserId: string, postId: string }) {
+export default function CommentItem({ comment, currentUserId, postId, isAdmin = false }: { comment: any, currentUserId: string, postId: string, isAdmin?: boolean }) {
   const router = useRouter()
   const [isReplying, setIsReplying] = useState(false)
   const [replyText, setReplyText] = useState('')
@@ -15,6 +15,9 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
   const [editContent, setEditContent] = useState(comment.content)
 
   const isAuthor = currentUserId === comment.authorId
+  const canDelete = isAuthor || isAdmin
+  // Admin can always edit. Authors restricted by time/edit count (logic in server action handles details, frontend just allows access)
+  const canEdit = isAuthor || isAdmin 
   
   // Status Logic
   const statusEmoji = comment.author?.status ? Array.from(comment.author.status)[0] : null
@@ -59,12 +62,20 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
         {/* Content Bubble */}
         <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100 relative">
            <div className="flex justify-between items-start mb-1">
-             <button 
-               onClick={handleAuthorClick}
-               className="text-xs font-bold text-slate-700 hover:text-brand-pink transition-colors"
-             >
-               {displayName}
-             </button>
+             <div className="flex items-center gap-2">
+               <button 
+                 onClick={handleAuthorClick}
+                 className="text-xs font-bold text-slate-700 hover:text-brand-pink transition-colors"
+               >
+                 {displayName}
+               </button>
+               {comment.author?.isAdmin && (
+                  <span className="bg-slate-700 text-white text-[8px] font-bold px-1 py-0.5 rounded flex items-center gap-0.5 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2 h-2"><path fillRule="evenodd" d="M10.362 1.093a.75.75 0 0 0-.724 0L2.523 5.018 10 9.143l7.477-4.125-7.115-3.925ZM18 6.443l-7.25 4v8.25l6.862-3.786A.75.75 0 0 0 18 14.25V6.443Zm-8.75 12.25v-8.25l-7.25-4v7.807a.75.75 0 0 0 .388.657l6.862 3.786Z" clipRule="evenodd" /></svg>
+                    Admin
+                  </span>
+               )}
+             </div>
              <span className="text-[10px] text-slate-400">{new Date(comment.createdAt).toLocaleDateString()}</span>
            </div>
            
@@ -95,11 +106,11 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
           
           <button onClick={() => setIsReplying(!isReplying)} className="text-xs font-bold text-slate-400 hover:text-brand-sky">Reply</button>
           
-          {isAuthor && (
-            <>
-              <button onClick={() => setIsEditing(!isEditing)} className="text-xs text-slate-400 hover:text-slate-600">Edit</button>
-              <button onClick={handleDelete} className="text-xs text-slate-400 hover:text-red-500">Delete</button>
-            </>
+          {canEdit && (
+             <button onClick={() => setIsEditing(!isEditing)} className="text-xs text-slate-400 hover:text-slate-600">Edit</button>
+          )}
+          {canDelete && (
+             <button onClick={handleDelete} className="text-xs text-slate-400 hover:text-red-500">Delete</button>
           )}
         </div>
 
@@ -118,7 +129,7 @@ export default function CommentItem({ comment, currentUserId, postId }: { commen
         {comment.children && comment.children.length > 0 && (
           <div className="mt-2 border-l-2 border-slate-100 pl-3">
             {comment.children.map((child: any) => (
-              <CommentItem key={child.id} comment={child} currentUserId={currentUserId} postId={postId}/>
+              <CommentItem key={child.id} comment={child} currentUserId={currentUserId} postId={postId} isAdmin={isAdmin}/>
             ))}
           </div>
         )}

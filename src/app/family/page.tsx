@@ -113,6 +113,12 @@ export default async function FamilyDirectory({ searchParams }: { searchParams: 
                   <Link href={`/${user.firstName.toLowerCase()}s-room`} className="font-bold text-slate-800 text-lg truncate hover:text-brand-pink transition-colors">
                     {user.firstName} {user.lastName}
                   </Link>
+                  {user.email === 'idongesit_essien@ymail.com' && (
+                    <span className="bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow-sm shrink-0">
+                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5"><path fillRule="evenodd" d="M10.362 1.093a.75.75 0 0 0-.724 0L2.523 5.018 10 9.143l7.477-4.125-7.115-3.925ZM18 6.443l-7.25 4v8.25l6.862-3.786A.75.75 0 0 0 18 14.25V6.443Zm-8.75 12.25v-8.25l-7.25-4v7.807a.75.75 0 0 0 .388.657l6.862 3.786Z" clipRule="evenodd" /></svg>
+                       Admin
+                    </span>
+                  )}
                   {user.id === sessionId && (
                     <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">YOU</span>
                   )}
