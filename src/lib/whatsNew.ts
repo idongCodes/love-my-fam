@@ -10,16 +10,16 @@ export interface UpdateItem {
 }
 
 export const whatsNewData: UpdateItem[] = [
-                                                            {
-    id: 'standardize-cloudinary-for-all-media-handling',
-    title: 'Standardize Cloudinary for All Media Handling',
-    description: 'We added some sparkle and magic to make things better!',
+                                                              {
+    id: 'revamp-live-chat-approach',
+    title: 'Revamp Live Chat Approach',
+    description: 'Talking to your family is now faster than a whisper!',
     icon: '✨',
     category: 'feature',
     status: 'just-released',
-    date: new Date('2026-04-27T03:12:35.288Z'),
+    date: new Date('2026-04-27T03:55:19.187Z'),
     version: '0.1.0'
-  },},
+  },
   {
     id: 'admin-testimonial-management',
     title: 'Easy Content Management',
