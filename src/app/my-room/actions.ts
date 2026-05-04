@@ -232,3 +232,49 @@ export async function adminAddUser(formData: FormData) {
     return { success: false, message: "Failed to add user." }
   }
 }
+
+// --- 6. ADMIN UPDATE USER ---
+export async function adminUpdateUser(formData: FormData) {
+  const cookieStore = await cookies()
+  const currentUserId = cookieStore.get('session_id')?.value
+  const ADMIN_EMAIL = 'idongesit_essien@ymail.com'
+
+  if (!currentUserId) return { success: false, message: "Unauthorized" }
+
+  const adminUser = await prisma.user.findUnique({ where: { id: currentUserId } })
+  if (adminUser?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    return { success: false, message: "Only Admin can edit users." }
+  }
+
+  const targetUserId = formData.get('userId') as string
+  const firstName = formData.get('firstName') as string
+  const lastName = formData.get('lastName') as string
+  const alias = formData.get('alias') as string
+  const email = formData.get('email') as string
+  const phone = formData.get('phone') as string
+  const position = formData.get('position') as string
+
+  if (!targetUserId || !firstName || !lastName || !email || !position) {
+    return { success: false, message: "Missing required fields." }
+  }
+
+  // Check if the new email belongs to another user
+  const existingUser = await prisma.user.findUnique({ where: { email } })
+  if (existingUser && existingUser.id !== targetUserId) {
+    return { success: false, message: "A user with this email already exists." }
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: targetUserId },
+      data: { firstName, lastName, alias, email, phone, position }
+    })
+    
+    revalidatePath('/family')
+    revalidatePath('/my-room')
+    return { success: true }
+  } catch (error) {
+    console.error("Admin Edit User Error:", error)
+    return { success: false, message: "Failed to update user." }
+  }
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { updateProfilePhoto, updateProfileDetails, updateFamilySecret, getUserActivity, adminAddUser } from '@/app/my-room/actions'
+import { updateProfilePhoto, updateProfileDetails, updateFamilySecret, getUserActivity, adminAddUser, adminUpdateUser } from '@/app/my-room/actions'
 import { deleteUser } from '@/app/family/actions'
 import { getUploadSignature } from '@/app/actions/cloudinary'
 import { useRouter } from 'next/navigation'
@@ -106,6 +106,43 @@ export default function MyRoomClient({ user, familySecret, allUsers = [] }: { us
       } catch (err: any) {
         alert(err.message || "Failed to delete user.")
       }
+    }
+  }
+
+  const [editingUserId, setEditingUserId] = useState<string | null>(null)
+  const [editUserData, setEditUserData] = useState({ userId: '', firstName: '', lastName: '', alias: '', email: '', phone: '', position: '' })
+  
+  const handleEditUserClick = (u: any) => {
+    setUserError('')
+    setIsAddingUser(false)
+    setEditingUserId(u.id)
+    setEditUserData({
+      userId: u.id,
+      firstName: u.firstName || '',
+      lastName: u.lastName || '',
+      alias: u.alias || '',
+      email: u.email || '',
+      phone: u.phone || '',
+      position: u.position || ''
+    })
+  }
+
+  const handleEditUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmittingUser(true)
+    setUserError('')
+    
+    const formData = new FormData()
+    Object.entries(editUserData).forEach(([k, v]) => formData.append(k, v))
+    
+    const res = await adminUpdateUser(formData)
+    setIsSubmittingUser(false)
+    
+    if (res.success) {
+      setEditingUserId(null)
+      alert("User updated successfully!")
+    } else {
+      setUserError(res.message || "Error updating user.")
     }
   }
 
@@ -933,30 +970,93 @@ export default function MyRoomClient({ user, familySecret, allUsers = [] }: { us
                 <tbody className="bg-white">
                   {allUsers?.map((u) => (
                     <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="p-4 font-medium flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 flex-shrink-0">
-                           {u.profileImage ? (
-                             <img src={u.profileImage} alt={u.firstName} className="w-full h-full object-cover" />
-                           ) : (
-                             <span className="w-full h-full flex items-center justify-center text-slate-500 font-bold text-xs">{u.firstName[0]}</span>
-                           )}
-                         </div>
-                         {u.firstName} {u.lastName} {u.alias && <span className="text-slate-400 text-sm font-normal">({u.alias})</span>}
-                      </td>
-                      <td className="p-4 text-slate-600">{u.email}</td>
-                      <td className="p-4 text-slate-600 hidden md:table-cell">{u.position}</td>
-                      <td className="p-4 text-right">
-                        {u.email !== ADMIN_EMAIL ? (
-                          <button 
-                            onClick={() => handleDeleteUserClick(u.id, u.firstName)}
-                            className="text-red-500 hover:text-red-700 font-medium text-sm transition-colors"
-                          >
-                            Delete
-                          </button>
-                        ) : (
-                          <span className="text-slate-400 text-xs uppercase font-bold">Admin</span>
-                        )}
-                      </td>
+                      {editingUserId === u.id ? (
+                        <td colSpan={4} className="p-4 bg-slate-50">
+                          <form onSubmit={handleEditUserSubmit} className="flex flex-col gap-4 bg-white p-4 rounded-xl border border-slate-200">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <input 
+                                type="text" placeholder="First Name" required
+                                value={editUserData.firstName} onChange={e => setEditUserData({...editUserData, firstName: e.target.value})}
+                                className="p-2 border rounded outline-none focus:ring-2 focus:ring-brand-sky"
+                              />
+                              <input 
+                                type="text" placeholder="Last Name" required
+                                value={editUserData.lastName} onChange={e => setEditUserData({...editUserData, lastName: e.target.value})}
+                                className="p-2 border rounded outline-none focus:ring-2 focus:ring-brand-sky"
+                              />
+                              <input 
+                                type="email" placeholder="Email" required
+                                value={editUserData.email} onChange={e => setEditUserData({...editUserData, email: e.target.value})}
+                                className="p-2 border rounded outline-none focus:ring-2 focus:ring-brand-sky"
+                              />
+                              <input 
+                                type="tel" placeholder="Phone"
+                                value={editUserData.phone} onChange={e => setEditUserData({...editUserData, phone: e.target.value})}
+                                className="p-2 border rounded outline-none focus:ring-2 focus:ring-brand-sky"
+                              />
+                              <input 
+                                type="text" placeholder="Alias (Optional)"
+                                value={editUserData.alias} onChange={e => setEditUserData({...editUserData, alias: e.target.value})}
+                                className="p-2 border rounded outline-none focus:ring-2 focus:ring-brand-sky"
+                              />
+                              <input 
+                                type="text" placeholder="Relation to Mercy" required
+                                value={editUserData.position} onChange={e => setEditUserData({...editUserData, position: e.target.value})}
+                                className="p-2 border rounded outline-none focus:ring-2 focus:ring-brand-sky"
+                              />
+                            </div>
+                            <div className="flex justify-end gap-2">
+                              <button 
+                                type="button" onClick={() => setEditingUserId(null)}
+                                className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-lg"
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                type="submit" disabled={isSubmittingUser}
+                                className="px-4 py-2 bg-brand-sky text-white font-bold rounded-lg hover:bg-sky-500 disabled:opacity-50"
+                              >
+                                {isSubmittingUser ? 'Saving...' : 'Save'}
+                              </button>
+                            </div>
+                          </form>
+                        </td>
+                      ) : (
+                        <>
+                          <td className="p-4 font-medium flex items-center gap-3">
+                             <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 flex-shrink-0">
+                               {u.profileImage ? (
+                                 <img src={u.profileImage} alt={u.firstName} className="w-full h-full object-cover" />
+                               ) : (
+                                 <span className="w-full h-full flex items-center justify-center text-slate-500 font-bold text-xs">{u.firstName[0]}</span>
+                               )}
+                             </div>
+                             {u.firstName} {u.lastName} {u.alias && <span className="text-slate-400 text-sm font-normal">({u.alias})</span>}
+                          </td>
+                          <td className="p-4 text-slate-600">{u.email}</td>
+                          <td className="p-4 text-slate-600 hidden md:table-cell">{u.position}</td>
+                          <td className="p-4 text-right">
+                            {u.email !== ADMIN_EMAIL ? (
+                              <div className="flex justify-end gap-3">
+                                <button 
+                                  onClick={() => handleEditUserClick(u)}
+                                  className="text-brand-sky hover:text-sky-700 font-medium text-sm transition-colors"
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteUserClick(u.id, u.firstName)}
+                                  className="text-red-500 hover:text-red-700 font-medium text-sm transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 text-xs uppercase font-bold">Admin</span>
+                            )}
+                          </td>
+                        </>
+                      )}
                     </tr>
                   ))}
                   {allUsers?.length === 0 && (
